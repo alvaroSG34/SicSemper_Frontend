@@ -1,4 +1,5 @@
 export { DashboardHeader } from "./dashboard-header";
+export { DashboardAccessGuard } from "./dashboard-access-guard";
 export { DashboardLayout } from "./dashboard-layout";
 export { DashboardSidebar } from "./dashboard-sidebar";
 export { AutoPublicHeader } from "./auto-public-header";
