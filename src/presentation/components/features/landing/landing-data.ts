@@ -5,19 +5,19 @@ export const heroTitle = "¡Nuestro Evento de Diseño\nSe Acerca!";
 export const firstSpeakers = [
   {
     name: "ANDERSON\nADAM",
-    role: "ART DIRECTOR/DESIGNER",
+    role: "DIRECTOR DE ARTE / DISEÑADOR",
     image:
       "https://images.unsplash.com/photo-1664101606938-e664f5852fac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODR8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "EDWARDS\nREYES",
-    role: "WEB DESIGNER",
+    role: "DISEÑADOR WEB",
     image:
       "https://images.unsplash.com/photo-1575299833801-85ce40813bac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "ROGERS\nPARKER",
-    role: "DEVELOPER",
+    role: "DESARROLLADOR",
     image:
       "https://images.unsplash.com/photo-1574132190990-cfd62178bb1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
@@ -27,7 +27,7 @@ export const eventsCopy = {
   title: "Eventos Que\nRecordarás",
   subtitle: "Somos una empresa de eventos de negocios originaria de Nueva York",
   descriptionOne:
-    "Events es una empresa de gestión de eventos empresariales con un grupo de talentos \nde algunas de las mentes más brillantes de la industria. Nuestros eventos aprovechan lo mejor \nde la tecnología y la creatividad para ofrecer experiencias memorables que unen a las personas.",
+    "SicSemper es una empresa de gestión de eventos empresariales con un equipo de talento \nde algunas de las mentes más brillantes de la industria. Nuestros eventos aprovechan lo mejor \nde la tecnología y la creatividad para ofrecer experiencias memorables que unen a las personas.",
   descriptionTwo:
     "Nos apasiona crear experiencias inspiradoras que sacan lo mejor de las personas. \nYa sea que busques una actividad divertida para tu equipo o quieras conectar con \nprofesionales afines, tenemos el evento perfecto para ti.",
   image:
@@ -40,21 +40,21 @@ export const featuredSpeakers = [
     image:
       "https://images.unsplash.com/photo-1641893049587-a7f0f399ecec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODZ8&ixlib=rb-4.1.0&q=80&w=1080",
     name: "Dale Slemp",
-    role: "Lorem, Excepteur Ullco Laboris Culpa\n Qui Deserunt Mollit Anim",
+    role: "Líder de Diseño de Producto\nEspecialista en Experiencias Digitales",
   },
   {
     cardColor: "#ffddcc",
     image:
       "https://images.unsplash.com/photo-1653914900849-beb53df7f5ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODd8&ixlib=rb-4.1.0&q=80&w=1080",
     name: "Jolan Memory",
-    role: "Nullco Molestias Ad Omnis & Excepturi Provident \nSimilique Sunt In Culpa.",
+    role: "Diseñadora UX Senior\nInvestigación y Estrategia de Producto",
   },
   {
     cardColor: "#77ff99",
     image:
       "https://images.unsplash.com/photo-1761682773866-9807cb541d08?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODd8&ixlib=rb-4.1.0&q=80&w=1080",
     name: "Christa Ceinture",
-    role: "Associate, Bonbon Perspiciatis Neugairun \nPurchasale Sint Ullui.",
+    role: "Desarrolladora Frontend\nAccesibilidad y Sistemas de Diseño",
   },
 ] as const;
 
@@ -83,8 +83,7 @@ export const scheduleItems = [
   {
     time: "1:00 PM - 2:00 PM",
     title: "Descanso para Almuerzo",
-    description:
-      "Tiempo de descanso para almorzar con comida y bebidas incluidas.",
+    description: "Tiempo de descanso para almorzar con comida y bebidas incluidas.",
     isActive: false,
   },
   {
@@ -97,7 +96,16 @@ export const scheduleItems = [
 ] as const;
 
 export const sponsors = {
-  main: ["TECHCORP", "DESIGNLAB", "INNOVATE"],
+  main: [
+    "TECHCORP",
+    "DESIGNLAB",
+    "INNOVATE",
+    "PIXEL FORGE",
+    "NOVA STUDIO",
+    "BRIGHT CODE",
+    "UX BRIDGE",
+    "DATAWAVE",
+  ],
   secondary: ["CREATIVE CO", "PIXEL STUDIO", "BRANDIFY"],
 } as const;
 

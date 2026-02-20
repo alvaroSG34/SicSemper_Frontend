@@ -37,6 +37,255 @@ body {
   font-family: var(--font-family-sans);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@keyframes landing-ambient-drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  35% {
+    transform: translate3d(34px, -20px, 0) rotate(6deg) scale(1.05);
+  }
+  70% {
+    transform: translate3d(-18px, 14px, 0) rotate(-4deg) scale(0.98);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes landing-ambient-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  45% {
+    transform: translate3d(0, -20px, 0) scale(1.08);
+  }
+  75% {
+    transform: translate3d(8px, -8px, 0) scale(0.98);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes landing-ambient-twinkle {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.landing-ambient-blob {
+  display: block;
+  opacity: 0.32;
+  filter: blur(1px);
+  animation-name: landing-ambient-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.landing-ambient-particle {
+  display: block;
+  opacity: 0.42;
+  animation-name: landing-ambient-float, landing-ambient-twinkle;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  will-change: transform, opacity;
+}
+
+.landing-ambient-twinkle {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-ambient-blob,
+  .landing-ambient-particle {
+    animation: none;
+  }
+}
+
+@keyframes login-panel-left-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(-30px, 0, 0) scale(1.01);
+    filter: blur(3px);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(3px, 0, 0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes login-panel-right-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(30px, 0, 0) scale(1.01);
+    filter: blur(3px);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(-3px, 0, 0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes login-form-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.98);
+    filter: blur(3px);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0) scale(1.003);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.login-panel-left-enter {
+  animation: login-panel-left-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+.login-panel-right-enter {
+  animation: login-panel-right-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+.login-form-enter {
+  animation: login-form-enter 600ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+  will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-panel-left-enter,
+  .login-panel-right-enter,
+  .login-form-enter {
+    animation: none;
+  }
+}
+
+@keyframes register-decor-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.98);
+    filter: blur(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes register-title-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.98);
+    filter: blur(3px);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0) scale(1.003);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes register-form-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.98);
+    filter: blur(3px);
+  }
+  75% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0) scale(1.003);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes register-field-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.register-decor-enter {
+  animation: register-decor-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+.register-title-enter {
+  animation: register-title-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+  will-change: transform, opacity, filter;
+}
+
+.register-form-enter {
+  animation: register-form-enter 600ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+  will-change: transform, opacity, filter;
+}
+
+.register-field-enter {
+  animation: register-field-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-decor-enter,
+  .register-title-enter,
+  .register-form-enter,
+  .register-field-enter {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -1,24 +1,33 @@
+import Image from "next/image";
 import { eventsCopy } from "./landing-data";
 
 export function LandingEvents() {
   return (
-    <section className="flex w-full items-center justify-between gap-[60px] px-[120px] py-[100px]">
-      <div className="flex w-[500px] flex-col gap-6">
-        <h2 className="whitespace-pre-line text-5xl leading-[1.1] font-bold text-white">
+    <section
+      id="acerca"
+      className="mx-auto flex w-full max-w-[1400px] flex-col items-center gap-10 px-6 py-16 md:px-10 xl:flex-row xl:justify-center xl:gap-24 2xl:gap-28 xl:px-[120px] xl:py-[100px]"
+    >
+      <div className="flex w-full max-w-[500px] flex-col gap-6">
+        <h2 className="whitespace-pre-line text-4xl leading-[1.1] font-bold text-[color:var(--landing-text)] xl:text-5xl">
           {eventsCopy.title}
         </h2>
-        <p className="text-base font-semibold text-white">{eventsCopy.subtitle}</p>
-        <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[#999999]">
+        <p className="text-base font-semibold text-[color:var(--landing-text)]">
+          {eventsCopy.subtitle}
+        </p>
+        <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[color:var(--landing-muted)]">
           {eventsCopy.descriptionOne}
         </p>
-        <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[#999999]">
+        <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[color:var(--landing-muted)]">
           {eventsCopy.descriptionTwo}
         </p>
       </div>
 
-      <div
-        className="h-[340px] w-[500px] rounded-2xl bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${eventsCopy.image})` }}
+      <Image
+        src={eventsCopy.image}
+        alt="Eventos destacados"
+        width={500}
+        height={340}
+        className="h-auto w-full max-w-[500px] rounded-2xl object-cover"
       />
     </section>
   );

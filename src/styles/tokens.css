@@ -30,7 +30,7 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  --font-family-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  --font-family-sans: var(--font-inter), "Inter", "Avenir Next", "Segoe UI", sans-serif;
   --font-family-mono: "JetBrains Mono", "Fira Code", monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
@@ -39,4 +39,17 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
+
+  --landing-bg: #000000;
+  --landing-header-bg: #000000;
+  --landing-surface: #111111;
+  --landing-card: #0a0a0a;
+  --landing-panel: #0f0f0f;
+  --landing-border: #1a1a1a;
+  --landing-text: #ffffff;
+  --landing-muted: #999999;
+  --landing-subtle: #666666;
+  --landing-dim: #444444;
+  --landing-pink: #ff6b9d;
+  --landing-indigo: #5865f2;
 }
