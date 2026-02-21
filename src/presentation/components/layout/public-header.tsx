@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { useCallback, type MouseEvent } from "react";
+import { useCallback, useState, type MouseEvent } from "react";
+import type { UserRole } from "@/domain/user/user.types";
 
 type PublicHeaderVariant = "landing" | "login";
 
@@ -10,6 +11,12 @@ interface PublicHeaderProps {
   isLandingPage?: boolean;
   activeLinkId?: string | null;
   activeAuthAction?: "login" | "register" | null;
+  currentUserName?: string | null;
+  availableRoles?: UserRole[];
+  currentRole?: UserRole | null;
+  dashboardHref?: string;
+  onRoleChange?: (role: UserRole) => Promise<void> | void;
+  onLogout?: () => Promise<void> | void;
 }
 
 interface HeaderLink {
@@ -24,6 +31,12 @@ const HEADER_LINKS: HeaderLink[] = [
   { id: "equipo", label: "Conferencistas" },
   { id: "ubicacion", label: "Ubicación" },
 ];
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  PARTICIPANTE: "Participante",
+  JUEZ: "Juez",
+  ADMIN: "Admin",
+};
 
 function getLinkHref(linkId: string, isLandingPage: boolean) {
   if (isLandingPage) {
@@ -46,7 +59,16 @@ export function PublicHeader({
   isLandingPage = false,
   activeLinkId = null,
   activeAuthAction = null,
+  currentUserName = null,
+  availableRoles = [],
+  currentRole = null,
+  dashboardHref = "/login",
+  onRoleChange,
+  onLogout,
 }: PublicHeaderProps) {
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLandingMenuClick = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, linkId: string) => {
       event.preventDefault();
@@ -63,14 +85,47 @@ export function PublicHeader({
     [],
   );
 
+  const handleRoleChange = useCallback(
+    async (nextRole: string) => {
+      if (!onRoleChange) {
+        return;
+      }
+
+      const role = nextRole as UserRole;
+      if (!availableRoles.includes(role) || role === currentRole) {
+        return;
+      }
+
+      try {
+        setIsSwitchingRole(true);
+        await onRoleChange(role);
+      } finally {
+        setIsSwitchingRole(false);
+      }
+    },
+    [availableRoles, currentRole, onRoleChange],
+  );
+
+  const handleLogout = useCallback(async () => {
+    if (!onLogout) {
+      return;
+    }
+
+    try {
+      setIsLoggingOut(true);
+      await onLogout();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }, [onLogout]);
+
   const getLinkClasses = (index: number, linkId: string) => {
     const isActive = linkId === activeLinkId;
     const underlineBase =
-      "relative whitespace-nowrap pb-1 text-[16px] font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-[2px] after:origin-left after:scale-x-0 after:bg-[color:var(--landing-pink)] after:transition-transform after:duration-300";
+      "relative whitespace-nowrap pb-1 text-[16px] font-medium transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:origin-left after:scale-x-0 after:bg-[color:var(--landing-pink)] after:transition-transform after:duration-300";
 
     if (variant === "login") {
-      const baseColor =
-        index < 3 ? "text-[#111111] hover:text-[#000000]" : "text-white hover:text-white";
+      const baseColor = index < 3 ? "text-[#111111] hover:text-[#000000]" : "text-white hover:text-white";
       const activeColor = index < 3 ? "text-[#000000]" : "text-white";
 
       return [
@@ -101,6 +156,8 @@ export function PublicHeader({
       .join(" ")
       .trim();
   };
+
+  const loggedIn = Boolean(currentUserName);
 
   return (
     <header className={`sticky top-0 z-50 w-full ${getBackgroundClass(variant)}`}>
@@ -141,14 +198,52 @@ export function PublicHeader({
           )}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/login" className={getAuthButtonClasses("login")}>
-            INICIAR SESIÓN
-          </Link>
-          <Link href="/register" className={getAuthButtonClasses("register")}>
-            REGISTRARSE
-          </Link>
-        </div>
+        {loggedIn ? (
+          <div className="hidden items-center gap-3 lg:flex">
+            {availableRoles.length > 1 && currentRole ? (
+              <label className="flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-3 py-2 text-xs text-white">
+                <span className="font-semibold opacity-90">Rol</span>
+                <select
+                  className="rounded-md bg-transparent text-xs font-semibold text-white outline-none"
+                  value={currentRole}
+                  onChange={(event) => void handleRoleChange(event.target.value)}
+                  disabled={isSwitchingRole}
+                >
+                  {availableRoles.map((role) => (
+                    <option key={role} value={role} className="bg-[#111111] text-white">
+                      {ROLE_LABEL[role]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+
+            <Link
+              href={dashboardHref}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-[#5865f2] bg-[#5865f2] px-6 text-[14px] font-semibold text-white transition-colors hover:bg-[#4f5be0]"
+            >
+              MI PANEL
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={isLoggingOut}
+              className="inline-flex h-11 items-center justify-center rounded-full border border-white/70 px-6 text-[14px] font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-70"
+            >
+              {isLoggingOut ? "CERRANDO..." : "CERRAR SESIÓN"}
+            </button>
+          </div>
+        ) : (
+          <div className="hidden items-center gap-3 lg:flex">
+            <Link href="/login" className={getAuthButtonClasses("login")}>
+              INICIAR SESIÓN
+            </Link>
+            <Link href="/register" className={getAuthButtonClasses("register")}>
+              REGISTRARSE
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   );

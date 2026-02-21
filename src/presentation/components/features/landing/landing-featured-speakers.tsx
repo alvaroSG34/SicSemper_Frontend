@@ -8,11 +8,12 @@ export function LandingFeaturedSpeakers() {
       className="flex w-full flex-col items-center gap-8 px-6 py-16 md:px-10 xl:px-[120px] xl:py-20"
     >
       <h2 className="whitespace-pre-line text-center text-4xl leading-[1.1] font-bold text-[color:var(--landing-text)] xl:text-5xl">
-        Conoce a Los{"\n"}Conferencistas Destacados
+        Conoce a los Organizadores
       </h2>
       <p className="max-w-[900px] text-center text-sm font-normal text-[color:var(--landing-muted)]">
-        Compartirán su experiencia con nosotros y aportarán ideas prácticas para diseñar productos
-        más útiles, atractivos y memorables.
+        Organizadores apasionados por el detalle y la excelencia, dedicados a crear
+        un espacio donde el talento, la creatividad y el esfuerzo de cada modelista
+        sean reconocidos y valorados.
       </p>
 
       <div className="flex w-full flex-wrap justify-center gap-6 xl:flex-nowrap">

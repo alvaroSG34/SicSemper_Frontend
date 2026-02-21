@@ -28,8 +28,7 @@ export function LandingSchedule() {
             <span className="text-sm font-semibold text-[color:var(--landing-text)]">Día Uno</span>
             <div className="h-[3px] w-[60px] rounded-[2px] bg-[color:var(--landing-indigo)]" />
           </div>
-          <span className="text-sm text-[color:var(--landing-subtle)]">Día Dos</span>
-          <span className="text-sm text-[color:var(--landing-subtle)]">Día Tres</span>
+
         </div>
 
         <div className="flex flex-col gap-8">

@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { Outfit } from "next/font/google";
+import { Check, Eye, LockKeyhole, Mail, Sparkles, Zap } from "lucide-react";
 import type { UserRole } from "@/domain/user/user.types";
 import { AutoPublicHeader } from "@/presentation/components/layout";
 import { useAuthStore } from "@/presentation/stores";
@@ -19,27 +20,6 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   ADMIN: "/admin",
 };
 
-const testCredentials = [
-  {
-    role: "Participante",
-    email: "participante@sicsemper.test",
-    password: "SicSemper123!",
-    dashboard: "/participante",
-  },
-  {
-    role: "Juez",
-    email: "juez@sicsemper.test",
-    password: "SicSemper123!",
-    dashboard: "/juez",
-  },
-  {
-    role: "Admin",
-    email: "admin@sicsemper.test",
-    password: "SicSemper123!",
-    dashboard: "/admin",
-  },
-];
-
 const getDashboardRoute = (role: UserRole | null) => {
   if (!role) {
     return "/";
@@ -53,12 +33,12 @@ function LeftPanel() {
     <section className="login-panel-left-enter relative hidden min-h-screen overflow-hidden bg-[#dcdcdc] xl:block">
       <div className="relative mx-auto h-full min-h-screen w-full max-w-[720px]">
         <div className="absolute inset-0 w-[720px] rounded-[150px] bg-[radial-gradient(circle,rgba(139,92,246,0.15)_0%,rgba(139,92,246,0)_70%)] opacity-60" />
-        <div className="absolute right-[-30px] bottom-[-26px] h-[450px] w-[450px] rounded-[175px] bg-[radial-gradient(circle,rgba(236,72,153,0.1)_0%,rgba(236,72,153,0)_70%)] opacity-50" />
-        <div className="absolute top-[-50px] left-[200px] h-[400px] w-[400px] rounded-[160px] bg-[radial-gradient(circle,rgba(59,130,246,0.1)_0%,rgba(59,130,246,0)_70%)] opacity-50" />
+        <div className="absolute bottom-[-26px] right-[-30px] h-[450px] w-[450px] rounded-[175px] bg-[radial-gradient(circle,rgba(236,72,153,0.1)_0%,rgba(236,72,153,0)_70%)] opacity-50" />
+        <div className="absolute left-[200px] top-[-50px] h-[400px] w-[400px] rounded-[160px] bg-[radial-gradient(circle,rgba(59,130,246,0.1)_0%,rgba(59,130,246,0)_70%)] opacity-50" />
 
-        <div className="absolute top-[162px] left-[110px] flex h-[700px] w-[500px] flex-col items-center justify-center gap-12 p-[60px]">
+        <div className="absolute left-[110px] top-[162px] flex h-[700px] w-[500px] flex-col items-center justify-center gap-12 p-[60px]">
           <p className="text-center text-2xl font-semibold tracking-[3px] text-[#7C3AED] opacity-90">
-            Join Our Community
+            Plataforma
           </p>
           <h1
             className={`${outfit.className} text-center text-[64px] leading-none font-bold tracking-[-2px] text-[#1E293B]`}
@@ -67,30 +47,26 @@ function LeftPanel() {
           </h1>
 
           <div className="relative h-[500px] w-[450px]">
-            <div className="absolute top-0 left-[-25px] h-[500px] w-[500px] bg-[radial-gradient(circle,rgba(167,139,250,0.2)_0%,rgba(167,139,250,0)_70%)] opacity-90" />
-            <div className="absolute top-[80px] left-[95px] h-[360px] w-[280px] rotate-[-3deg] rounded-3xl bg-black opacity-20" />
+            <div className="absolute left-[-25px] top-0 h-[500px] w-[500px] bg-[radial-gradient(circle,rgba(167,139,250,0.2)_0%,rgba(167,139,250,0)_70%)] opacity-90" />
+            <div className="absolute left-[95px] top-[80px] h-[360px] w-[280px] rotate-[-3deg] rounded-3xl bg-black opacity-20" />
 
-            <div className="absolute top-[70px] left-[85px] h-[360px] w-[280px] rotate-[-3deg] rounded-3xl border border-[#E2E8F0] bg-white">
+            <div className="absolute left-[85px] top-[70px] h-[360px] w-[280px] rotate-[-3deg] rounded-3xl border border-[#E2E8F0] bg-white">
               <div className="flex h-full w-full flex-col items-center gap-5 p-[60px] text-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#7C3AED]">
-                  <span className="text-[40px] text-white">⚡</span>
+                  <Zap className="h-10 w-10 text-white" />
                 </div>
                 <h2 className={`${outfit.className} text-[24px] font-semibold text-[#1E293B]`}>
-                  Fast &amp; Secure
+                  Participa y unete
                 </h2>
-                <p className="text-sm text-[#64748B]">Login to access your dashboard</p>
+                <p className="text-sm text-[#64748B]">Accede al panel del eve</p>
               </div>
             </div>
 
-            <div className="absolute top-[360px] left-[330px] h-[70px] w-[70px] rounded-full border-2 border-[rgba(255,255,255,0.5)] bg-[#EC4899]" />
-            <div className="absolute top-[320px] left-[50px] h-[50px] w-[50px] rounded-full border-2 border-[rgba(255,255,255,0.5)] bg-[#3B82F6] opacity-90" />
-            <span className="absolute top-[90px] left-[350px] rotate-[15deg] text-[32px]">✨</span>
-            <span className="absolute top-[110px] left-[40px] rotate-[-15deg] text-[40px] text-[#F472B6]">
-              ✦
-            </span>
-            <span className="absolute top-[210px] left-[410px] rotate-[25deg] text-[36px] text-[#60A5FA] opacity-90">
-              ✦
-            </span>
+            <div className="absolute left-[330px] top-[360px] h-[70px] w-[70px] rounded-full border-2 border-[rgba(255,255,255,0.5)] bg-[#EC4899]" />
+            <div className="absolute left-[50px] top-[320px] h-[50px] w-[50px] rounded-full border-2 border-[rgba(255,255,255,0.5)] bg-[#3B82F6] opacity-90" />
+            <Sparkles className="absolute left-[350px] top-[90px] h-8 w-8 rotate-[15deg] text-[#FDE047]" />
+            <Sparkles className="absolute left-[40px] top-[110px] h-9 w-9 rotate-[-15deg] text-[#F472B6]" />
+            <Sparkles className="absolute left-[410px] top-[210px] h-8 w-8 rotate-[25deg] text-[#60A5FA] opacity-90" />
           </div>
         </div>
       </div>
@@ -126,32 +102,11 @@ function RightPanel({
 
         <div className="login-form-enter relative mx-auto w-full max-w-[520px] xl:absolute xl:left-[83px] xl:top-[204px]">
           <div className="flex w-full flex-col items-center gap-2 text-center">
-            <span className="text-[42px] leading-none">🔐</span>
+            <LockKeyhole className="h-11 w-11 text-[#facc15]" />
             <h2 className="text-[32px] font-bold leading-[1.2] tracking-[-0.5px] text-white">
-              ¡Bienvenido de Nuevo!
+              ¡Bienvenido de nuevo!
             </h2>
             <p className="text-[15px] text-[#999999]">Inicia sesión para continuar</p>
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-[rgba(88,101,242,0.35)] bg-[rgba(24,24,24,0.85)] p-4">
-            <p className="text-sm font-semibold text-[#c7d2fe]">Credenciales de prueba</p>
-            <div className="mt-3 space-y-2">
-              {testCredentials.map((credential) => (
-                <div
-                  key={credential.role}
-                  className="rounded-lg bg-[#111111] px-3 py-2 text-xs text-[#cfcfcf]"
-                >
-                  <p className="font-semibold text-white">{credential.role}</p>
-                  <p>
-                    Correo: <span className="font-mono text-[#c7d2fe]">{credential.email}</span>
-                  </p>
-                  <p>
-                    Clave: <span className="font-mono text-[#f9a8d4]">{credential.password}</span>
-                  </p>
-                  <p className="text-[#999999]">Dashboard: {credential.dashboard}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           <form
@@ -160,10 +115,10 @@ function RightPanel({
           >
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-sm font-semibold text-[#e5e5e5]">
-                Correo Electrónico
+                Correo electrónico
               </label>
               <div className="flex h-12 items-center gap-3 rounded-lg bg-[#0f0f0f] px-4 py-3">
-                <span className="text-[18px] text-[#666666]">📧</span>
+                <Mail className="h-[18px] w-[18px] text-[#666666]" />
                 <input
                   id="email"
                   type="email"
@@ -183,7 +138,7 @@ function RightPanel({
               </label>
               <div className="flex h-12 items-center justify-between rounded-lg bg-[#0f0f0f] px-4 py-3">
                 <div className="flex w-full items-center gap-3">
-                  <span className="text-[18px] text-[#666666]">🔒</span>
+                  <LockKeyhole className="h-[18px] w-[18px] text-[#666666]" />
                   <input
                     id="password"
                     type="password"
@@ -195,14 +150,14 @@ function RightPanel({
                     autoComplete="current-password"
                   />
                 </div>
-                <span className="text-[18px] text-[#666666]">👁</span>
+                <Eye className="h-[18px] w-[18px] text-[#666666]" />
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <label className="flex items-center gap-2 text-sm text-[#999999]">
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0f0f0f] text-sm font-bold text-[#5865f2]">
-                  ✓
+                  <Check className="h-3.5 w-3.5" />
                 </span>
                 Recordarme
               </label>
@@ -222,7 +177,7 @@ function RightPanel({
               disabled={isSubmitting}
               className="flex h-14 w-full items-center justify-center rounded-xl border border-[rgba(168,85,247,0.3)] bg-[linear-gradient(135deg,#8b5cf6_0%,#7c3aed_100%)] text-base font-bold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isSubmitting ? "Ingresando..." : "Iniciar Sesión"}
+              {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
             </button>
 
             <div className="flex items-center justify-center gap-2">

@@ -1,15 +1,40 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { UserRole } from "@/domain/user/user.types";
+import { useAuthStore } from "@/presentation/stores";
 import { PublicHeader } from "./public-header";
 
 const LANDING_SECTION_IDS = ["inicio", "acerca", "agenda", "equipo", "ubicacion"] as const;
 
+const dashboardRouteByRole: Record<UserRole, string> = {
+  PARTICIPANTE: "/participante",
+  JUEZ: "/juez",
+  ADMIN: "/admin",
+};
+
 export function AutoPublicHeader() {
+  const router = useRouter();
   const pathname = usePathname();
   const variant = pathname === "/login" ? "login" : "landing";
   const [activeLinkId, setActiveLinkId] = useState<string | null>("inicio");
+
+  const user = useAuthStore((state) => state.user);
+  const currentRole = useAuthStore((state) => state.currentRole);
+  const switchRole = useAuthStore((state) => state.switchRole);
+  const logout = useAuthStore((state) => state.logout);
+
+  const availableRoles = user?.roles ?? [];
+  const activeRole = currentRole ?? availableRoles[0] ?? null;
+
+  const dashboardHref = useMemo(() => {
+    if (!activeRole) {
+      return "/login";
+    }
+
+    return dashboardRouteByRole[activeRole];
+  }, [activeRole]);
 
   useEffect(() => {
     if (pathname !== "/") {
@@ -60,14 +85,28 @@ export function AutoPublicHeader() {
     };
   }, [pathname]);
 
+  const handleRoleChange = async (role: UserRole) => {
+    await switchRole(role);
+    router.push(dashboardRouteByRole[role]);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
   return (
     <PublicHeader
       variant={variant}
       isLandingPage={pathname === "/"}
       activeLinkId={pathname === "/" ? activeLinkId : null}
-      activeAuthAction={
-        pathname === "/login" ? "login" : pathname === "/register" ? "register" : null
-      }
+      activeAuthAction={pathname === "/login" ? "login" : pathname === "/register" ? "register" : null}
+      currentUserName={user?.name ?? null}
+      availableRoles={availableRoles}
+      currentRole={activeRole}
+      dashboardHref={dashboardHref}
+      onRoleChange={handleRoleChange}
+      onLogout={handleLogout}
     />
   );
 }

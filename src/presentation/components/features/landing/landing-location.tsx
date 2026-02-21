@@ -1,5 +1,12 @@
 import Image from "next/image";
+import { Bus, Car, MapPin } from "lucide-react";
 import { locationCards, locationMapImage } from "./landing-data";
+
+const iconByKey = {
+  mapPin: MapPin,
+  transport: Bus,
+  parking: Car,
+} as const;
 
 export function LandingLocation() {
   return (
@@ -24,38 +31,39 @@ export function LandingLocation() {
           className="object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(135deg,rgba(255,107,157,0.1)_0%,rgba(107,154,255,0.1)_100%)]">
-          <span className="text-[80px]">📍</span>
-        </div>
+    
       </div>
 
       <div className="flex w-full flex-wrap justify-center gap-6">
-        {locationCards.map((card) => (
-          <article
-            key={card.title}
-            className="flex w-full max-w-[400px] flex-col gap-4 rounded-3xl border border-[color:var(--landing-border)] bg-[color:var(--landing-card)] p-8"
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className="flex h-14 w-14 items-center justify-center rounded-full text-2xl"
-                style={{ backgroundColor: card.iconBackground }}
-              >
-                {card.icon}
+        {locationCards.map((card) => {
+          const Icon = iconByKey[card.icon as keyof typeof iconByKey] ?? MapPin;
+          return (
+            <article
+              key={card.title}
+              className="flex w-full max-w-[400px] flex-col gap-4 rounded-3xl border border-[color:var(--landing-border)] bg-[color:var(--landing-card)] p-8"
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-full"
+                  style={{ backgroundColor: card.iconBackground }}
+                >
+                  <Icon className="h-6 w-6 text-white" strokeWidth={1.9} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-medium text-[color:var(--landing-muted)]">
+                    {card.label}
+                  </p>
+                  <h3 className="text-[20px] font-bold text-[color:var(--landing-text)]">
+                    {card.title}
+                  </h3>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-[color:var(--landing-muted)]">
-                  {card.label}
-                </p>
-                <h3 className="text-[20px] font-bold text-[color:var(--landing-text)]">
-                  {card.title}
-                </h3>
-              </div>
-            </div>
-            <p className="text-[15px] leading-[1.6] text-[color:var(--landing-muted)]">
-              {card.description}
-            </p>
-          </article>
-        ))}
+              <p className="text-[15px] leading-[1.6] text-[color:var(--landing-muted)]">
+                {card.description}
+              </p>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

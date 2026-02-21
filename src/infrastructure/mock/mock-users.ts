@@ -22,10 +22,18 @@ export const mockUsers: User[] = [
     roles: ["ADMIN"],
     verified: true,
   },
+  {
+    id: "u-4",
+    name: "Sofia Doble Rol",
+    email: "dual@sicsemper.test",
+    roles: ["PARTICIPANTE", "JUEZ"],
+    verified: true,
+  },
 ];
 
 export const mockUserPasswords: Record<string, string> = {
   "participante@sicsemper.test": "SicSemper123!",
   "juez@sicsemper.test": "SicSemper123!",
   "admin@sicsemper.test": "SicSemper123!",
+  "dual@sicsemper.test": "SicSemper123!",
 };

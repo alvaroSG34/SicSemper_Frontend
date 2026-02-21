@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { DashboardHeader } from "@/presentation/components/layout/dashboard-header";
 import { DashboardSidebar } from "@/presentation/components/layout/dashboard-sidebar";
 
@@ -13,6 +16,16 @@ export function DashboardLayout({
   title = "Panel de control",
   subtitle = "Arquitectura base lista para conectar features.",
 }: DashboardLayoutProps) {
+  const pathname = usePathname();
+
+  if (
+    pathname.startsWith("/participante") ||
+    pathname.startsWith("/juez") ||
+    pathname.startsWith("/admin")
+  ) {
+    return <div className="min-h-screen bg-[#000000] text-white">{children}</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px]">

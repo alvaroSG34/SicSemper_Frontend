@@ -5,9 +5,9 @@ import { LandingFooter } from "./landing-footer";
 import { LandingHeader } from "./landing-header";
 import { LandingHero } from "./landing-hero";
 import { LandingLocation } from "./landing-location";
+import { LandingOrganizersCard } from "./landing-organizers-card";
 import { LandingReveal } from "./landing-reveal";
 import { LandingSchedule } from "./landing-schedule";
-import { LandingSpeakerCards } from "./landing-speaker-cards";
 import { LandingSponsors } from "./landing-sponsors";
 
 export function LandingPageFeature() {
@@ -20,7 +20,7 @@ export function LandingPageFeature() {
           <LandingHero />
         </LandingReveal>
         <LandingReveal delayMs={50}>
-          <LandingSpeakerCards />
+          <LandingOrganizersCard />
         </LandingReveal>
         <LandingReveal delayMs={80}>
           <LandingEvents />

@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
+import { Rocket, Sparkles, Star } from "lucide-react";
 import { AutoPublicHeader } from "@/presentation/components/layout";
 import { useAuthStore } from "@/presentation/stores";
 
@@ -11,6 +12,13 @@ const inputClassName =
 
 const labelClassName = "text-sm font-semibold text-[#e5e5e5]";
 const fieldEnterStyle = (delay: number) => ({ animationDelay: `${delay}ms` });
+const clubOptions = [
+  "Club IPMS Central",
+  "Asociación Maquetistas Andinos",
+  "Escuadrón Modelismo Guarayo",
+  "Academia Scale Builders",
+  "Círculo Creativo de Miniaturas",
+] as const;
 
 type RegisterFormFields = {
   fullName: string;
@@ -164,23 +172,23 @@ export default function RegisterPage() {
 
       <section className="relative mx-auto flex w-full max-w-[1522px] justify-center px-6 pb-16 pt-8 md:px-10 md:pt-10">
         <div
-          className="register-decor-enter pointer-events-none absolute top-[-120px] left-[-130px] hidden h-[400px] w-[400px] rounded-full bg-[#1a1a1a] opacity-60 lg:block"
+          className="register-decor-enter pointer-events-none absolute left-[-130px] top-[-120px] hidden h-[400px] w-[400px] rounded-full bg-[#1a1a1a] opacity-60 lg:block"
           style={fieldEnterStyle(40)}
         />
         <div
-          className="register-decor-enter pointer-events-none absolute right-[-150px] bottom-[-140px] hidden h-[500px] w-[500px] rounded-full bg-[#1a1a1a] opacity-50 lg:block"
+          className="register-decor-enter pointer-events-none absolute bottom-[-140px] right-[-150px] hidden h-[500px] w-[500px] rounded-full bg-[#1a1a1a] opacity-50 lg:block"
           style={fieldEnterStyle(120)}
         />
         <div
-          className="register-decor-enter pointer-events-none absolute top-[140px] right-[120px] hidden h-[50px] w-[50px] rounded-full bg-[#1a1a1a] lg:block"
+          className="register-decor-enter pointer-events-none absolute right-[120px] top-[140px] hidden h-[50px] w-[50px] rounded-full bg-[#1a1a1a] lg:block"
           style={fieldEnterStyle(180)}
         />
         <div
-          className="register-decor-enter pointer-events-none absolute top-[520px] right-[120px] hidden h-[50px] w-[50px] rounded-full bg-[#1a1a1a] lg:block"
+          className="register-decor-enter pointer-events-none absolute right-[120px] top-[520px] hidden h-[50px] w-[50px] rounded-full bg-[#1a1a1a] lg:block"
           style={fieldEnterStyle(220)}
         />
         <div
-          className="register-decor-enter pointer-events-none absolute top-[340px] left-[90px] hidden h-[40px] w-[40px] rotate-[-20deg] rounded-lg bg-[#1a1a1a] lg:block"
+          className="register-decor-enter pointer-events-none absolute left-[90px] top-[340px] hidden h-[40px] w-[40px] rotate-[-20deg] rounded-lg bg-[#1a1a1a] lg:block"
           style={fieldEnterStyle(160)}
         />
         <div
@@ -188,35 +196,27 @@ export default function RegisterPage() {
           style={fieldEnterStyle(240)}
         />
 
-        <span
-          className="register-decor-enter pointer-events-none absolute top-[170px] left-[220px] hidden text-xl text-[#5865f2] opacity-70 lg:block"
+        <Sparkles
+          className="register-decor-enter pointer-events-none absolute left-[220px] top-[170px] hidden h-5 w-5 text-[#5865f2] opacity-70 lg:block"
           style={fieldEnterStyle(200)}
-        >
-          ✨
-        </span>
-        <span
-          className="register-decor-enter pointer-events-none absolute top-[370px] right-[260px] hidden text-lg text-[#ff6b9d] opacity-60 lg:block"
+        />
+        <Star
+          className="register-decor-enter pointer-events-none absolute right-[260px] top-[370px] hidden h-5 w-5 text-[#ff6b9d] opacity-60 lg:block"
           style={fieldEnterStyle(260)}
-        >
-          ⭐
-        </span>
-        <span
-          className="register-decor-enter pointer-events-none absolute top-[680px] left-[130px] hidden text-base text-[#ffd700] opacity-50 lg:block"
+        />
+        <Sparkles
+          className="register-decor-enter pointer-events-none absolute left-[130px] top-[680px] hidden h-4 w-4 text-[#ffd700] opacity-50 lg:block"
           style={fieldEnterStyle(280)}
-        >
-          ✨
-        </span>
-        <span
-          className="register-decor-enter pointer-events-none absolute top-[600px] right-[260px] hidden text-xl text-[#5865f2] opacity-60 lg:block"
+        />
+        <Sparkles
+          className="register-decor-enter pointer-events-none absolute right-[260px] top-[600px] hidden h-5 w-5 text-[#5865f2] opacity-60 lg:block"
           style={fieldEnterStyle(300)}
-        >
-          💫
-        </span>
+        />
 
         <div className="relative z-10 flex w-full max-w-[600px] flex-col items-center gap-8">
           <div className="register-title-enter flex flex-col items-center gap-4 text-center">
-            <span className="text-5xl">🚀</span>
-            <h1 className="text-4xl leading-tight font-bold md:text-6xl">¡Únete a Nosotros!</h1>
+            <Rocket className="h-12 w-12 text-[#5865f2]" />
+            <h1 className="text-4xl leading-tight font-bold md:text-6xl">¡Únete a nosotros!</h1>
             <p className="text-sm text-[#999999] md:text-base">
               Completa tus datos y comienza tu aventura
             </p>
@@ -227,12 +227,9 @@ export default function RegisterPage() {
             className="register-form-enter w-full rounded-3xl bg-[#1a1a1a] p-6 md:p-12"
           >
             <div className="flex flex-col gap-6">
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(260)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(260)}>
                 <label htmlFor="fullName" className={labelClassName}>
-                  Nombre Completo *
+                  Nombre completo *
                 </label>
                 <input
                   id="fullName"
@@ -279,12 +276,9 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(360)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(360)}>
                 <label htmlFor="birthDate" className={labelClassName}>
-                  Fecha de Nacimiento *
+                  Fecha de nacimiento *
                 </label>
                 <input
                   id="birthDate"
@@ -297,10 +291,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(410)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(410)}>
                 <label htmlFor="country" className={labelClassName}>
                   País *
                 </label>
@@ -322,27 +313,26 @@ export default function RegisterPage() {
                 </select>
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(460)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(460)}>
                 <label htmlFor="club" className={labelClassName}>
                   Club (opcional)
                 </label>
-                <input
+                <select
                   id="club"
-                  type="text"
+                  className={inputClassName}
                   value={form.club}
                   onChange={handleChange("club")}
-                  placeholder="Tu club o institución"
-                  className={inputClassName}
-                />
+                >
+                  <option value="">Selecciona tu club (opcional)</option>
+                  {clubOptions.map((club) => (
+                    <option key={club} value={club}>
+                      {club}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(510)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(510)}>
                 <label htmlFor="phone" className={labelClassName}>
                   Teléfono *
                 </label>
@@ -357,12 +347,9 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(560)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(560)}>
                 <label htmlFor="email" className={labelClassName}>
-                  Correo Electrónico *
+                  Correo electrónico *
                 </label>
                 <input
                   id="email"
@@ -376,10 +363,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(610)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(610)}>
                 <label htmlFor="password" className={labelClassName}>
                   Contraseña *
                 </label>
@@ -403,12 +387,9 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div
-                className="register-field-enter flex flex-col gap-2"
-                style={fieldEnterStyle(660)}
-              >
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(660)}>
                 <label htmlFor="confirmPassword" className={labelClassName}>
-                  Confirmar Contraseña *
+                  Confirmar contraseña *
                 </label>
                 <input
                   id="confirmPassword"
