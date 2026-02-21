@@ -1,4 +1,3 @@
-export { ParticipantCompetitions } from "./participant-competitions";
 export { ParticipantHeader } from "./participant-header";
 export { ParticipantKpis } from "./participant-kpis";
 export { ParticipantNextChallenge } from "./participant-next-challenge";

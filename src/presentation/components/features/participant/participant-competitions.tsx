@@ -1,11 +1,17 @@
 import { Outfit } from "next/font/google";
 import { BadgeCheck, Clock3 } from "lucide-react";
-import type { ParticipantCompetition } from "@/domain/participant/participant.types";
 
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["600", "700"],
 });
+
+type ParticipantCompetition = {
+  id: string;
+  title: string;
+  subtitle: string;
+  status: "CONFIRMADO" | "PENDIENTE";
+};
 
 type ParticipantCompetitionsProps = {
   competitions: ParticipantCompetition[];
@@ -14,7 +20,7 @@ type ParticipantCompetitionsProps = {
 export function ParticipantCompetitions({ competitions }: ParticipantCompetitionsProps) {
   return (
     <article className="flex flex-col gap-6 rounded-3xl bg-[#121212] p-5 sm:p-6 xl:p-8">
-      <h3 className={`${outfit.className} text-[20px] font-semibold text-white`}>Mis Competencias</h3>
+      <h3 className={`${outfit.className} text-[20px] font-semibold text-white`}>Participaciones</h3>
 
       <div className="flex flex-col gap-4">
         {competitions.map((competition) => (

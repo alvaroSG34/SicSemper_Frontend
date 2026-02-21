@@ -36,7 +36,6 @@ type ParticipantStoreState = {
     modelo: string;
     marca: string;
     descripcion?: string;
-    codigo: string;
     escalaId: string;
     images: ParticipantUploadImageInput[];
   }) => Promise<boolean>;
@@ -151,27 +150,16 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
     set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
 
     try {
-      const enrollment = await participantService.getEnrollmentContext(
-        payload.userId,
-        payload.eventId,
-        payload.categoryId,
-      );
-
-      if (!enrollment) {
-        throw new Error("No tienes una inscripcion activa para esa categoria.");
-      }
-
       const requestPayload: CreateParticipantModelPayload = {
         userId: payload.userId,
         eventId: payload.eventId,
         categoryId: payload.categoryId,
         subcategoryId: payload.subcategoryId,
-        usuarioEventoCategoriaId: enrollment.id,
+        usuarioEventoCategoriaId: `open-${payload.userId}-${payload.eventId}-${payload.categoryId}`,
         nombre: payload.nombre,
         modelo: payload.modelo,
         marca: payload.marca,
         descripcion: payload.descripcion,
-        codigo: payload.codigo,
         escalaId: payload.escalaId,
         images: payload.images,
       };

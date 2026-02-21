@@ -105,6 +105,40 @@ const ensureScaleExists = (scaleId: string) => {
   return scale;
 };
 
+const randomCodeChunk = (length: number) => {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let output = "";
+  for (let index = 0; index < length; index += 1) {
+    const charIndex = Math.floor(Math.random() * alphabet.length);
+    output += alphabet[charIndex];
+  }
+  return output;
+};
+
+const buildEventCodePrefix = (eventId: string) => {
+  const safeId = eventId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const suffix = safeId.slice(-3).padStart(3, "X");
+  return `MQ-${suffix}`;
+};
+
+const generateUniqueModelCodeForEvent = (eventId: string) => {
+  const prefix = buildEventCodePrefix(eventId);
+  const maxAttempts = 200;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const candidate = `${prefix}-${randomCodeChunk(6)}`;
+    const exists = mockParticipantModels.some(
+      (model) =>
+        model.eventId === eventId && normalizeCode(model.codigo) === normalizeCode(candidate),
+    );
+    if (!exists) {
+      return candidate;
+    }
+  }
+
+  throw new Error("No se pudo generar un codigo unico para la maqueta.");
+};
+
 export const participantService: ParticipantService = {
   async getDashboardData(userId) {
     const dashboard = getClonedParticipantDashboardData();
@@ -176,7 +210,6 @@ export const participantService: ParticipantService = {
     ensureNonEmpty(payload.nombre, "nombre");
     ensureNonEmpty(payload.modelo, "modelo");
     ensureNonEmpty(payload.marca, "marca");
-    ensureNonEmpty(payload.codigo, "codigo");
 
     const event = mockCatalogEvents.find((item) => item.id === payload.eventId);
     if (!event) {
@@ -187,29 +220,7 @@ export const participantService: ParticipantService = {
     const subcategory = ensureSubcategoryBelongsCategory(payload.categoryId, payload.subcategoryId);
     const scale = ensureScaleExists(payload.escalaId);
 
-    const enrollment = mockParticipantEnrollments.find(
-      (item) =>
-        item.id === payload.usuarioEventoCategoriaId &&
-        item.userId === payload.userId &&
-        item.eventId === payload.eventId &&
-        item.categoryId === payload.categoryId &&
-        item.status === "ACTIVA",
-    );
-
-    if (!enrollment) {
-      throw new Error("No existe una inscripcion activa para el evento y categoria seleccionados.");
-    }
-
-    const duplicate = mockParticipantModels.some(
-      (model) =>
-        model.eventId === payload.eventId &&
-        model.categoryId === payload.categoryId &&
-        normalizeCode(model.codigo) === normalizeCode(payload.codigo),
-    );
-
-    if (duplicate) {
-      throw new Error("El codigo ya existe para este evento y categoria.");
-    }
+    const generatedCode = generateUniqueModelCodeForEvent(payload.eventId);
 
     const sanitizedImages = payload.images.map((image) => {
       if (!allowedImageTypes.has(image.type)) {
@@ -236,7 +247,7 @@ export const participantService: ParticipantService = {
       modelo: payload.modelo.trim(),
       marca: payload.marca.trim(),
       descripcion: payload.descripcion?.trim() ?? "",
-      codigo: payload.codigo.trim(),
+      codigo: generatedCode,
       status: "ENVIADA",
       createdAt: now,
       updatedAt: now,

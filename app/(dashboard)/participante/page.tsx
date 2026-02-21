@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  ParticipantCompetitions,
   ParticipantEventDetail,
   ParticipantEventsExplorer,
   ParticipantHeader,
@@ -20,7 +19,7 @@ import { useAuthStore, useParticipantStore } from "@/presentation/stores";
 function ParticipantDashboardLoading() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
-      <p className="text-sm text-[#AAAAAA]">Cargando dashboard de participante...</p>
+      <p className="text-sm text-[#AAAAAA]">Cargando panel del participante...</p>
     </main>
   );
 }
@@ -126,8 +125,7 @@ export default function ParticipantePage() {
 
           <ParticipantKpis kpis={dashboard.kpis} />
 
-          <section className="grid w-full grid-cols-1 gap-5 xl:h-[300px] xl:grid-cols-2 xl:gap-8">
-            <ParticipantCompetitions competitions={dashboard.competitions} />
+          <section className="grid w-full grid-cols-1 gap-5 xl:gap-8">
             <ParticipantOpenEvents events={dashboard.openEvents} />
           </section>
         </>
@@ -189,7 +187,7 @@ export default function ParticipantePage() {
     return (
       <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-6">
         <p className="text-sm text-[#9C9C9C]">
-          Esta seccion estara disponible en una proxima iteracion.
+          Esta seccion estara disponible pronto.
         </p>
       </section>
     );

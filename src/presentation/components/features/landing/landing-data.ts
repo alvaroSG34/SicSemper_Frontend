@@ -1,23 +1,23 @@
 export const heroDate = "15 Y 16 DE AGOSTO, 2026 / SALON GUARAYO - FEXPOCRUZ";
 
-export const heroTitle = "¡Nuestro Evento de Diseño\nSe Acerca!";
+export const heroTitle = "¡Nuestra Competencia de Maquetas\nSe Acerca!";
 
 export const firstSpeakers = [
   {
     name: "ANDERSON\nADAM",
-    role: "DIRECTOR DE ARTE / DISEÑADOR",
+    role: "MAESTRO MODELISTA / JURADO TECNICO",
     image:
       "https://images.unsplash.com/photo-1664101606938-e664f5852fac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODR8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "EDWARDS\nREYES",
-    role: "DISEÑADOR WEB",
+    role: "ESPECIALISTA EN DETALLADO",
     image:
       "https://images.unsplash.com/photo-1575299833801-85ce40813bac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "ROGERS\nPARKER",
-    role: "DESARROLLADOR",
+    role: "CONSTRUCTOR DE DIORAMAS",
     image:
       "https://images.unsplash.com/photo-1574132190990-cfd62178bb1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
@@ -92,14 +92,14 @@ export const scheduleItems = [
   },
   {
     time: "10:00 AM - 11:00 AM",
-    title: "Planificar y Realizar Investigación de Usuarios",
+    title: "Exhibición y Evaluación Técnica",
     description:
       "Inicio oficial de la exhibición. Las maquetas quedan abiertas al público mientras el jurado revisa criterios como precisión histórica, nivel de detalle y acabado.",
     isActive: false,
   },
   {
     time: "11:00 AM - 1:00 PM",
-    title: "Preguntas y Respuestas para el Conferencista",
+    title: "Mesa Técnica con Jurados",
     description:
       "Interacción entre participantes y jueces. Los modelistas pueden explicar técnicas, materiales utilizados y procesos de construcción.",
     isActive: false,
@@ -113,7 +113,7 @@ export const scheduleItems = [
   },
   {
     time: "2:00 PM - 3:00 PM",
-    title: "Investigación para lo Correcto",
+    title: "Deliberación Final del Jurado",
     description:
       "Evaluación final y deliberación del jurado. Se determinan los puntajes y se preparan los resultados por categoría y subcategoría.",
     isActive: false,
@@ -122,14 +122,14 @@ export const scheduleItems = [
 
 export const sponsors = {
   main: [
-    "TECHCORP",
-    "DESIGNLAB",
-    "INNOVATE",
-    "PIXEL FORGE",
-    "NOVA STUDIO",
-    "BRIGHT CODE",
-    "UX BRIDGE",
-    "DATAWAVE",
+    "IPMS BOLIVIA",
+    "MODEL KITS BOL",
+    "AEROMODEL CLUB",
+    "TANQUE HISTORICO",
+    "NAVAL SCALE HOUSE",
+    "DIORAMA LAB",
+    "HOBBY MASTER",
+    "PINTURAS ATLAS",
   ],
   secondary: ["CREATIVE CO", "PIXEL STUDIO", "BRANDIFY"],
 } as const;

@@ -99,7 +99,7 @@ export const mockParticipantModels: ParticipantModel[] = [
     status: "ENVIADA",
     createdAt: "2026-02-10T09:00:00.000Z",
     updatedAt: "2026-02-10T09:00:00.000Z",
-    eventName: "Hackathon Global 2024",
+    eventName: "Copa Nacional de Modelismo 2026",
     categoryName: "Aviones",
     subcategoryName: "Monoplaza",
     escalaValue: "1:72",
@@ -148,4 +148,3 @@ export const toParticipantImageFromUpload = (
     updatedAt: now,
   };
 };
-

@@ -33,7 +33,6 @@ type ParticipantUploadModelWizardProps = {
     modelo: string;
     marca: string;
     descripcion?: string;
-    codigo: string;
     escalaId: string;
     images: ParticipantUploadImageInput[];
   }) => Promise<boolean>;
@@ -151,17 +150,6 @@ export function ParticipantUploadModelWizard({
             ) : null}
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            Codigo *
-            <input
-              {...flow.form.register("codigo")}
-              className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-            />
-            {flow.form.formState.errors.codigo ? (
-              <span className="text-xs text-[#fca5a5]">{flow.form.formState.errors.codigo.message}</span>
-            ) : null}
-          </label>
-
           <label className="flex flex-col gap-2 text-sm text-[#D0D0D0] md:col-span-2">
             Descripcion
             <textarea
@@ -169,6 +157,10 @@ export function ParticipantUploadModelWizard({
               className="min-h-[100px] rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-sm text-white outline-none"
             />
           </label>
+
+          <p className="rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-xs text-[#AFAFAF] md:col-span-2">
+            El codigo de maqueta se genera automaticamente al enviar y sera unico dentro del evento.
+          </p>
 
           <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
             Escala *

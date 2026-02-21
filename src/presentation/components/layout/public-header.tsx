@@ -28,7 +28,7 @@ const HEADER_LINKS: HeaderLink[] = [
   { id: "inicio", label: "Inicio" },
   { id: "acerca", label: "Acerca de" },
   { id: "agenda", label: "Agenda" },
-  { id: "equipo", label: "Conferencistas" },
+  { id: "equipo", label: "Jurados Invitados" },
   { id: "ubicacion", label: "Ubicación" },
 ];
 

@@ -2,7 +2,6 @@ import type { Identifier } from "@/core/types";
 
 export type ParticipantSidebarItemId =
   | "inicio"
-  | "competencias"
   | "eventos"
   | "maquetas"
   | "resultados"
@@ -56,15 +55,6 @@ export type ParticipantKpi = {
   tone: ParticipantKpiTone;
   icon: ParticipantKpiIcon;
   suffix?: string;
-};
-
-export type ParticipantCompetitionStatus = "CONFIRMADO" | "PENDIENTE";
-
-export type ParticipantCompetition = {
-  id: Identifier;
-  title: string;
-  subtitle: string;
-  status: ParticipantCompetitionStatus;
 };
 
 export type ParticipantOpenEvent = {
@@ -172,7 +162,6 @@ export type CreateParticipantModelPayload = {
   modelo: string;
   marca: string;
   descripcion?: string;
-  codigo: string;
   escalaId: Identifier;
   images: ParticipantUploadImageInput[];
 };
@@ -182,6 +171,5 @@ export type ParticipantDashboardData = {
   profile: ParticipantProfile;
   nextChallenge: ParticipantNextChallenge;
   kpis: ParticipantKpi[];
-  competitions: ParticipantCompetition[];
   openEvents: ParticipantOpenEvent[];
 };

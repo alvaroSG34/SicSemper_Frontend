@@ -38,21 +38,21 @@ const sidebarItems: SidebarItem[] = [
 const pendingQueue = [
   {
     project: "Maqueta Museo Interactivo",
-    category: "Arquitectura Digital · Senior",
+    category: "Aviones · Senior",
     priority: "Alta",
     time: "Vence en 2 h",
     status: "Pendiente",
   },
   {
-    project: "App Salud Comunitaria",
-    category: "UX/UI · Intermedio",
+    project: "T-34 Legendario",
+    category: "Tanques · Intermedio",
     priority: "Media",
     time: "Vence mañana",
     status: "En revisión",
   },
   {
-    project: "Sistema de Riego IoT",
-    category: "Innovación Tecnológica · Avanzado",
+    project: "Fragata Aurora",
+    category: "Barcos · Avanzado",
     priority: "Alta",
     time: "Vence en 6 h",
     status: "Pendiente",
@@ -61,17 +61,17 @@ const pendingQueue = [
 
 const recentReviews = [
   {
-    project: "Plataforma de Turismo Local",
+    project: "F-4 Phantom II",
     score: "92/100",
     result: "Aprobada",
   },
   {
-    project: "Dashboard Energía Verde",
+    project: "Panzer IV Ausf. H",
     score: "88/100",
     result: "Aprobada",
   },
   {
-    project: "App Gestión Escolar",
+    project: "HMS Victory",
     score: "En curso",
     result: "En revisión",
   },
@@ -79,16 +79,16 @@ const recentReviews = [
 
 const assignedEvents = [
   {
-    name: "Hackathon Global 2024",
-    detail: "18 proyectos asignados · Finaliza en 2 días",
+    name: "Copa Nacional de Modelismo 2026",
+    detail: "18 maquetas asignadas · Finaliza en 2 dias",
   },
   {
-    name: "Challenge UX Research",
-    detail: "12 proyectos asignados · Finaliza en 4 días",
+    name: "Gran Premio de Modelismo Naval",
+    detail: "12 maquetas asignadas · Finaliza en 4 dias",
   },
   {
-    name: "Concurso Innovación LATAM",
-    detail: "9 proyectos asignados · Finaliza en 6 días",
+    name: "Concurso Latinoamericano de Dioramas",
+    detail: "9 maquetas asignadas · Finaliza en 6 dias",
   },
 ];
 
@@ -155,7 +155,7 @@ export default function JuezPage() {
                 <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
                   Hola, Juez Mariana
                 </h1>
-                <p className="text-sm text-[#AAAAAA]">Panel de Evaluación · Especialidad UX/UI</p>
+                <p className="text-sm text-[#AAAAAA]">Panel de Evaluación · Especialidad en Modelismo</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
@@ -186,10 +186,10 @@ export default function JuezPage() {
                   <h2
                     className={`${outfit.className} text-3xl leading-tight font-bold text-white sm:text-4xl xl:text-5xl xl:leading-none`}
                   >
-                    3 proyectos críticos por revisar
+                    3 maquetas criticas por revisar
                   </h2>
                   <p className="text-sm text-[#AAAAAA] sm:text-base">
-                    Prioriza evaluaciones urgentes para cerrar resultados a tiempo.
+                    Prioriza evaluaciones urgentes para cerrar calificaciones a tiempo.
                   </p>
                 </div>
 
@@ -236,7 +236,7 @@ export default function JuezPage() {
                   </div>
                   <div className="rounded-xl border border-[#2A2A2A] bg-[#1A1A1A] p-4">
                     <p className="text-xs text-[#999999]">Siguiente corte</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Hoy, 18:00 · Sala UX/UI</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Hoy, 18:00 · Sala Aviones y Tanques</p>
                   </div>
                   <div className="rounded-xl border border-[#2A2A2A] bg-[#1A1A1A] p-4">
                     <p className="text-xs text-[#999999]">Cobertura de revisiones</p>

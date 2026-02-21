@@ -19,7 +19,6 @@ const uploadSchema = z.object({
   modelo: z.string().trim().min(1, "El modelo es obligatorio."),
   marca: z.string().trim().min(1, "La marca es obligatoria."),
   descripcion: z.string().trim().optional(),
-  codigo: z.string().trim().min(1, "El codigo es obligatorio."),
   escalaId: z.string().trim().min(1, "Debes seleccionar una escala."),
 });
 
@@ -40,7 +39,6 @@ type UseParticipantUploadFlowParams = {
     modelo: string;
     marca: string;
     descripcion?: string;
-    codigo: string;
     escalaId: string;
     images: ParticipantUploadImageInput[];
   }) => Promise<boolean>;
@@ -53,7 +51,6 @@ const defaultFormValues: UploadFormValues = {
   modelo: "",
   marca: "",
   descripcion: "",
-  codigo: "",
   escalaId: "",
 };
 
@@ -153,7 +150,6 @@ export const useParticipantUploadFlow = ({
       modelo: values.modelo,
       marca: values.marca,
       descripcion: values.descripcion,
-      codigo: values.codigo,
       escalaId: values.escalaId,
       images: selectedFiles.map((file) => ({
         name: file.name,
@@ -187,4 +183,3 @@ export const useParticipantUploadFlow = ({
     resetForAnother,
   };
 };
-

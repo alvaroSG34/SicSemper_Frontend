@@ -48,8 +48,8 @@ const eventStatusOptions: CatalogEventStatus[] = ["ACTIVO", "PAUSADO", "BORRADOR
 
 const clubData = [
   { id: "club-1", name: "Club IPMS Central", members: 42, city: "La Paz" },
-  { id: "club-2", name: "Asociación Creativa UX", members: 27, city: "Santa Cruz" },
-  { id: "club-3", name: "Frontend Builders Hub", members: 33, city: "Cochabamba" },
+  { id: "club-2", name: "Asociación Boliviana de Modelismo", members: 27, city: "Santa Cruz" },
+  { id: "club-3", name: "Escuadron Escala Real", members: 33, city: "Cochabamba" },
 ];
 
 const roleLabel: Record<"PARTICIPANTE" | "JUEZ" | "ADMIN", string> = {
@@ -334,7 +334,7 @@ export default function AdminPage() {
                 <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
                   Hola, Admin {user?.name?.split(" ")[0] ?? "SicSemper"}
                 </h1>
-                <p className="text-sm text-[#AAAAAA]">Centro de control operativo · Panel de gestión global</p>
+                <p className="text-sm text-[#AAAAAA]">Centro de control operativo de competencias de modelismo</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
@@ -380,10 +380,10 @@ export default function AdminPage() {
                 <h2
                   className={`${outfit.className} text-3xl leading-tight font-bold text-white sm:text-4xl xl:text-5xl xl:leading-none`}
                 >
-                  Monitoreo operativo del ecosistema SicSemper
+                  Monitoreo de competencias de modelismo
                 </h2>
                 <p className="text-sm text-[#AAAAAA] sm:text-base">
-                  Gestiona usuarios, jueces y catálogo de evaluación desde un único panel.
+                  Gestiona participantes, jueces, categorias y eventos desde un unico panel.
                 </p>
               </div>
 
@@ -887,7 +887,7 @@ export default function AdminPage() {
               <article id="ajustes" className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <h3 className={`${outfit.className} text-[20px] font-semibold text-white`}>
-                    Alertas del sistema
+                    Alertas operativas
                   </h3>
                   <AlertTriangle className="h-5 w-5 text-[#F15BB5]" />
                 </div>
@@ -912,10 +912,10 @@ export default function AdminPage() {
             </section>
 
             <footer className="pb-6 text-xs text-[#777777]">
-              {loading ? "Actualizando panel..." : "Panel Admin v1 · Datos mock en memoria de sesión"}
+              {loading ? "Actualizando panel..." : "Panel Admin v1 · Datos de demostracion en memoria de sesion"}
               <span className="ml-2 inline-flex items-center gap-1">
                 <ArrowRight className="h-3 w-3" />
-                Sin integración backend en esta fase
+                Modo demostracion sin conexion a servicios externos
               </span>
             </footer>
           </div>

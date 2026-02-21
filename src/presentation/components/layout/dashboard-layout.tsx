@@ -13,8 +13,8 @@ type DashboardLayoutProps = Readonly<{
 
 export function DashboardLayout({
   children,
-  title = "Panel de control",
-  subtitle = "Arquitectura base lista para conectar features.",
+  title = "Panel de competencias",
+  subtitle = "Gestion central de competencias de maquetas.",
 }: DashboardLayoutProps) {
   const pathname = usePathname();
 
