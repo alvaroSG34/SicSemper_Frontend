@@ -1,4 +1,5 @@
 import type { Identifier } from "@/core/types";
+import type { User } from "@/domain/user/user.types";
 
 export type CatalogEventStatus = "ACTIVO" | "PAUSADO" | "BORRADOR";
 
@@ -19,7 +20,7 @@ export type CatalogEvent = {
 
 export type CatalogCategory = {
   id: Identifier;
-  eventId: Identifier;
+  eventId?: Identifier | null;
   name: string;
   parentId?: Identifier | null;
 };
@@ -30,12 +31,18 @@ export type CatalogSubcategory = {
   name: string;
 };
 
+export type EventCategoryOption = {
+  id: Identifier;
+  eventId: Identifier;
+  categoryId: Identifier;
+  name: string;
+};
+
 export type JudgeAssignmentScope = {
   id: Identifier;
   judgeUserId: Identifier;
   eventId: Identifier;
-  categoryId: Identifier;
-  subcategoryId: Identifier;
+  eventCategoryId: Identifier;
   createdAt: string;
 };
 
@@ -61,16 +68,67 @@ export type AdminKpis = {
   openIncidents: number;
 };
 
+export type AdminClub = {
+  id: Identifier;
+  name: string;
+  place: string;
+  contactEmail: string;
+  description?: string | null;
+  logoUrl?: string | null;
+  members: number;
+};
+
 export type AdminDashboardData = {
   kpis: AdminKpis;
+  users: User[];
   activity: ActivityLogItem[];
   alerts: SystemAlert[];
   assignments: JudgeAssignmentScope[];
+  clubs: AdminClub[];
   catalog: {
     events: CatalogEvent[];
     categories: CatalogCategory[];
     subcategories: CatalogSubcategory[];
+    eventCategories: EventCategoryOption[];
   };
+};
+
+export type EventDeleteImpact = {
+  eventId: Identifier;
+  eventName: string;
+  eventCategories: number;
+  judgeAssignments: number;
+  registrations: number;
+  models: number;
+};
+
+export type ClubDeleteImpact = {
+  clubId: Identifier;
+  clubName: string;
+  members: number;
+  events: number;
+};
+
+export type CategoryDeleteImpact = {
+  categoryId: Identifier;
+  categoryName: string;
+  children: number;
+  eventCategories: number;
+  judgeAssignments: number;
+  registrations: number;
+  models: number;
+};
+
+export type CreateClubPayload = {
+  name: string;
+  place: string;
+  contactEmail: string;
+  description?: string;
+  logoUrl?: string;
+};
+
+export type UpdateClubPayload = CreateClubPayload & {
+  id: Identifier;
 };
 
 export type CreateEventPayload = {
@@ -93,13 +151,13 @@ export type UpdateEventPayload = {
 };
 
 export type CreateCategoryPayload = {
-  eventId: Identifier;
+  eventId?: Identifier | null;
   name: string;
 };
 
 export type UpdateCategoryPayload = {
   id: Identifier;
-  eventId: Identifier;
+  eventId?: Identifier | null;
   name: string;
 };
 
@@ -117,6 +175,17 @@ export type UpdateSubcategoryPayload = {
 export type AssignJudgeScopePayload = {
   judgeUserId: Identifier;
   eventId: Identifier;
-  categoryId: Identifier;
-  subcategoryId: Identifier;
+  eventCategoryId: Identifier;
+};
+
+export type JudgePermissionCode =
+  | "JUDGE_REVIEW_START"
+  | "JUDGE_REVIEW_COMPLETE"
+  | "JUDGE_MODELS_READ";
+
+export type JudgePermissionEntry = {
+  code: JudgePermissionCode;
+  granted: boolean;
+  grantedAt: string | null;
+  grantedBy: { id: string; name: string } | null;
 };

@@ -14,9 +14,10 @@ const sidebarIconByKey: Record<ParticipantSidebarItem["icon"], LucideIcon> = {
 type ParticipantSidebarProps = {
   items: ParticipantSidebarItem[];
   onSelectSection?: (sectionId: ParticipantSectionId) => void;
+  onLogout?: () => void;
 };
 
-export function ParticipantSidebar({ items, onSelectSection }: ParticipantSidebarProps) {
+export function ParticipantSidebar({ items, onSelectSection, onLogout }: ParticipantSidebarProps) {
   return (
     <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
       <div className="flex items-center gap-3">
@@ -47,15 +48,19 @@ export function ParticipantSidebar({ items, onSelectSection }: ParticipantSideba
         })}
       </nav>
 
-      <button type="button" className="mt-auto flex items-center gap-4 opacity-70">
+      <button
+        type="button"
+        onClick={onLogout}
+        className="mt-auto flex items-center gap-4 text-left opacity-70 transition hover:opacity-100"
+      >
         <LogOut className="h-5 w-5 text-[#AAAAAA]" />
-        <span className="text-base font-medium text-[#AAAAAA]">Cerrar Sesión</span>
+        <span className="text-base font-medium text-[#AAAAAA]">Cerrar sesion</span>
       </button>
     </aside>
   );
 }
 
-export function ParticipantMobileSidebar({ items, onSelectSection }: ParticipantSidebarProps) {
+export function ParticipantMobileSidebar({ items, onSelectSection, onLogout }: ParticipantSidebarProps) {
   return (
     <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
       <div className="flex items-center gap-3">
@@ -82,6 +87,14 @@ export function ParticipantMobileSidebar({ items, onSelectSection }: Participant
           );
         })}
       </nav>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-1.5 text-xs font-medium text-[#AAAAAA]"
+      >
+        <LogOut className="h-3.5 w-3.5" />
+        Cerrar sesion
+      </button>
     </div>
   );
 }

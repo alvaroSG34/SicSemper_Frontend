@@ -29,7 +29,42 @@ export type ParticipantProfile = {
   displayName: string;
   subtitle: string;
   initials: string;
+  photoUrl?: string;
   verified: boolean;
+};
+
+export type ParticipantUserStatus = "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
+
+export type ParticipantProfileDetails = {
+  userId: Identifier;
+  name: string;
+  email: string;
+  ci: string;
+  country: string;
+  city: string;
+  phone: string;
+  photoUrl: string;
+  birthDate: string;
+  status: ParticipantUserStatus;
+  verified: boolean;
+  club: {
+    id: Identifier;
+    name: string;
+    place: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UpdateParticipantProfilePayload = {
+  name?: string;
+  birthDate?: string | null;
+  ci?: string | null;
+  country?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  photoUrl?: string | null;
+  clubId?: string | null;
 };
 
 export type ParticipantNextChallenge = {

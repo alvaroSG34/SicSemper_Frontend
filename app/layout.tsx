@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import { AuthSessionBootstrap } from "@/presentation/components/layout/auth-session-bootstrap";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,7 +21,10 @@ type RootLayoutProps = Readonly<{
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} antialiased`}>
+        <AuthSessionBootstrap />
+        {children}
+      </body>
     </html>
   );
 }

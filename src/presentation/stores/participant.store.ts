@@ -128,7 +128,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
       const subcategoriesByCategoryEntries = await Promise.all(
         categories.map(async (category) => [
           category.id,
-          await participantService.getSubcategoriesForCategory(category.id),
+          await participantService.getSubcategoriesForCategory(category.id, event.id),
         ] as const),
       );
 

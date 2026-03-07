@@ -28,7 +28,7 @@ const HEADER_LINKS: HeaderLink[] = [
   { id: "inicio", label: "Inicio" },
   { id: "acerca", label: "Acerca de" },
   { id: "agenda", label: "Agenda" },
-  { id: "equipo", label: "Jurados Invitados" },
+  { id: "equipo", label: "Organizadores" },
   { id: "ubicacion", label: "Ubicación" },
 ];
 
@@ -150,7 +150,7 @@ export function PublicHeader({
     return [
       "inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border px-7 text-[15px] font-semibold tracking-[0.2px] transition-all duration-300 ease-out will-change-transform motion-reduce:transform-none",
       isActive
-        ? "border-[color:var(--landing-pink)] bg-[color:var(--landing-pink)] text-white shadow-[0_10px_24px_rgba(255,107,157,0.35)]"
+        ? "border-[color:var(--landing-pink)] bg-[color:var(--landing-pink)] text-white shadow-[0_10px_24px_rgba(83,184,180,0.35)]"
         : "border-white/70 text-white hover:-translate-y-[1px] hover:border-white hover:bg-white/10 hover:shadow-[0_8px_18px_rgba(0,0,0,0.28)] active:translate-y-0",
     ]
       .join(" ")

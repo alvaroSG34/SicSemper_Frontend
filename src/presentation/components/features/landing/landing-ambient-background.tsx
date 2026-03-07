@@ -30,7 +30,7 @@ const ambientBlobs: AmbientBlob[] = [
     size: 380,
     top: "18%",
     left: "72%",
-    background: "radial-gradient(circle, rgba(255,107,157,0.16) 0%, rgba(255,107,157,0) 70%)",
+    background: "radial-gradient(circle, rgba(83,184,180,0.16) 0%, rgba(83,184,180,0) 70%)",
     duration: 34,
     delay: 8,
   },
@@ -46,7 +46,7 @@ const ambientBlobs: AmbientBlob[] = [
     size: 340,
     top: "70%",
     left: "75%",
-    background: "radial-gradient(circle, rgba(255,107,157,0.12) 0%, rgba(255,107,157,0) 70%)",
+    background: "radial-gradient(circle, rgba(83,184,180,0.12) 0%, rgba(83,184,180,0) 70%)",
     duration: 36,
     delay: 5,
   },
@@ -54,13 +54,13 @@ const ambientBlobs: AmbientBlob[] = [
 
 const ambientParticles: AmbientParticle[] = [
   { size: 7, top: "14%", left: "20%", color: "#5865f2", duration: 13, delay: 0 },
-  { size: 9, top: "22%", left: "82%", color: "#ff6b9d", duration: 15, delay: 3 },
+  { size: 9, top: "22%", left: "82%", color: "#53b8b4", duration: 15, delay: 3 },
   { size: 6, top: "36%", left: "10%", color: "#ffd166", duration: 12, delay: 6 },
   { size: 8, top: "44%", left: "66%", color: "#8ea0ff", duration: 14, delay: 4 },
-  { size: 7, top: "56%", left: "30%", color: "#ff92bd", duration: 16, delay: 7 },
+  { size: 7, top: "56%", left: "30%", color: "#7fd3d0", duration: 16, delay: 7 },
   { size: 6, top: "66%", left: "88%", color: "#5865f2", duration: 11, delay: 1 },
   { size: 8, top: "76%", left: "16%", color: "#ffd166", duration: 15, delay: 5, shape: "rounded" },
-  { size: 7, top: "84%", left: "58%", color: "#ff6b9d", duration: 13, delay: 2 },
+  { size: 7, top: "84%", left: "58%", color: "#53b8b4", duration: 13, delay: 2 },
 ];
 
 export function LandingAmbientBackground() {

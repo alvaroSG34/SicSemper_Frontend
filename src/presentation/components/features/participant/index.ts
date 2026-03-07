@@ -5,6 +5,7 @@ export { ParticipantEventDetail } from "./participant-event-detail";
 export { ParticipantEventsExplorer } from "./participant-events-explorer";
 export { ParticipantMyModels } from "./participant-my-models";
 export { ParticipantOpenEvents } from "./participant-open-events";
+export { ParticipantProfilePanel } from "./participant-profile-panel";
 export { ParticipantMobileSidebar } from "./participant-sidebar";
 export { ParticipantSidebar } from "./participant-sidebar";
 export { ParticipantUploadModelWizard } from "./participant-upload-model-wizard";

@@ -1,343 +1,891 @@
+"use client";
+
 import type {
+  ActivityLogItem,
+  AdminClub,
+  CategoryDeleteImpact,
+  ClubDeleteImpact,
   AdminDashboardData,
   AssignJudgeScopePayload,
   CatalogCategory,
   CatalogEvent,
   CatalogSubcategory,
+  CreateClubPayload,
   CreateCategoryPayload,
   CreateEventPayload,
   CreateSubcategoryPayload,
+  EventCategoryOption,
+  EventDeleteImpact,
   JudgeAssignmentScope,
+  JudgePermissionCode,
+  JudgePermissionEntry,
+  UpdateClubPayload,
   UpdateCategoryPayload,
   UpdateEventPayload,
   UpdateSubcategoryPayload,
 } from "@/domain/admin/admin.types";
 import type { User } from "@/domain/user/user.types";
-import {
-  createActivityId,
-  createAssignmentId,
-  createCategoryId,
-  createCatalogEventId,
-  createSubcategoryId,
-  getClonedActivityLog,
-  getClonedAdminCatalog,
-  getClonedJudgeAssignments,
-  getClonedSystemAlerts,
-  mockActivityLog,
-  mockCatalogCategories,
-  mockCatalogEvents,
-  mockCatalogSubcategories,
-  mockJudgeAssignments,
-} from "@/infrastructure/mock/mock-admin";
-import { mockUsers } from "@/infrastructure/mock/mock-users";
+import { ApiError, apiRequest } from "@/infrastructure/api/http-client";
 
-const cloneUser = (user: User): User => ({
-  ...user,
-  roles: [...user.roles],
+type BackendClub = {
+  id: string;
+  name: string;
+  place: string;
+  contactEmail: string;
+  description: string | null;
+  logoUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type BackendAdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  roles: UserRole[];
+  verified: boolean;
+  status: string;
+  ci: string | null;
+  country: string | null;
+  city: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  club?: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type BackendEvent = {
+  id: string;
+  name: string;
+  organizerClubId: string;
+  place: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  status: CatalogEvent["status"];
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type BackendCategory = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type BackendEventCategory = {
+  id: string;
+  eventId: string;
+  categoryId: string;
+  eventName: string;
+  categoryName: string;
+  categoryParentId: string | null;
+  categoryParentName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type BackendJudgeAssignment = {
+  id: string;
+  judgeUserId: string;
+  eventId: string;
+  eventCategoryId: string;
+  categoryId: string;
+  categoryParentId: string | null;
+  createdAt: string;
+};
+
+type BackendActivity = {
+  id: string;
+  title: string;
+  detail: string;
+  createdAt: string;
+};
+
+type BackendAlert = AdminDashboardData["alerts"][number];
+
+type BackendAdminDashboard = {
+  kpis: {
+    activeUsers: number;
+    activeEvents: number;
+    openIncidents: number;
+    registeredModels: number;
+  };
+  users: BackendAdminUser[];
+  clubs: BackendClub[];
+  catalog: {
+    events: BackendEvent[];
+    categories: BackendCategory[];
+    eventCategories: BackendEventCategory[];
+  };
+  assignments: BackendJudgeAssignment[];
+  alerts: BackendAlert[];
+  activity: BackendActivity[];
+};
+
+type SyntheticCatalog = {
+  events: CatalogEvent[];
+  categories: CatalogCategory[];
+  subcategories: CatalogSubcategory[];
+  eventCategories: EventCategoryOption[];
+};
+
+const adminErrorMessages: Record<string, string> = {
+  CLUB_CONTACT_EMAIL_ALREADY_IN_USE: "Ya existe un club con ese correo de contacto.",
+  CLUB_HAS_EVENTS: "No puedes eliminar un club que todavía organiza eventos.",
+  CATEGORY_HAS_CHILDREN: "No puedes eliminar una categoría que todavía tiene subcategorías.",
+  EVENT_CATEGORY_ALREADY_EXISTS: "Esa categoria ya esta vinculada al evento.",
+  JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
+  JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
+  USER_NOT_FOUND: "No se encontro el usuario solicitado.",
+};
+
+const toErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof ApiError) {
+    if (error.code && adminErrorMessages[error.code]) {
+      return adminErrorMessages[error.code];
+    }
+
+    if (error.message && error.message !== `HTTP_${error.statusCode}`) {
+      return error.message;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
+const mapEvent = (event: BackendEvent): CatalogEvent => ({
+  id: event.id,
+  name: event.name,
+  status: event.status,
+  place: event.place ?? "",
+  startDate: event.startDate ?? "",
+  endDate: event.endDate ?? "",
+  description: event.description ?? "",
+  createdAt: event.createdAt,
+  updatedAt: event.updatedAt,
 });
 
-const ensureNonEmpty = (value: string, label: string) => {
-  if (!value.trim()) {
-    throw new Error(`El campo ${label} es obligatorio.`);
+const mapActivity = (entry: BackendActivity): ActivityLogItem => ({
+  id: entry.id,
+  title: entry.title,
+  detail: entry.detail,
+  createdAt: entry.createdAt,
+});
+
+const mapClub = (club: BackendClub, dashboard: BackendAdminDashboard): AdminClub => ({
+  id: club.id,
+  name: club.name,
+  place: club.place,
+  contactEmail: club.contactEmail,
+  description: club.description,
+  logoUrl: club.logoUrl,
+  members: dashboard.users.filter((user) => user.club?.id === club.id).length,
+});
+
+const mapAssignment = (assignment: BackendJudgeAssignment): JudgeAssignmentScope => ({
+  id: assignment.id,
+  judgeUserId: assignment.judgeUserId,
+  eventId: assignment.eventId,
+  eventCategoryId: assignment.eventCategoryId,
+  createdAt: assignment.createdAt,
+});
+
+const mapUser = (user: BackendAdminUser): User => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  roles: user.roles,
+  verified: user.verified,
+  status: user.status,
+  ci: user.ci,
+  country: user.country,
+  city: user.city,
+  phone: user.phone,
+  birthDate: user.birthDate,
+  club: user.club,
+  createdAt: user.createdAt,
+});
+
+const buildCatalog = (dashboard: BackendAdminDashboard): SyntheticCatalog => {
+  const categoriesById = new Map(dashboard.catalog.categories.map((entry) => [entry.id, entry]));
+  const rootCategories = new Map<string, CatalogCategory>();
+  const subcategories = new Map<string, CatalogSubcategory>();
+
+  for (const entry of dashboard.catalog.eventCategories) {
+    if (!entry.categoryParentId) {
+      const current = rootCategories.get(entry.categoryId);
+
+      if (!current) {
+        rootCategories.set(entry.categoryId, {
+          id: entry.categoryId,
+          eventId: entry.eventId,
+          name: entry.categoryName,
+          parentId: null,
+        });
+      }
+
+      continue;
+    }
+
+    const parentCategory = categoriesById.get(entry.categoryParentId);
+
+    if (!rootCategories.has(entry.categoryParentId)) {
+      rootCategories.set(entry.categoryParentId, {
+        id: entry.categoryParentId,
+        eventId: entry.eventId,
+        name: entry.categoryParentName ?? parentCategory?.name ?? "Categoria",
+        parentId: null,
+      });
+    }
+
+    if (!subcategories.has(entry.categoryId)) {
+      subcategories.set(entry.categoryId, {
+        id: entry.categoryId,
+        categoryId: entry.categoryParentId,
+        name: entry.categoryName,
+      });
+    }
   }
+
+  for (const category of dashboard.catalog.categories) {
+    if (category.parentId !== null) {
+      // Also register subcategories not covered by eventCategories
+      if (!subcategories.has(category.id)) {
+        subcategories.set(category.id, {
+          id: category.id,
+          categoryId: category.parentId,
+          name: category.name,
+        });
+      }
+      continue;
+    }
+
+    if (!rootCategories.has(category.id)) {
+      rootCategories.set(category.id, {
+        id: category.id,
+        name: category.name,
+        parentId: null,
+      });
+    }
+  }
+
+  const eventCategories: EventCategoryOption[] = dashboard.catalog.eventCategories.map((entry) => ({
+    id: entry.id,
+    eventId: entry.eventId,
+    categoryId: entry.categoryId,
+    name: entry.categoryParentName
+      ? `${entry.categoryParentName} › ${entry.categoryName}`
+      : entry.categoryName,
+  }));
+
+  return {
+    events: dashboard.catalog.events.map(mapEvent),
+    categories: Array.from(rootCategories.values()),
+    subcategories: Array.from(subcategories.values()),
+    eventCategories,
+  };
 };
 
-const ensureDateString = (value: string, label: string) => {
-  if (!value.trim()) {
-    throw new Error(`El campo ${label} es obligatorio.`);
+const getDashboardSnapshot = () => apiRequest<BackendAdminDashboard>("/admin/dashboard");
+
+const getOrganizerClubId = async () => {
+  const clubs = await apiRequest<BackendClub[]>("/admin/clubs");
+
+  if (clubs[0]) {
+    return clubs[0].id;
   }
 
-  if (Number.isNaN(Date.parse(value))) {
-    throw new Error(`El campo ${label} debe tener una fecha valida.`);
-  }
-};
-
-const appendActivity = (title: string, detail: string) => {
-  mockActivityLog.unshift({
-    id: createActivityId(),
-    title,
-    detail,
-    createdAt: new Date().toISOString(),
+  const createdClub = await apiRequest<BackendClub>("/admin/clubs", {
+    method: "POST",
+      body: {
+        name: "Club SicSemper",
+        place: "La Paz",
+        contactEmail: `system-${Date.now()}@sicsemper.local`,
+        description: "Club operativo creado automaticamente para el panel admin.",
+      },
   });
+
+  return createdClub.id;
 };
 
-const findEvent = (eventId: string) => mockCatalogEvents.find((event) => event.id === eventId);
-const findCategory = (categoryId: string) =>
-  mockCatalogCategories.find((category) => category.id === categoryId);
-const findSubcategory = (subcategoryId: string) =>
-  mockCatalogSubcategories.find((subcategory) => subcategory.id === subcategoryId);
+const syncRootCategoryEventLinks = async (
+  categoryId: string,
+  targetEventId: string,
+  snapshot?: BackendAdminDashboard,
+) => {
+  const dashboard = snapshot ?? (await getDashboardSnapshot());
+  const currentRootLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === categoryId && entry.categoryParentId === null,
+  );
+
+  if (!currentRootLinks.some((entry) => entry.eventId === targetEventId)) {
+    await apiRequest<BackendEventCategory>("/admin/event-categories", {
+      method: "POST",
+      body: {
+        eventId: targetEventId,
+        categoryId,
+      },
+    });
+  }
+
+  await Promise.all(
+    currentRootLinks
+      .filter((entry) => entry.eventId !== targetEventId)
+      .map((entry) =>
+        apiRequest<{ success: boolean }>(`/admin/event-categories/${entry.id}`, {
+          method: "DELETE",
+        }),
+      ),
+  );
+};
+
+const clearRootCategoryEventLinks = async (
+  categoryId: string,
+  snapshot?: BackendAdminDashboard,
+) => {
+  const dashboard = snapshot ?? (await getDashboardSnapshot());
+  const currentRootLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === categoryId && entry.categoryParentId === null,
+  );
+
+  await Promise.all(
+    currentRootLinks.map((entry) =>
+      apiRequest<{ success: boolean }>(`/admin/event-categories/${entry.id}`, {
+        method: "DELETE",
+      }),
+    ),
+  );
+};
+
+const syncChildCategoryEventLinks = async (
+  subcategoryId: string,
+  parentCategoryId: string,
+  snapshot?: BackendAdminDashboard,
+) => {
+  const dashboard = snapshot ?? (await getDashboardSnapshot());
+  const currentChildLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === subcategoryId,
+  );
+  const targetParentLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === parentCategoryId && entry.categoryParentId === null,
+  );
+  const currentEventIds = new Set(currentChildLinks.map((entry) => entry.eventId));
+  const targetEventIds = new Set(targetParentLinks.map((entry) => entry.eventId));
+
+  await Promise.all(
+    targetParentLinks
+      .filter((entry) => !currentEventIds.has(entry.eventId))
+      .map((entry) =>
+        apiRequest<BackendEventCategory>("/admin/event-categories", {
+          method: "POST",
+          body: {
+            eventId: entry.eventId,
+            categoryId: subcategoryId,
+          },
+        }),
+      ),
+  );
+
+  await Promise.all(
+    currentChildLinks
+      .filter((entry) => !targetEventIds.has(entry.eventId))
+      .map((entry) =>
+        apiRequest<{ success: boolean }>(`/admin/event-categories/${entry.id}`, {
+          method: "DELETE",
+        }),
+      ),
+  );
+};
 
 export interface AdminService {
   getDashboardData(): Promise<AdminDashboardData>;
   listUsers(): Promise<User[]>;
+  createClub(payload: CreateClubPayload): Promise<AdminClub>;
+  updateClub(payload: UpdateClubPayload): Promise<AdminClub>;
+  getClubDeleteImpact(clubId: string): Promise<ClubDeleteImpact>;
+  removeClub(clubId: string): Promise<void>;
   promoteToJudge(userId: string): Promise<User>;
   demoteJudge(userId: string): Promise<User>;
-  listCatalog(): Promise<{
-    events: CatalogEvent[];
-    categories: CatalogCategory[];
-    subcategories: CatalogSubcategory[];
-  }>;
+  banParticipant(userId: string): Promise<User>;
+  unbanParticipant(userId: string): Promise<User>;
+  listCatalog(): Promise<SyntheticCatalog>;
   createEvent(payload: CreateEventPayload): Promise<CatalogEvent>;
+  createEventAndLinkCategories(payload: CreateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
   updateEvent(payload: UpdateEventPayload): Promise<CatalogEvent>;
+  updateEventAndLinkCategories(payload: UpdateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
+  getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
+  removeEvent(eventId: string): Promise<void>;
   createCategory(payload: CreateCategoryPayload): Promise<CatalogCategory>;
   updateCategory(payload: UpdateCategoryPayload): Promise<CatalogCategory>;
+  getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;
+  removeCategory(categoryId: string): Promise<void>;
   createSubcategory(payload: CreateSubcategoryPayload): Promise<CatalogSubcategory>;
   updateSubcategory(payload: UpdateSubcategoryPayload): Promise<CatalogSubcategory>;
+  removeSubcategory(subcategoryId: string): Promise<void>;
   assignJudgeScope(payload: AssignJudgeScopePayload): Promise<JudgeAssignmentScope>;
   removeJudgeScope(assignmentId: string): Promise<void>;
+  listJudgePermissions(judgeUserId: string): Promise<JudgePermissionEntry[]>;
+  grantJudgePermission(judgeUserId: string, permission: JudgePermissionCode): Promise<JudgePermissionEntry[]>;
+  revokeJudgePermission(judgeUserId: string, permission: JudgePermissionCode): Promise<JudgePermissionEntry[]>;
 }
 
 export const adminService: AdminService = {
   async getDashboardData() {
-    const catalog = getClonedAdminCatalog();
-    const alerts = getClonedSystemAlerts();
+    try {
+      const dashboard = await getDashboardSnapshot();
+      const catalog = buildCatalog(dashboard);
 
-    return {
-      kpis: {
-        activeUsers: mockUsers.filter((user) => user.verified).length,
-        activeEvents: catalog.events.filter((event) => event.status === "ACTIVO").length,
-        openIncidents: alerts.filter((alert) => alert.status !== "RESUELTA").length,
-      },
-      activity: getClonedActivityLog(),
-      alerts,
-      assignments: getClonedJudgeAssignments(),
-      catalog,
-    };
+      return {
+        kpis: {
+          activeUsers: dashboard.kpis.activeUsers,
+          activeEvents: dashboard.kpis.activeEvents,
+          openIncidents: dashboard.kpis.openIncidents,
+        },
+        users: dashboard.users.map(mapUser),
+        activity: dashboard.activity.map(mapActivity),
+        alerts: dashboard.alerts,
+        assignments: dashboard.assignments.map(mapAssignment),
+        clubs: dashboard.clubs.map((club) => mapClub(club, dashboard)),
+        catalog,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el dashboard admin."));
+    }
   },
   async listUsers() {
-    return mockUsers.map(cloneUser);
+    try {
+      const users = await apiRequest<BackendAdminUser[]>("/admin/users");
+      return users.map(mapUser);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar la lista de usuarios."));
+    }
+  },
+  async createClub(payload) {
+    try {
+      const club = await apiRequest<BackendClub>("/admin/clubs", {
+        method: "POST",
+        body: payload,
+      });
+
+      return {
+        id: club.id,
+        name: club.name,
+        place: club.place,
+        contactEmail: club.contactEmail,
+        description: club.description,
+        logoUrl: club.logoUrl,
+        members: 0,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear el club."));
+    }
+  },
+  async updateClub(payload) {
+    try {
+      const club = await apiRequest<BackendClub>(`/admin/clubs/${payload.id}`, {
+        method: "PATCH",
+        body: {
+          name: payload.name,
+          place: payload.place,
+          contactEmail: payload.contactEmail,
+          description: payload.description,
+          logoUrl: payload.logoUrl,
+        },
+      });
+
+      return {
+        id: club.id,
+        name: club.name,
+        place: club.place,
+        contactEmail: club.contactEmail,
+        description: club.description,
+        logoUrl: club.logoUrl,
+        members: 0,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar el club."));
+    }
+  },
+  async getClubDeleteImpact(clubId) {
+    try {
+      return await apiRequest<ClubDeleteImpact>(`/admin/clubs/${clubId}/delete-impact`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo calcular el impacto de eliminacion del club."));
+    }
+  },
+  async removeClub(clubId) {
+    try {
+      await apiRequest<{ success: boolean }>(`/admin/clubs/${clubId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar el club."));
+    }
   },
   async promoteToJudge(userId) {
-    const user = mockUsers.find((candidate) => candidate.id === userId);
-    if (!user) {
-      throw new Error("Usuario no encontrado.");
+    try {
+      return await apiRequest<User>(`/admin/users/${userId}/promote-judge`, {
+        method: "PATCH",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo promover al usuario a juez."));
     }
-
-    if (!user.roles.includes("JUEZ")) {
-      user.roles = [...user.roles, "JUEZ"];
-      appendActivity(
-        "Rol actualizado",
-        `${user.name} ahora puede actuar como juez en las evaluaciones.`,
-      );
-    }
-
-    return cloneUser(user);
   },
   async demoteJudge(userId) {
-    const user = mockUsers.find((candidate) => candidate.id === userId);
-    if (!user) {
-      throw new Error("Usuario no encontrado.");
+    try {
+      return await apiRequest<User>(`/admin/users/${userId}/demote-judge`, {
+        method: "PATCH",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo quitar el rol de juez."));
     }
-
-    if (!user.roles.includes("JUEZ")) {
-      return cloneUser(user);
+  },
+  async banParticipant(userId) {
+    try {
+      return await apiRequest<User>(`/admin/users/${userId}/ban`, {
+        method: "PATCH",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo banear al participante."));
     }
-
-    const nextRoles = user.roles.filter((role) => role !== "JUEZ");
-    user.roles = nextRoles.length > 0 ? nextRoles : ["PARTICIPANTE"];
-
-    for (let index = mockJudgeAssignments.length - 1; index >= 0; index -= 1) {
-      if (mockJudgeAssignments[index].judgeUserId === user.id) {
-        mockJudgeAssignments.splice(index, 1);
-      }
+  },
+  async unbanParticipant(userId) {
+    try {
+      return await apiRequest<User>(`/admin/users/${userId}/unban`, {
+        method: "PATCH",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo quitar la suspensión."));
     }
-
-    appendActivity(
-      "Rol actualizado",
-      `Se removió rol JUEZ a ${user.name} y se limpiaron sus asignaciones.`,
-    );
-
-    return cloneUser(user);
   },
   async listCatalog() {
-    return getClonedAdminCatalog();
+    try {
+      const dashboard = await getDashboardSnapshot();
+      return buildCatalog(dashboard);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el catalogo admin."));
+    }
   },
   async createEvent(payload) {
-    ensureNonEmpty(payload.name, "nombre del evento");
-    ensureNonEmpty(payload.place, "lugar del evento");
-    ensureDateString(payload.startDate, "fecha de inicio");
-    ensureDateString(payload.endDate, "fecha de fin");
-    ensureNonEmpty(payload.description, "descripcion del evento");
+    try {
+      const organizerClubId = await getOrganizerClubId();
+      const event = await apiRequest<BackendEvent>("/admin/events", {
+        method: "POST",
+        body: {
+          organizerClubId,
+          ...payload,
+        },
+      });
 
-    const now = new Date().toISOString();
+      return mapEvent(event);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear el evento."));
+    }
+  },
+  async createEventAndLinkCategories(payload, categoryIds) {
+    try {
+      const organizerClubId = await getOrganizerClubId();
+      const event = await apiRequest<BackendEvent>("/admin/events", {
+        method: "POST",
+        body: {
+          organizerClubId,
+          ...payload,
+        },
+      });
 
-    const event: CatalogEvent = {
-      id: createCatalogEventId(),
-      name: payload.name.trim(),
-      place: payload.place.trim(),
-      startDate: payload.startDate,
-      endDate: payload.endDate,
-      description: payload.description.trim(),
-      status: payload.status ?? "BORRADOR",
-      createdAt: now,
-      updatedAt: now,
-    };
+      if (categoryIds.length > 0) {
+        await Promise.all(
+          categoryIds.map((categoryId) =>
+            apiRequest("/admin/event-categories", {
+              method: "POST",
+              body: { eventId: event.id, categoryId },
+            }),
+          ),
+        );
+      }
 
-    mockCatalogEvents.unshift(event);
-    appendActivity("Evento creado", `Se registró el evento ${event.name}.`);
-    return { ...event };
+      return mapEvent(event);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear el evento."));
+    }
   },
   async updateEvent(payload) {
-    ensureNonEmpty(payload.name, "nombre del evento");
-    ensureNonEmpty(payload.place, "lugar del evento");
-    ensureDateString(payload.startDate, "fecha de inicio");
-    ensureDateString(payload.endDate, "fecha de fin");
-    ensureNonEmpty(payload.description, "descripcion del evento");
+    try {
+      const dashboard = await getDashboardSnapshot();
+      const currentEvent = dashboard.catalog.events.find((entry) => entry.id === payload.id);
+      const organizerClubId = currentEvent?.organizerClubId ?? (await getOrganizerClubId());
+      const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
+        method: "PATCH",
+        body: {
+          organizerClubId,
+          name: payload.name,
+          status: payload.status,
+          place: payload.place,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          description: payload.description,
+        },
+      });
 
-    const event = findEvent(payload.id);
-    if (!event) {
-      throw new Error("Evento no encontrado.");
+      return mapEvent(event);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar el evento."));
     }
+  },
+  async updateEventAndLinkCategories(payload, categoryIds) {
+    try {
+      const dashboard = await getDashboardSnapshot();
+      const currentEvent = dashboard.catalog.events.find((entry) => entry.id === payload.id);
+      const organizerClubId = currentEvent?.organizerClubId ?? (await getOrganizerClubId());
+      const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
+        method: "PATCH",
+        body: {
+          organizerClubId,
+          name: payload.name,
+          status: payload.status,
+          place: payload.place,
+          startDate: payload.startDate,
+          endDate: payload.endDate,
+          description: payload.description,
+        },
+      });
 
-    event.name = payload.name.trim();
-    event.place = payload.place.trim();
-    event.startDate = payload.startDate;
-    event.endDate = payload.endDate;
-    event.description = payload.description.trim();
-    event.status = payload.status;
-    event.updatedAt = new Date().toISOString();
+      const currentLinks = dashboard.catalog.eventCategories.filter(
+        (entry) => entry.eventId === payload.id,
+      );
+      const currentCategoryIds = new Set(currentLinks.map((entry) => entry.categoryId));
+      const desiredCategoryIds = new Set(categoryIds);
 
-    appendActivity("Evento actualizado", `Se actualizó ${event.name} (${event.status}).`);
-    return { ...event };
+      await Promise.all(
+        categoryIds
+          .filter((catId) => !currentCategoryIds.has(catId))
+          .map((catId) =>
+            apiRequest<BackendEventCategory>("/admin/event-categories", {
+              method: "POST",
+              body: { eventId: payload.id, categoryId: catId },
+            }),
+          ),
+      );
+
+      await Promise.all(
+        currentLinks
+          .filter((entry) => !desiredCategoryIds.has(entry.categoryId))
+          .map((entry) =>
+            apiRequest<{ success: boolean }>(`/admin/event-categories/${entry.id}`, {
+              method: "DELETE",
+            }),
+          ),
+      );
+
+      return mapEvent(event);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar el evento."));
+    }
+  },
+  async getEventDeleteImpact(eventId) {
+    try {
+      return await apiRequest<EventDeleteImpact>(`/admin/events/${eventId}/delete-impact`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo calcular el impacto de eliminacion del evento."));
+    }
+  },
+  async removeEvent(eventId) {
+    try {
+      await apiRequest<{ success: boolean }>(`/admin/events/${eventId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar el evento."));
+    }
   },
   async createCategory(payload) {
-    ensureNonEmpty(payload.name, "nombre de categoría");
-    const event = findEvent(payload.eventId);
-    if (!event) {
-      throw new Error("No existe el evento seleccionado.");
+    try {
+      const category = await apiRequest<BackendCategory>("/admin/categories", {
+        method: "POST",
+        body: {
+          name: payload.name,
+        },
+      });
+
+      if (payload.eventId) {
+        await apiRequest<BackendEventCategory>("/admin/event-categories", {
+          method: "POST",
+          body: {
+            eventId: payload.eventId,
+            categoryId: category.id,
+          },
+        });
+      }
+
+      return {
+        id: category.id,
+        eventId: payload.eventId ?? null,
+        name: category.name,
+        parentId: category.parentId,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear la categoria."));
     }
-
-    const category: CatalogCategory = {
-      id: createCategoryId(),
-      eventId: payload.eventId,
-      name: payload.name.trim(),
-      parentId: null,
-    };
-
-    mockCatalogCategories.unshift(category);
-    appendActivity("Categoría creada", `Nueva categoría ${category.name} en ${event.name}.`);
-    return { ...category };
   },
   async updateCategory(payload) {
-    ensureNonEmpty(payload.name, "nombre de categoría");
-    const category = findCategory(payload.id);
-    if (!category) {
-      throw new Error("Categoría no encontrada.");
+    try {
+      const [category, snapshot] = await Promise.all([
+        apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
+          method: "PATCH",
+          body: {
+            name: payload.name,
+          },
+        }),
+        getDashboardSnapshot(),
+      ]);
+
+      if (payload.eventId) {
+        await syncRootCategoryEventLinks(payload.id, payload.eventId, snapshot);
+      } else {
+        await clearRootCategoryEventLinks(payload.id, snapshot);
+      }
+
+      return {
+        id: category.id,
+        eventId: payload.eventId ?? null,
+        name: category.name,
+        parentId: category.parentId,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la categoria."));
     }
-
-    const event = findEvent(payload.eventId);
-    if (!event) {
-      throw new Error("No existe el evento seleccionado.");
+  },
+  async getCategoryDeleteImpact(categoryId) {
+    try {
+      return await apiRequest<CategoryDeleteImpact>(`/admin/categories/${categoryId}/delete-impact`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo calcular el impacto de eliminacion de la categoria."));
     }
-
-    category.eventId = payload.eventId;
-    category.name = payload.name.trim();
-
-    appendActivity("Categoría actualizada", `Se actualizó ${category.name}.`);
-    return { ...category };
+  },
+  async removeCategory(categoryId) {
+    try {
+      await apiRequest<{ success: boolean }>(`/admin/categories/${categoryId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la categoria."));
+    }
   },
   async createSubcategory(payload) {
-    ensureNonEmpty(payload.name, "nombre de subcategoría");
-    const category = findCategory(payload.categoryId);
-    if (!category) {
-      throw new Error("No existe la categoría seleccionada.");
+    try {
+      const [category, snapshot] = await Promise.all([
+        apiRequest<BackendCategory>("/admin/categories", {
+          method: "POST",
+          body: {
+            name: payload.name,
+            parentId: payload.categoryId,
+          },
+        }),
+        getDashboardSnapshot(),
+      ]);
+
+      await syncChildCategoryEventLinks(category.id, payload.categoryId, snapshot);
+
+      return {
+        id: category.id,
+        categoryId: payload.categoryId,
+        name: category.name,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear la subcategoria."));
     }
-
-    const subcategory: CatalogSubcategory = {
-      id: createSubcategoryId(),
-      categoryId: payload.categoryId,
-      name: payload.name.trim(),
-    };
-
-    mockCatalogSubcategories.unshift(subcategory);
-    appendActivity("Subcategoría creada", `Nueva subcategoría ${subcategory.name}.`);
-    return { ...subcategory };
   },
   async updateSubcategory(payload) {
-    ensureNonEmpty(payload.name, "nombre de subcategoría");
+    try {
+      const [category, snapshot] = await Promise.all([
+        apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
+          method: "PATCH",
+          body: {
+            name: payload.name,
+            parentId: payload.categoryId,
+          },
+        }),
+        getDashboardSnapshot(),
+      ]);
 
-    const subcategory = findSubcategory(payload.id);
-    if (!subcategory) {
-      throw new Error("Subcategoría no encontrada.");
+      await syncChildCategoryEventLinks(payload.id, payload.categoryId, snapshot);
+
+      return {
+        id: category.id,
+        categoryId: payload.categoryId,
+        name: category.name,
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la subcategoria."));
     }
-
-    const category = findCategory(payload.categoryId);
-    if (!category) {
-      throw new Error("No existe la categoría seleccionada.");
+  },
+  async removeSubcategory(subcategoryId) {
+    try {
+      await apiRequest<{ success: boolean }>(`/admin/categories/${subcategoryId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la subcategoria."));
     }
-
-    subcategory.categoryId = payload.categoryId;
-    subcategory.name = payload.name.trim();
-
-    appendActivity("Subcategoría actualizada", `Se actualizó ${subcategory.name}.`);
-    return { ...subcategory };
   },
   async assignJudgeScope(payload) {
-    const judge = mockUsers.find((user) => user.id === payload.judgeUserId);
-    if (!judge || !judge.roles.includes("JUEZ")) {
-      throw new Error("Debes seleccionar un usuario con rol JUEZ.");
+    try {
+      const assignment = await apiRequest<BackendJudgeAssignment>("/admin/judge-assignments", {
+        method: "POST",
+        body: {
+          judgeUserId: payload.judgeUserId,
+          eventId: payload.eventId,
+          eventCategoryId: payload.eventCategoryId,
+        },
+      });
+
+      return mapAssignment(assignment);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo asignar el alcance del juez."));
     }
-
-    const event = findEvent(payload.eventId);
-    const category = findCategory(payload.categoryId);
-    const subcategory = findSubcategory(payload.subcategoryId);
-
-    if (!event || !category || !subcategory) {
-      throw new Error("La combinación seleccionada no es válida.");
-    }
-
-    if (category.eventId !== event.id) {
-      throw new Error("La categoría no pertenece al evento seleccionado.");
-    }
-
-    if (subcategory.categoryId !== category.id) {
-      throw new Error("La subcategoría no pertenece a la categoría seleccionada.");
-    }
-
-    const duplicate = mockJudgeAssignments.some(
-      (assignment) =>
-        assignment.judgeUserId === payload.judgeUserId &&
-        assignment.eventId === payload.eventId &&
-        assignment.categoryId === payload.categoryId &&
-        assignment.subcategoryId === payload.subcategoryId,
-    );
-
-    if (duplicate) {
-      throw new Error("Esa asignación ya existe para el juez seleccionado.");
-    }
-
-    const assignment: JudgeAssignmentScope = {
-      id: createAssignmentId(),
-      judgeUserId: payload.judgeUserId,
-      eventId: payload.eventId,
-      categoryId: payload.categoryId,
-      subcategoryId: payload.subcategoryId,
-      createdAt: new Date().toISOString(),
-    };
-
-    mockJudgeAssignments.unshift(assignment);
-    appendActivity(
-      "Asignación de juez",
-      `${judge.name} asignado a ${event.name} · ${category.name} · ${subcategory.name}.`,
-    );
-
-    return { ...assignment };
   },
   async removeJudgeScope(assignmentId) {
-    const index = mockJudgeAssignments.findIndex((assignment) => assignment.id === assignmentId);
-    if (index === -1) {
-      throw new Error("Asignación no encontrada.");
+    try {
+      await apiRequest<{ success: boolean }>(`/admin/judge-assignments/${assignmentId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo remover la asignación del juez."));
     }
-
-    const [removed] = mockJudgeAssignments.splice(index, 1);
-    const judge = mockUsers.find((user) => user.id === removed.judgeUserId);
-    const event = findEvent(removed.eventId);
-    const category = findCategory(removed.categoryId);
-    const subcategory = findSubcategory(removed.subcategoryId);
-
-    appendActivity(
-      "Asignación removida",
-      `${judge?.name ?? "Juez"}: ${event?.name ?? "Evento"} · ${category?.name ?? "Categoría"} · ${subcategory?.name ?? "Subcategoría"}.`,
-    );
+  },
+  async listJudgePermissions(judgeUserId) {
+    try {
+      return await apiRequest<JudgePermissionEntry[]>(`/admin/judges/${judgeUserId}/permissions`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar los permisos del juez."));
+    }
+  },
+  async grantJudgePermission(judgeUserId, permission) {
+    try {
+      return await apiRequest<JudgePermissionEntry[]>(`/admin/judges/${judgeUserId}/permissions`, {
+        method: "POST",
+        body: JSON.stringify({ permission }),
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo otorgar el permiso."));
+    }
+  },
+  async revokeJudgePermission(judgeUserId, permission) {
+    try {
+      return await apiRequest<JudgePermissionEntry[]>(`/admin/judges/${judgeUserId}/permissions`, {
+        method: "DELETE",
+        body: JSON.stringify({ permission }),
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo revocar el permiso."));
+    }
   },
 };

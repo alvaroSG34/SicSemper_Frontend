@@ -104,6 +104,12 @@ export function ParticipantUploadModelWizard({
             </select>
           </label>
 
+          {flow.categoryWithoutSubcategories ? (
+            <p className="text-xs text-[#fca5a5] md:col-span-2">
+              Esta categoria no tiene subcategorias disponibles para este evento.
+            </p>
+          ) : null}
+
           <button
             type="button"
             onClick={flow.handleGoToForm}

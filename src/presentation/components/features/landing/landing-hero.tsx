@@ -14,7 +14,7 @@ export function LandingHero() {
       </h1>
       <button
         type="button"
-        className="flex h-[50px] w-[200px] items-center justify-center rounded-[25px] bg-[color:var(--landing-pink)] text-[14px] font-bold text-[color:var(--landing-text)]"
+        className="flex h-[76px] w-full max-w-[360px] items-center justify-center rounded-[38px] bg-[color:var(--landing-pink)] px-8 text-[22px] font-bold tracking-[0.02em] text-[color:var(--landing-text)] shadow-[0_18px_40px_rgba(83,184,180,0.32)] transition-transform duration-300 hover:scale-[1.02] md:h-[92px] md:max-w-[440px] md:text-[28px]"
       >
         Sube tu Maqueta
       </button>

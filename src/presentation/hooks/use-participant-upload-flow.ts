@@ -81,6 +81,7 @@ export const useParticipantUploadFlow = ({
     [selectedCategoryId, subcategoriesByCategory],
   );
 
+  const categoryWithoutSubcategories = Boolean(selectedCategoryId) && subcategoryOptions.length === 0;
   const canContinueToForm = Boolean(selectedCategoryId && selectedSubcategoryId);
 
   const resetFiles = () => {
@@ -173,6 +174,7 @@ export const useParticipantUploadFlow = ({
     selectedFiles,
     fileError,
     form,
+    categoryWithoutSubcategories,
     canContinueToForm,
     handleSelectCategory,
     handleSelectSubcategory,

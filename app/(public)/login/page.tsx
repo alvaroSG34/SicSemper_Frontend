@@ -222,6 +222,8 @@ export default function LoginPage() {
 
       const { currentRole } = useAuthStore.getState();
       router.push(getDashboardRoute(currentRole));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
     } finally {
       setIsSubmitting(false);
     }

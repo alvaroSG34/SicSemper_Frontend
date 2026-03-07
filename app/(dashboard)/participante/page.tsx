@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ParticipantEventDetail,
   ParticipantEventsExplorer,
@@ -10,16 +11,62 @@ import {
   ParticipantMyModels,
   ParticipantNextChallenge,
   ParticipantOpenEvents,
+  ParticipantProfilePanel,
   ParticipantSidebar,
   ParticipantUploadModelWizard,
 } from "@/presentation/components/features/participant";
 import type { ParticipantSectionId } from "@/domain/participant/participant.types";
 import { useAuthStore, useParticipantStore } from "@/presentation/stores";
+import { Skeleton } from "@/presentation/components/ui";
 
 function ParticipantDashboardLoading() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
-      <p className="text-sm text-[#AAAAAA]">Cargando panel del participante...</p>
+    <main className="relative min-h-screen overflow-hidden bg-[#000000] px-4 py-6 text-white sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
+      <div className="mx-auto flex h-full w-full max-w-[1400px] flex-col gap-6 md:gap-8 xl:gap-10">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-52" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+
+        <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-6">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="mt-3 h-4 w-2/3" />
+          <Skeleton className="mt-5 h-11 w-44" />
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={`participant-kpi-skeleton-${index}`}
+              className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5"
+            >
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="mt-4 h-9 w-16" />
+            </div>
+          ))}
+        </section>
+
+        <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-6">
+          <Skeleton className="h-5 w-44" />
+          <div className="mt-5 space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`participant-event-skeleton-${index}`}
+                className="rounded-2xl border border-[#2D2D2D] bg-[#121212] p-4"
+              >
+                <Skeleton className="h-4 w-3/5" />
+                <Skeleton className="mt-2 h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
@@ -47,9 +94,10 @@ function ParticipantDashboardError({ error, onRetry }: ParticipantDashboardError
 }
 
 export default function ParticipantePage() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
   const [activeSection, setActiveSection] = useState<ParticipantSectionId>("inicio");
-  const [showUploadWizard, setShowUploadWizard] = useState(false);
 
   const dashboard = useParticipantStore((state) => state.dashboard);
   const loading = useParticipantStore((state) => state.loading);
@@ -86,7 +134,8 @@ export default function ParticipantePage() {
   }, [effectiveUserId, loadMyModels]);
 
   useEffect(() => {
-    if (activeSection !== "eventos" || selectedEvent || exploreEvents.length === 0) {
+    const sectionNeedsEvent = activeSection === "eventos" || activeSection === "resultados";
+    if (!sectionNeedsEvent || selectedEvent || exploreEvents.length === 0) {
       return;
     }
     void selectEvent(exploreEvents[0].id);
@@ -112,9 +161,11 @@ export default function ParticipantePage() {
   const handleSelectSection = (sectionId: ParticipantSectionId) => {
     setActiveSection(sectionId);
     clearFlowState();
-    if (sectionId !== "eventos") {
-      setShowUploadWizard(false);
-    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
   };
 
   const renderSection = () => {
@@ -134,31 +185,65 @@ export default function ParticipantePage() {
 
     if (activeSection === "eventos") {
       return (
-        <>
-          <section className="grid w-full grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
-            <ParticipantEventsExplorer
-              events={exploreEvents}
-              selectedEventId={selectedEvent?.id ?? null}
-              loading={flowLoading && exploreEvents.length === 0}
-              onSelectEvent={(eventId) => {
-                setShowUploadWizard(false);
-                void selectEvent(eventId);
-              }}
-            />
+        <section className="grid w-full grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
+          <ParticipantEventsExplorer
+            events={exploreEvents}
+            selectedEventId={selectedEvent?.id ?? null}
+            loading={flowLoading && exploreEvents.length === 0}
+            onSelectEvent={(eventId) => {
+              void selectEvent(eventId);
+            }}
+          />
 
-            <ParticipantEventDetail
-              event={selectedEvent}
-              onStartUpload={() => {
-                if (!selectedEvent) {
-                  return;
-                }
-                clearFlowState();
-                setShowUploadWizard(true);
-              }}
-            />
-          </section>
+          <ParticipantEventDetail
+            event={selectedEvent}
+            onStartUpload={() => {
+              if (!selectedEvent) {
+                return;
+              }
+              clearFlowState();
+              setActiveSection("resultados");
+            }}
+          />
+        </section>
+      );
+    }
 
-          {showUploadWizard && selectedEvent && effectiveUserId ? (
+    if (activeSection === "resultados") {
+      return (
+        <section className="space-y-5">
+          <article className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
+            <h3 className="text-xl font-semibold text-white">Subir Maqueta</h3>
+            <p className="mt-2 text-sm text-[#9C9C9C]">
+              Selecciona un evento para cargar tu maqueta. La exploracion de eventos se mantiene en su seccion.
+            </p>
+
+            <div className="mt-4 max-w-[460px]">
+              <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
+                Evento
+                <select
+                  value={selectedEvent?.id ?? ""}
+                  onChange={(event) => {
+                    const nextEventId = event.target.value;
+                    if (!nextEventId) {
+                      return;
+                    }
+                    void selectEvent(nextEventId);
+                  }}
+                  className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+                >
+                  <option value="">Selecciona un evento</option>
+                  {exploreEvents.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </article>
+
+          {selectedEvent && effectiveUserId ? (
             <ParticipantUploadModelWizard
               key={selectedEvent.id}
               eventId={selectedEvent.id}
@@ -171,12 +256,15 @@ export default function ParticipantePage() {
               successMessage={flowSuccessMessage}
               onSubmitModel={submitModel}
               onGoToMyModels={() => {
-                setShowUploadWizard(false);
                 setActiveSection("maquetas");
               }}
             />
-          ) : null}
-        </>
+          ) : (
+            <article className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
+              <p className="text-sm text-[#9C9C9C]">Selecciona un evento para continuar con la carga de maqueta.</p>
+            </article>
+          )}
+        </section>
       );
     }
 
@@ -184,11 +272,13 @@ export default function ParticipantePage() {
       return <ParticipantMyModels models={myModels} loading={flowLoading && myModels.length === 0} />;
     }
 
+    if (activeSection === "perfil") {
+      return <ParticipantProfilePanel onProfileUpdated={() => void loadDashboard(user?.id)} />;
+    }
+
     return (
       <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-6">
-        <p className="text-sm text-[#9C9C9C]">
-          Esta seccion estara disponible pronto.
-        </p>
+        <p className="text-sm text-[#9C9C9C]">Esta seccion estara disponible pronto.</p>
       </section>
     );
   };
@@ -196,13 +286,21 @@ export default function ParticipantePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] text-white">
       <div className="relative flex min-h-screen flex-col xl:flex-row">
-        <ParticipantSidebar items={sidebarItems} onSelectSection={handleSelectSection} />
+        <ParticipantSidebar
+          items={sidebarItems}
+          onSelectSection={handleSelectSection}
+          onLogout={() => void handleLogout()}
+        />
 
         <section className="relative min-h-screen flex-1 px-4 py-6 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
           <div className="pointer-events-none absolute right-[120px] top-[380px] hidden h-[120px] w-[120px] rotate-[15deg] rounded-[20px] border-2 border-[#F15BB5] bg-white/10 xl:block" />
 
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
-            <ParticipantMobileSidebar items={sidebarItems} onSelectSection={handleSelectSection} />
+            <ParticipantMobileSidebar
+              items={sidebarItems}
+              onSelectSection={handleSelectSection}
+              onLogout={() => void handleLogout()}
+            />
 
             <ParticipantHeader profile={dashboard.profile} />
 

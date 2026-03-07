@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Bus, Car, MapPin } from "lucide-react";
-import { locationCards, locationMapImage } from "./landing-data";
+import { locationCards, locationMapImage, locationMapUrl } from "./landing-data";
 
 const iconByKey = {
   mapPin: MapPin,
@@ -16,23 +16,32 @@ export function LandingLocation() {
     >
       <div className="flex flex-col items-center gap-4">
         <h2 className="text-center text-4xl font-bold text-[color:var(--landing-text)] xl:text-[42px]">
-          Ubicación del Evento
+          UbicaciÃ³n del Evento
         </h2>
         <p className="text-center text-lg text-[color:var(--landing-muted)]">
-          Te esperamos en el corazón del distrito de diseño para dos días inolvidables.
+          Te esperamos en el corazÃ³n del distrito de diseÃ±o para dos dÃ­as inolvidables.
         </p>
       </div>
 
-      <div className="relative h-[320px] w-full overflow-hidden rounded-[32px] border border-[color:var(--landing-border)] xl:h-[450px]">
+      <a
+        href={locationMapUrl}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Abrir ubicaciÃ³n del evento en Google Maps"
+        className="group relative block h-[320px] w-full overflow-hidden rounded-[32px] border border-[color:var(--landing-border)] xl:h-[450px]"
+      >
         <Image
           src={locationMapImage}
-          alt="Ubicación del evento"
+          alt="UbicaciÃ³n del evento"
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           sizes="100vw"
         />
-    
-      </div>
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.08)_0%,rgba(15,23,42,0.22)_100%)] transition-opacity duration-300 group-hover:opacity-80" />
+        <div className="absolute bottom-6 right-6 rounded-full bg-[color:var(--landing-pink)] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(83,184,180,0.28)]">
+          Abrir en Google Maps
+        </div>
+      </a>
 
       <div className="flex w-full flex-wrap justify-center gap-6">
         {locationCards.map((card) => {

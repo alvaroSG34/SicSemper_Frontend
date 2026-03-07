@@ -49,16 +49,14 @@ export const mockJudgeAssignments: JudgeAssignmentScope[] = [
     id: "asg-1",
     judgeUserId: "u-2",
     eventId: "ev-1",
-    categoryId: "cat-1",
-    subcategoryId: "sub-1",
+    eventCategoryId: "ec-1",
     createdAt: nowIso(),
   },
   {
     id: "asg-2",
     judgeUserId: "u-2",
     eventId: "ev-2",
-    categoryId: "cat-3",
-    subcategoryId: "sub-4",
+    eventCategoryId: "ec-3",
     createdAt: nowIso(),
   },
 ];

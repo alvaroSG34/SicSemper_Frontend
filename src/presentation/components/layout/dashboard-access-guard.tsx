@@ -36,9 +36,14 @@ export function DashboardAccessGuard({ children }: DashboardAccessGuardProps) {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
+  const initialized = useAuthStore((state) => state.initialized);
   const routeRole = getRouteRole(pathname);
 
   useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+
     if (!user || !currentRole) {
       router.replace("/login");
       return;
@@ -47,9 +52,9 @@ export function DashboardAccessGuard({ children }: DashboardAccessGuardProps) {
     if (routeRole && routeRole !== currentRole) {
       router.replace(dashboardRouteByRole[currentRole]);
     }
-  }, [currentRole, routeRole, router, user]);
+  }, [currentRole, initialized, routeRole, router, user]);
 
-  if (!user || !currentRole || (routeRole && routeRole !== currentRole)) {
+  if (!initialized || !user || !currentRole || (routeRole && routeRole !== currentRole)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Verificando acceso...

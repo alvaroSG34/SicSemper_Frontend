@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Outfit } from "next/font/google";
 import { BadgeCheck, Bell } from "lucide-react";
 import type { ParticipantProfile } from "@/domain/participant/participant.types";
@@ -13,6 +14,8 @@ type ParticipantHeaderProps = {
 };
 
 export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
+  const hasPhoto = Boolean(profile.photoUrl?.trim());
+
   return (
     <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
       <div className="flex flex-col gap-1">
@@ -39,8 +42,18 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
 
         <DashboardRoleSwitch />
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
-          <span className="text-sm font-semibold text-white">{profile.initials}</span>
+        <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
+          {hasPhoto ? (
+            <Image
+              src={profile.photoUrl ?? ""}
+              alt="Foto de perfil"
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-white">{profile.initials}</span>
+          )}
         </div>
       </div>
     </header>
