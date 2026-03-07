@@ -42,8 +42,7 @@ type BackendParticipantModel = {
   subcategoryId: string | null;
   escalaId: string;
   usuarioEventoCategoriaId: string;
-  nombre: string;
-  modelo: string;
+  nombreModelo: string;
   marca: string;
   descripcion: string;
   codigo: string;
@@ -54,11 +53,14 @@ type BackendParticipantModel = {
   categoryName: string;
   subcategoryName: string | null;
   escalaValue: string;
-  images: Array<{
+  files: Array<{
     id: string;
     modelId: string;
-    imageUrl: string | null;
+    publicUrl: string | null;
     order: number;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
     createdAt: string;
     updatedAt: string;
   }>;
@@ -81,6 +83,13 @@ export interface ParticipantService {
     eventId: string,
     categoryId: string,
   ): Promise<ParticipantEnrollment | null>;
+  uploadModelFile(file: File): Promise<{
+    name: string;
+    type: string;
+    size: number;
+    publicUrl?: string | null;
+    storageKey?: string | null;
+  }>;
   createModelSubmission(payload: CreateParticipantModelPayload): Promise<ParticipantModel>;
   getMyModels(userId: string): Promise<ParticipantModel[]>;
 }
@@ -91,8 +100,11 @@ const participantErrorMessages: Record<string, string> = {
   CLUB_NOT_FOUND: "El club seleccionado ya no esta disponible.",
   EVENT_CATEGORY_NOT_AVAILABLE: "La categoria seleccionada no esta disponible para ese evento.",
   EVENT_NOT_FOUND: "No se encontro el evento seleccionado.",
+  FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG, WEBP o PDF.",
+  IMAGE_LIMIT_EXCEEDED: "Solo puedes adjuntar hasta 5 imagenes.",
   IMAGE_SIZE_INVALID: "Cada imagen debe ser menor o igual a 5MB.",
-  IMAGE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG o WEBP.",
+  PDF_LIMIT_EXCEEDED: "Solo puedes adjuntar hasta 2 archivos PDF.",
+  PDF_SIZE_INVALID: "Cada PDF debe ser menor o igual a 10MB.",
   PHOTO_REQUIRED: "Debes subir una foto de perfil para guardar tus datos.",
   SCALE_NOT_FOUND: "La escala seleccionada no existe.",
   SUBCATEGORY_CATEGORY_MISMATCH: "La subcategoria no pertenece a la categoria seleccionada.",
@@ -137,9 +149,9 @@ const mapModel = (model: BackendParticipantModel): ParticipantModel => ({
   ...model,
   subcategoryId: model.subcategoryId ?? model.categoryId,
   subcategoryName: model.subcategoryName ?? model.categoryName,
-  images: model.images.map((image) => ({
-    ...image,
-    imageUrl: image.imageUrl ?? "",
+  files: model.files.map((file) => ({
+    ...file,
+    publicUrl: file.publicUrl ?? "",
   })),
 });
 
@@ -223,6 +235,25 @@ export const participantService: ParticipantService = {
       throw new Error(toErrorMessage(error, "No se pudo recuperar el contexto de inscripcion."));
     }
   },
+  async uploadModelFile(file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      return await apiRequest<{
+        name: string;
+        type: string;
+        size: number;
+        publicUrl?: string | null;
+        storageKey?: string | null;
+      }>("/participant/uploads/model-file", {
+        method: "POST",
+        body: formData,
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo subir el archivo de la maqueta."));
+    }
+  },
   async createModelSubmission(payload) {
     try {
       const model = await apiRequest<BackendParticipantModel>("/participant/models", {
@@ -232,11 +263,10 @@ export const participantService: ParticipantService = {
           categoryId: payload.categoryId,
           subcategoryId: payload.subcategoryId,
           scaleId: payload.escalaId,
-          name: payload.nombre,
-          model: payload.modelo,
+          nombreModelo: payload.nombreModelo,
           brand: payload.marca,
           description: payload.descripcion,
-          images: payload.images,
+          files: payload.files,
         },
       });
 

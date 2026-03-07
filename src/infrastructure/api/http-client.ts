@@ -114,9 +114,10 @@ const sendRequest = async (
   options: RequestOptions,
   allowRetry: boolean,
 ): Promise<unknown> => {
+  const isFormDataBody = options.body instanceof FormData;
   const headers = new Headers(options.headers);
 
-  if (!headers.has("Content-Type") && options.body !== undefined) {
+  if (!headers.has("Content-Type") && options.body !== undefined && !isFormDataBody) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -127,7 +128,12 @@ const sendRequest = async (
   const response = await fetch(getUrl(path), {
     method: options.method ?? "GET",
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body:
+      options.body === undefined
+        ? undefined
+        : isFormDataBody
+          ? (options.body as FormData)
+          : JSON.stringify(options.body),
     credentials: "include",
   });
 

@@ -1,7 +1,7 @@
-import type {
+﻿import type {
   ParticipantEnrollment,
   ParticipantModel,
-  ParticipantModelImage,
+  ParticipantModelFile,
   ParticipantScale,
 } from "@/domain/participant/participant.types";
 
@@ -9,7 +9,7 @@ const idCounters: Record<string, number> = {
   scale: 10,
   enrollment: 20,
   model: 30,
-  image: 40,
+  file: 40,
 };
 
 const nextId = (prefix: keyof typeof idCounters): string => {
@@ -91,8 +91,7 @@ export const mockParticipantModels: ParticipantModel[] = [
     subcategoryId: "sub-1",
     escalaId: "scale-2",
     usuarioEventoCategoriaId: "enrollment-1",
-    nombre: "F-16 Falcon",
-    modelo: "Block 50",
+    nombreModelo: "F-16 Falcon Block 50",
     marca: "Tamiya",
     descripcion: "Version inicial con mejoras en cabina y panelado.",
     codigo: "F16-001",
@@ -103,12 +102,15 @@ export const mockParticipantModels: ParticipantModel[] = [
     categoryName: "Aviones",
     subcategoryName: "Monoplaza",
     escalaValue: "1:72",
-    images: [
+    files: [
       {
-        id: "image-1",
+        id: "file-1",
         modelId: "model-1",
-        imageUrl: "https://images.unsplash.com/photo-1517971129774-8a2b38fa128e?auto=format&fit=crop&w=640&q=80",
+        publicUrl: "https://images.unsplash.com/photo-1517971129774-8a2b38fa128e?auto=format&fit=crop&w=640&q=80",
         order: 1,
+        fileName: "f16-frontal.jpg",
+        mimeType: "image/jpeg",
+        sizeBytes: 420000,
         createdAt: "2026-02-10T09:00:00.000Z",
         updatedAt: "2026-02-10T09:00:00.000Z",
       },
@@ -119,32 +121,36 @@ export const mockParticipantModels: ParticipantModel[] = [
 export const createParticipantScaleId = () => nextId("scale");
 export const createParticipantEnrollmentId = () => nextId("enrollment");
 export const createParticipantModelId = () => nextId("model");
-export const createParticipantImageId = () => nextId("image");
+export const createParticipantFileId = () => nextId("file");
 
 const cloneScale = (item: ParticipantScale): ParticipantScale => ({ ...item });
 const cloneEnrollment = (item: ParticipantEnrollment): ParticipantEnrollment => ({ ...item });
-const cloneImage = (image: ParticipantModelImage): ParticipantModelImage => ({ ...image });
+const cloneFile = (file: ParticipantModelFile): ParticipantModelFile => ({ ...file });
 const cloneModel = (model: ParticipantModel): ParticipantModel => ({
   ...model,
-  images: model.images.map(cloneImage),
+  files: model.files.map(cloneFile),
 });
 
 export const getClonedParticipantScales = () => mockParticipantScales.map(cloneScale);
 export const getClonedParticipantEnrollments = () => mockParticipantEnrollments.map(cloneEnrollment);
 export const getClonedParticipantModels = () => mockParticipantModels.map(cloneModel);
 
-export const toParticipantImageFromUpload = (
+export const toParticipantFileFromUpload = (
   modelId: string,
-  image: { name: string },
+  file: { name: string; type: string; size: number },
   order: number,
-): ParticipantModelImage => {
+): ParticipantModelFile => {
   const now = nowIso();
   return {
-    id: createParticipantImageId(),
+    id: createParticipantFileId(),
     modelId,
-    imageUrl: `mock://uploads/${modelId}/${order + 1}-${encodeURIComponent(image.name)}`,
+    publicUrl: `mock://uploads/${modelId}/${order + 1}-${encodeURIComponent(file.name)}`,
     order: order + 1,
+    fileName: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
     createdAt: now,
     updatedAt: now,
   };
 };
+

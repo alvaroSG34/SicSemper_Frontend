@@ -1,4 +1,4 @@
 export const appConfig = {
-  appName: "SicSemper",
+  appName: "NOMBRE",
   isMockMode: true,
 } as const;

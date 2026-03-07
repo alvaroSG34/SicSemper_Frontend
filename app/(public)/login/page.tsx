@@ -43,7 +43,7 @@ function LeftPanel() {
           <h1
             className={`${outfit.className} text-center text-[64px] leading-none font-bold tracking-[-2px] text-[#1E293B]`}
           >
-            SicSemper
+            NOMBRE
           </h1>
 
           <div className="relative h-[500px] w-[450px]">

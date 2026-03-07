@@ -171,7 +171,7 @@ export function PublicHeader({
               variant === "login" ? "text-[#0f172a]" : "text-white"
             }`}
           >
-            SicSemper
+            NOMBRE
           </span>
         </Link>
 

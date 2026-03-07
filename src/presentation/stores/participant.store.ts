@@ -4,11 +4,11 @@ import type {
   CreateParticipantModelPayload,
   ParticipantCategoryOption,
   ParticipantDashboardData,
+  ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
   ParticipantModel,
   ParticipantScale,
   ParticipantSubcategoryOption,
-  ParticipantUploadImageInput,
 } from "@/domain/participant/participant.types";
 
 type ParticipantStoreState = {
@@ -19,25 +19,29 @@ type ParticipantStoreState = {
   selectedEvent: ParticipantEventDetail | null;
   eventCategories: ParticipantCategoryOption[];
   subcategoriesByCategory: Record<string, ParticipantSubcategoryOption[]>;
+  categoriesByEventId: Record<string, ParticipantEventAllowedCategoryGroup[]>;
+  categoriesLoadingByEventId: Record<string, boolean>;
+  categoriesErrorByEventId: Record<string, string | null>;
   scales: ParticipantScale[];
   myModels: ParticipantModel[];
+  myModelsLoading: boolean;
   flowLoading: boolean;
   flowError: string | null;
   flowSuccessMessage: string | null;
   loadDashboard: (userId?: string) => Promise<void>;
   loadExploreEvents: () => Promise<void>;
-  selectEvent: (eventId: string) => Promise<void>;
+  selectEvent: (eventId: string) => Promise<boolean>;
+  loadEventCategoriesForDetail: (eventId: string) => Promise<void>;
   submitModel: (payload: {
     userId: string;
     eventId: string;
     categoryId: string;
     subcategoryId: string;
-    nombre: string;
-    modelo: string;
+    nombreModelo: string;
     marca: string;
     descripcion?: string;
     escalaId: string;
-    images: ParticipantUploadImageInput[];
+    files: File[];
   }) => Promise<boolean>;
   loadMyModels: (userId: string) => Promise<void>;
   clearError: () => void;
@@ -52,6 +56,7 @@ type ExplorePayload = {
 let dashboardRequest: Promise<ParticipantDashboardData> | null = null;
 let exploreRequest: Promise<ExplorePayload> | null = null;
 const myModelsRequests = new Map<string, Promise<ParticipantModel[]>>();
+const detailCategoriesRequests = new Map<string, Promise<ParticipantEventAllowedCategoryGroup[]>>();
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
@@ -69,8 +74,12 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
   selectedEvent: null,
   eventCategories: [],
   subcategoriesByCategory: {},
+  categoriesByEventId: {},
+  categoriesLoadingByEventId: {},
+  categoriesErrorByEventId: {},
   scales: [],
   myModels: [],
+  myModelsLoading: false,
   flowLoading: false,
   flowError: null,
   flowSuccessMessage: null,
@@ -172,11 +181,87 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         flowLoading: false,
         flowError: null,
       });
+
+      return true;
     } catch (error) {
       set({
         flowLoading: false,
         flowError: getErrorMessage(error),
       });
+
+      return false;
+    }
+  },
+  loadEventCategoriesForDetail: async (eventId) => {
+    const normalizedEventId = eventId.trim();
+    if (!normalizedEventId) {
+      return;
+    }
+
+    const state = get();
+    if (state.categoriesByEventId[normalizedEventId]) {
+      return;
+    }
+
+    const existingRequest = detailCategoriesRequests.get(normalizedEventId);
+    const request =
+      existingRequest ??
+      (async () => {
+        const categories = await participantService.getCategoriesForEvent(normalizedEventId);
+        const grouped = await Promise.all(
+          categories.map(async (category) => ({
+            category,
+            subcategories: await participantService.getSubcategoriesForCategory(category.id, normalizedEventId),
+          })),
+        );
+        return grouped;
+      })();
+
+    if (!existingRequest) {
+      detailCategoriesRequests.set(normalizedEventId, request);
+      set((currentState) => ({
+        categoriesLoadingByEventId: {
+          ...currentState.categoriesLoadingByEventId,
+          [normalizedEventId]: true,
+        },
+        categoriesErrorByEventId: {
+          ...currentState.categoriesErrorByEventId,
+          [normalizedEventId]: null,
+        },
+      }));
+    }
+
+    try {
+      const groupedCategories = await request;
+      set((currentState) => ({
+        categoriesByEventId: {
+          ...currentState.categoriesByEventId,
+          [normalizedEventId]: groupedCategories,
+        },
+        categoriesLoadingByEventId: {
+          ...currentState.categoriesLoadingByEventId,
+          [normalizedEventId]: false,
+        },
+        categoriesErrorByEventId: {
+          ...currentState.categoriesErrorByEventId,
+          [normalizedEventId]: null,
+        },
+      }));
+    } catch (error) {
+      set((currentState) => ({
+        categoriesLoadingByEventId: {
+          ...currentState.categoriesLoadingByEventId,
+          [normalizedEventId]: false,
+        },
+        categoriesErrorByEventId: {
+          ...currentState.categoriesErrorByEventId,
+          [normalizedEventId]: getErrorMessage(error),
+        },
+      }));
+    } finally {
+      if (detailCategoriesRequests.get(normalizedEventId) === request) {
+        detailCategoriesRequests.delete(normalizedEventId);
+      }
     }
   },
   submitModel: async (payload) => {
@@ -189,12 +274,16 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         categoryId: payload.categoryId,
         subcategoryId: payload.subcategoryId,
         usuarioEventoCategoriaId: `open-${payload.userId}-${payload.eventId}-${payload.categoryId}`,
-        nombre: payload.nombre,
-        modelo: payload.modelo,
+        nombreModelo: payload.nombreModelo,
         marca: payload.marca,
         descripcion: payload.descripcion,
         escalaId: payload.escalaId,
-        images: payload.images,
+        files:
+          payload.files.length > 0
+            ? await Promise.all(
+                payload.files.map((file) => participantService.uploadModelFile(file)),
+              )
+            : [],
       };
 
       const createdModel = await participantService.createModelSubmission(requestPayload);
@@ -203,7 +292,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       set({
         flowLoading: false,
         flowError: null,
-        flowSuccessMessage: `Maqueta ${createdModel.nombre} enviada correctamente.`,
+        flowSuccessMessage: `Maqueta ${createdModel.nombreModelo} enviada correctamente.`,
         myModels,
       });
       return true;
@@ -226,15 +315,21 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
 
     if (!existingRequest) {
       myModelsRequests.set(userId, request);
+      set({
+        myModelsLoading: true,
+        flowError: null,
+      });
     }
 
     try {
       const myModels = await request;
       set({
         myModels,
+        myModelsLoading: false,
       });
     } catch (error) {
       set({
+        myModelsLoading: false,
         flowError: getErrorMessage(error),
       });
     } finally {
@@ -246,3 +341,4 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
   clearError: () => set({ error: null }),
   clearFlowState: () => set({ flowError: null, flowSuccessMessage: null }),
 }));
+

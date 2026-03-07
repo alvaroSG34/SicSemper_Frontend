@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,15 +8,17 @@ import type {
   ParticipantCategoryOption,
   ParticipantScale,
   ParticipantSubcategoryOption,
-  ParticipantUploadImageInput,
 } from "@/domain/participant/participant.types";
 
-const allowedFileTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-const maxFileSizeBytes = 5 * 1024 * 1024;
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const allowedPdfType = "application/pdf";
+const maxImageSizeBytes = 5 * 1024 * 1024;
+const maxPdfSizeBytes = 10 * 1024 * 1024;
+const maxImages = 5;
+const maxPdfs = 2;
 
 const uploadSchema = z.object({
-  nombre: z.string().trim().min(1, "El nombre es obligatorio."),
-  modelo: z.string().trim().min(1, "El modelo es obligatorio."),
+  nombreModelo: z.string().trim().min(1, "El nombre del modelo es obligatorio."),
   marca: z.string().trim().min(1, "La marca es obligatoria."),
   descripcion: z.string().trim().optional(),
   escalaId: z.string().trim().min(1, "Debes seleccionar una escala."),
@@ -35,20 +37,18 @@ type UseParticipantUploadFlowParams = {
     eventId: string;
     categoryId: string;
     subcategoryId: string;
-    nombre: string;
-    modelo: string;
+    nombreModelo: string;
     marca: string;
     descripcion?: string;
     escalaId: string;
-    images: ParticipantUploadImageInput[];
+    files: File[];
   }) => Promise<boolean>;
 };
 
 export type UploadFlowStep = "category" | "form" | "confirmation";
 
 const defaultFormValues: UploadFormValues = {
-  nombre: "",
-  modelo: "",
+  nombreModelo: "",
   marca: "",
   descripcion: "",
   escalaId: "",
@@ -109,21 +109,64 @@ export const useParticipantUploadFlow = ({
     setSelectedSubcategoryId(subcategoryId);
   };
 
-  const handleFilesChange = (files: File[]) => {
-    const invalidType = files.find((file) => !allowedFileTypes.has(file.type));
-    if (invalidType) {
-      setFileError("Solo se permiten imagenes JPG, PNG o WEBP.");
-      return;
+  const buildFileKey = (file: File) => `${file.name}-${file.size}-${file.type}-${file.lastModified}`;
+
+  const mergeFiles = (currentFiles: File[], incomingFiles: File[]) => {
+    const seen = new Set<string>();
+    const merged: File[] = [];
+
+    for (const file of [...currentFiles, ...incomingFiles]) {
+      const key = buildFileKey(file);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      merged.push(file);
     }
 
-    const invalidSize = files.find((file) => file.size > maxFileSizeBytes);
-    if (invalidSize) {
-      setFileError("Cada imagen debe pesar maximo 5MB.");
+    return merged;
+  };
+
+  const handleFilesChange = (files: File[]) => {
+    const mergedFiles = mergeFiles(selectedFiles, files);
+    let imageCount = 0;
+    let pdfCount = 0;
+
+    for (const file of mergedFiles) {
+      if (allowedImageTypes.has(file.type)) {
+        imageCount += 1;
+        if (imageCount > maxImages) {
+          setFileError("Solo puedes adjuntar hasta 5 imagenes.");
+          return;
+        }
+
+        if (file.size > maxImageSizeBytes) {
+          setFileError("Cada imagen debe pesar maximo 5MB.");
+          return;
+        }
+        continue;
+      }
+
+      if (file.type === allowedPdfType) {
+        pdfCount += 1;
+        if (pdfCount > maxPdfs) {
+          setFileError("Solo puedes adjuntar hasta 2 PDF.");
+          return;
+        }
+
+        if (file.size > maxPdfSizeBytes) {
+          setFileError("Cada PDF debe pesar maximo 10MB.");
+          return;
+        }
+        continue;
+      }
+
+      setFileError("Solo se permiten imagenes JPG, PNG, WEBP o archivos PDF.");
       return;
     }
 
     setFileError(null);
-    setSelectedFiles(files);
+    setSelectedFiles(mergedFiles);
   };
 
   const handleGoToForm = () => {
@@ -147,16 +190,11 @@ export const useParticipantUploadFlow = ({
       eventId,
       categoryId: selectedCategoryId,
       subcategoryId: selectedSubcategoryId,
-      nombre: values.nombre,
-      modelo: values.modelo,
+      nombreModelo: values.nombreModelo,
       marca: values.marca,
       descripcion: values.descripcion,
       escalaId: values.escalaId,
-      images: selectedFiles.map((file) => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      })),
+      files: selectedFiles,
     });
 
     if (success) {
@@ -185,3 +223,4 @@ export const useParticipantUploadFlow = ({
     resetForAnother,
   };
 };
+

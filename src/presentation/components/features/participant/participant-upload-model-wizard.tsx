@@ -6,7 +6,6 @@ import type {
   ParticipantCategoryOption,
   ParticipantScale,
   ParticipantSubcategoryOption,
-  ParticipantUploadImageInput,
 } from "@/domain/participant/participant.types";
 import { useParticipantUploadFlow } from "@/presentation/hooks";
 
@@ -29,12 +28,11 @@ type ParticipantUploadModelWizardProps = {
     eventId: string;
     categoryId: string;
     subcategoryId: string;
-    nombre: string;
-    modelo: string;
+    nombreModelo: string;
     marca: string;
     descripcion?: string;
     escalaId: string;
-    images: ParticipantUploadImageInput[];
+    files: File[];
   }) => Promise<boolean>;
   onGoToMyModels: () => void;
 };
@@ -124,24 +122,13 @@ export function ParticipantUploadModelWizard({
       {flow.step === "form" ? (
         <form onSubmit={flow.submitForm} className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            Nombre *
+            Nombre del modelo *
             <input
-              {...flow.form.register("nombre")}
+              {...flow.form.register("nombreModelo")}
               className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
             />
-            {flow.form.formState.errors.nombre ? (
-              <span className="text-xs text-[#fca5a5]">{flow.form.formState.errors.nombre.message}</span>
-            ) : null}
-          </label>
-
-          <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            Modelo *
-            <input
-              {...flow.form.register("modelo")}
-              className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-            />
-            {flow.form.formState.errors.modelo ? (
-              <span className="text-xs text-[#fca5a5]">{flow.form.formState.errors.modelo.message}</span>
+            {flow.form.formState.errors.nombreModelo ? (
+              <span className="text-xs text-[#fca5a5]">{flow.form.formState.errors.nombreModelo.message}</span>
             ) : null}
           </label>
 
@@ -157,7 +144,7 @@ export function ParticipantUploadModelWizard({
           </label>
 
           <label className="flex flex-col gap-2 text-sm text-[#D0D0D0] md:col-span-2">
-            Descripcion
+            Agregados
             <textarea
               {...flow.form.register("descripcion")}
               className="min-h-[100px] rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-sm text-white outline-none"
@@ -187,22 +174,31 @@ export function ParticipantUploadModelWizard({
           </label>
 
           <div className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            <span>Imagenes (opcional)</span>
+            <span>Archivos (opcional)</span>
             <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-[#4A4A4A] bg-[#101010] px-3 text-sm text-[#D0D0D0]">
               <UploadCloud className="h-4 w-4" />
               Seleccionar archivos
               <input
                 type="file"
-                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
                 multiple
                 className="hidden"
-                onChange={(event) => flow.handleFilesChange(Array.from(event.target.files ?? []))}
+                onChange={(event) => {
+                  const nextFiles = Array.from(event.target.files ?? []);
+                  flow.handleFilesChange(nextFiles);
+                  event.currentTarget.value = "";
+                }}
               />
             </label>
             {flow.fileError ? <span className="text-xs text-[#fca5a5]">{flow.fileError}</span> : null}
             {flow.selectedFiles.length > 0 ? (
-              <span className="text-xs text-[#AFAFAF]">{flow.selectedFiles.length} archivo(s) seleccionados</span>
+              <span className="text-xs text-[#AFAFAF]">
+                {flow.selectedFiles.length} archivo(s) seleccionados (
+                {flow.selectedFiles.filter((file) => file.type === "application/pdf").length} PDF,{" "}
+                {flow.selectedFiles.filter((file) => file.type !== "application/pdf").length} imagenes)
+              </span>
             ) : null}
+            <span className="text-[11px] text-[#8F8F8F]">Maximo: 5 imagenes (5MB c/u) y 2 PDF (10MB c/u).</span>
           </div>
 
           <div className="flex gap-3 md:col-span-2">

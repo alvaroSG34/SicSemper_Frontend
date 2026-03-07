@@ -68,10 +68,12 @@ export type UpdateParticipantProfilePayload = {
 };
 
 export type ParticipantNextChallenge = {
+  eventId?: Identifier | null;
   eyebrow: string;
   title: string;
   categoryLine: string;
   organizer: string;
+  startDate?: string | null;
   countdown: {
     days: string;
     hours: string;
@@ -104,6 +106,7 @@ export type ParticipantEventStatus = "ACTIVO" | "PAUSADO" | "BORRADOR";
 export type ParticipantEventDetail = {
   id: Identifier;
   name: string;
+  imageUrl?: string | null;
   status: ParticipantEventStatus;
   place: string;
   startDate: string;
@@ -111,6 +114,10 @@ export type ParticipantEventDetail = {
   description: string;
   createdAt: string;
   updatedAt: string;
+  organizerClub?: {
+    id: Identifier;
+    name: string;
+  };
 };
 
 export type ParticipantCategoryOption = {
@@ -124,6 +131,11 @@ export type ParticipantSubcategoryOption = {
   id: Identifier;
   categoryId: Identifier;
   name: string;
+};
+
+export type ParticipantEventAllowedCategoryGroup = {
+  category: ParticipantCategoryOption;
+  subcategories: ParticipantSubcategoryOption[];
 };
 
 export type ParticipantScale = {
@@ -149,11 +161,14 @@ export type ParticipantEnrollment = {
 
 export type ParticipantModelStatus = "ENVIADA" | "EN_REVISION" | "CALIFICADA";
 
-export type ParticipantModelImage = {
+export type ParticipantModelFile = {
   id: Identifier;
   modelId: Identifier;
-  imageUrl: string;
+  publicUrl: string;
   order: number;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -166,8 +181,7 @@ export type ParticipantModel = {
   subcategoryId: Identifier;
   escalaId: Identifier;
   usuarioEventoCategoriaId: Identifier;
-  nombre: string;
-  modelo: string;
+  nombreModelo: string;
   marca: string;
   descripcion: string;
   codigo: string;
@@ -178,13 +192,15 @@ export type ParticipantModel = {
   categoryName: string;
   subcategoryName: string;
   escalaValue: string;
-  images: ParticipantModelImage[];
+  files: ParticipantModelFile[];
 };
 
-export type ParticipantUploadImageInput = {
+export type ParticipantUploadFileInput = {
   name: string;
   type: string;
   size: number;
+  publicUrl?: string | null;
+  storageKey?: string | null;
 };
 
 export type CreateParticipantModelPayload = {
@@ -193,12 +209,11 @@ export type CreateParticipantModelPayload = {
   categoryId: Identifier;
   subcategoryId: Identifier;
   usuarioEventoCategoriaId: Identifier;
-  nombre: string;
-  modelo: string;
+  nombreModelo: string;
   marca: string;
   descripcion?: string;
   escalaId: Identifier;
-  images: ParticipantUploadImageInput[];
+  files: ParticipantUploadFileInput[];
 };
 
 export type ParticipantDashboardData = {
@@ -208,3 +223,4 @@ export type ParticipantDashboardData = {
   kpis: ParticipantKpi[];
   openEvents: ParticipantOpenEvent[];
 };
+

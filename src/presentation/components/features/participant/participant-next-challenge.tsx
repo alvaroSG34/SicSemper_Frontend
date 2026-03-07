@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, Clock3, Loader2 } from "lucide-react";
 import { Outfit } from "next/font/google";
 import type { ParticipantNextChallenge } from "@/domain/participant/participant.types";
 
@@ -8,52 +12,176 @@ const outfit = Outfit({
 
 type ParticipantNextChallengeProps = {
   challenge: ParticipantNextChallenge;
+  onStartUpload?: () => void;
+  isStartingUpload?: boolean;
 };
 
-export function ParticipantNextChallenge({ challenge }: ParticipantNextChallengeProps) {
+type CountdownParts = {
+  days: string;
+  hours: string;
+  minutes: string;
+};
+
+const ZERO_COUNTDOWN: CountdownParts = {
+  days: "00",
+  hours: "00",
+  minutes: "00",
+};
+
+const toTwoDigits = (value: number) => String(Math.max(value, 0)).padStart(2, "0");
+
+const normalizeCountdownPart = (value: string) => {
+  const numeric = Number.parseInt(value, 10);
+  if (Number.isNaN(numeric) || numeric < 0) {
+    return "00";
+  }
+
+  return toTwoDigits(numeric);
+};
+
+const buildCountdownFromStartDate = (startDate: string | null | undefined): CountdownParts | null => {
+  if (!startDate) {
+    return null;
+  }
+
+  const targetDate = new Date(startDate);
+  if (Number.isNaN(targetDate.getTime())) {
+    return null;
+  }
+
+  const remainingMs = Math.max(targetDate.getTime() - Date.now(), 0);
+  const totalMinutes = Math.floor(remainingMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  return {
+    days: toTwoDigits(days),
+    hours: toTwoDigits(hours),
+    minutes: toTwoDigits(minutes),
+  };
+};
+
+const startDateFormatter = new Intl.DateTimeFormat("es-BO", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+
+export function ParticipantNextChallenge({
+  challenge,
+  onStartUpload,
+  isStartingUpload = false,
+}: ParticipantNextChallengeProps) {
+  const shouldShowCategoryLine = !challenge.categoryLine.trim().toLowerCase().startsWith("club:");
+
+  const fallbackCountdown = useMemo<CountdownParts>(
+    () => ({
+      days: normalizeCountdownPart(challenge.countdown.days),
+      hours: normalizeCountdownPart(challenge.countdown.hours),
+      minutes: normalizeCountdownPart(challenge.countdown.minutes),
+    }),
+    [challenge.countdown.days, challenge.countdown.hours, challenge.countdown.minutes],
+  );
+
+  const [countdown, setCountdown] = useState<CountdownParts>(
+    () => buildCountdownFromStartDate(challenge.startDate) ?? fallbackCountdown,
+  );
+
+  useEffect(() => {
+    const nextCountdown = buildCountdownFromStartDate(challenge.startDate);
+    if (!nextCountdown) {
+      setCountdown(fallbackCountdown);
+      return;
+    }
+
+    setCountdown(nextCountdown);
+
+    const intervalId = window.setInterval(() => {
+      setCountdown(buildCountdownFromStartDate(challenge.startDate) ?? ZERO_COUNTDOWN);
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [challenge.startDate, fallbackCountdown]);
+
+  const isEventInCourse =
+    challenge.startDate !== null &&
+    challenge.startDate !== undefined &&
+    countdown.days === "00" &&
+    countdown.hours === "00" &&
+    countdown.minutes === "00";
+
+  const parsedStartDate = challenge.startDate ? new Date(challenge.startDate) : null;
+  const formattedStartDate =
+    parsedStartDate && !Number.isNaN(parsedStartDate.getTime())
+      ? startDateFormatter.format(parsedStartDate)
+      : null;
+
   return (
-    <section className="flex w-full flex-col gap-8 rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:h-[280px] xl:flex-row xl:items-stretch xl:justify-between xl:p-10">
-      <div className="flex flex-1 flex-col justify-between gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold tracking-[2px] text-[#F15BB5]">{challenge.eyebrow}</p>
-          <h2
-            className={`${outfit.className} text-3xl leading-tight font-bold text-white sm:text-4xl xl:text-5xl xl:leading-none`}
-          >
-            {challenge.title}
-          </h2>
-          <p className="text-sm text-[#AAAAAA] sm:text-base xl:text-lg">{challenge.categoryLine}</p>
+    <section className="rounded-3xl border border-[#2F2F2F] bg-[#121212] p-6 sm:p-7 xl:p-8">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <p className="text-sm font-bold uppercase tracking-[2px] text-[#F15BB5]">{challenge.eyebrow}</p>
+            <h2 className={`${outfit.className} text-3xl font-bold leading-tight text-white sm:text-4xl`}>
+              {challenge.title}
+            </h2>
+            {shouldShowCategoryLine ? <p className="text-base text-[#C9C9C9]">{challenge.categoryLine}</p> : null}
+          </div>
+
+          <p className="text-base font-medium text-[#AFAFAF]">{challenge.organizer}</p>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {formattedStartDate ? (
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#3B3B3B] px-3 py-1.5 text-sm text-[#D6D6D6]">
+                <CalendarDays className="h-4 w-4" />
+                Inicio: {formattedStartDate}
+              </p>
+            ) : null}
+
+            {challenge.eventId ? (
+              <button
+                type="button"
+                onClick={onStartUpload}
+                disabled={isStartingUpload}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[#3B62EA]/70 bg-[#1D2E63]/40 px-4 text-sm font-semibold text-[#D6E2FF] transition hover:border-[#4A75FF] hover:bg-[#223980] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isStartingUpload ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Cargando...
+                  </>
+                ) : (
+                  "Subir Maqueta"
+                )}
+              </button>
+            ) : null}
+          </div>
         </div>
 
-        <p className="text-sm font-medium text-[#666666]">{challenge.organizer}</p>
+        <div className="rounded-2xl border border-[#343434] bg-[#0F0F0F] p-4 sm:p-5">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[1.2px] text-[#CFCFCF]">
+            <Clock3 className="h-4 w-4 text-[#8EA7FF]" />
+            {isEventInCourse ? "Evento en curso" : "Comienza en"}
+          </p>
 
-        <div className="flex items-start gap-4 sm:gap-5">
-          <div className="flex flex-col gap-1">
-            <span className="text-[28px] leading-none font-semibold text-white sm:text-[32px]">
-              {challenge.countdown.days}
-            </span>
-            <span className="text-xs text-[#666666]">Días</span>
-          </div>
-          <span className="text-[28px] leading-none text-[#333333] sm:text-[32px]">:</span>
-          <div className="flex flex-col gap-1">
-            <span className="text-[28px] leading-none font-semibold text-white sm:text-[32px]">
-              {challenge.countdown.hours}
-            </span>
-            <span className="text-xs text-[#666666]">Hs</span>
-          </div>
-          <span className="text-[28px] leading-none text-[#333333] sm:text-[32px]">:</span>
-          <div className="flex flex-col gap-1">
-            <span className="text-[28px] leading-none font-semibold text-white sm:text-[32px]">
-              {challenge.countdown.minutes}
-            </span>
-            <span className="text-xs text-[#666666]">Min</span>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="rounded-xl border border-[#3A3A3A] bg-[#151515] px-3 py-4 text-center">
+              <p className={`${outfit.className} text-3xl font-bold leading-none text-white sm:text-4xl`}>{countdown.days}</p>
+              <p className="mt-2 text-sm uppercase tracking-[1px] text-[#A9A9A9]">Dias</p>
+            </div>
+            <div className="rounded-xl border border-[#3A3A3A] bg-[#151515] px-3 py-4 text-center">
+              <p className={`${outfit.className} text-3xl font-bold leading-none text-white sm:text-4xl`}>{countdown.hours}</p>
+              <p className="mt-2 text-sm uppercase tracking-[1px] text-[#A9A9A9]">Horas</p>
+            </div>
+            <div className="rounded-xl border border-[#3A3A3A] bg-[#151515] px-3 py-4 text-center">
+              <p className={`${outfit.className} text-3xl font-bold leading-none text-white sm:text-4xl`}>{countdown.minutes}</p>
+              <p className="mt-2 text-sm uppercase tracking-[1px] text-[#A9A9A9]">Min</p>
+            </div>
           </div>
         </div>
       </div>
-
-      <div
-        aria-label={challenge.imageAlt}
-        className="h-[180px] w-full rounded-2xl border border-white/10 bg-white sm:h-[200px] xl:h-[200px] xl:w-[300px]"
-      />
     </section>
   );
 }

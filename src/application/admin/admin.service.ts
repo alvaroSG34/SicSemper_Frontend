@@ -6,6 +6,7 @@ import type {
   CategoryDeleteImpact,
   ClubDeleteImpact,
   AdminDashboardData,
+  AdminDashboardSummary,
   AssignJudgeScopePayload,
   CatalogCategory,
   CatalogEvent,
@@ -127,6 +128,8 @@ type BackendAdminDashboard = {
   activity: BackendActivity[];
 };
 
+type BackendAdminDashboardSummary = Pick<BackendAdminDashboard, "kpis" | "alerts" | "activity">;
+
 type SyntheticCatalog = {
   events: CatalogEvent[];
   categories: CatalogCategory[];
@@ -165,6 +168,7 @@ const toErrorMessage = (error: unknown, fallback: string) => {
 const mapEvent = (event: BackendEvent): CatalogEvent => ({
   id: event.id,
   name: event.name,
+  organizerClubId: event.organizerClubId,
   status: event.status,
   place: event.place ?? "",
   startDate: event.startDate ?? "",
@@ -297,26 +301,8 @@ const buildCatalog = (dashboard: BackendAdminDashboard): SyntheticCatalog => {
 };
 
 const getDashboardSnapshot = () => apiRequest<BackendAdminDashboard>("/admin/dashboard");
-
-const getOrganizerClubId = async () => {
-  const clubs = await apiRequest<BackendClub[]>("/admin/clubs");
-
-  if (clubs[0]) {
-    return clubs[0].id;
-  }
-
-  const createdClub = await apiRequest<BackendClub>("/admin/clubs", {
-    method: "POST",
-      body: {
-        name: "Club SicSemper",
-        place: "La Paz",
-        contactEmail: `system-${Date.now()}@sicsemper.local`,
-        description: "Club operativo creado automaticamente para el panel admin.",
-      },
-  });
-
-  return createdClub.id;
-};
+const getDashboardSummarySnapshot = () =>
+  apiRequest<BackendAdminDashboardSummary>("/admin/dashboard/summary");
 
 const syncRootCategoryEventLinks = async (
   categoryId: string,
@@ -408,6 +394,7 @@ const syncChildCategoryEventLinks = async (
 };
 
 export interface AdminService {
+  getDashboardSummaryData(): Promise<AdminDashboardSummary>;
   getDashboardData(): Promise<AdminDashboardData>;
   listUsers(): Promise<User[]>;
   createClub(payload: CreateClubPayload): Promise<AdminClub>;
@@ -440,6 +427,22 @@ export interface AdminService {
 }
 
 export const adminService: AdminService = {
+  async getDashboardSummaryData() {
+    try {
+      const summary = await getDashboardSummarySnapshot();
+      return {
+        kpis: {
+          activeUsers: summary.kpis.activeUsers,
+          activeEvents: summary.kpis.activeEvents,
+          openIncidents: summary.kpis.openIncidents,
+        },
+        alerts: summary.alerts,
+        activity: summary.activity.map(mapActivity),
+      };
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el resumen del dashboard admin."));
+    }
+  },
   async getDashboardData() {
     try {
       const dashboard = await getDashboardSnapshot();
@@ -578,13 +581,9 @@ export const adminService: AdminService = {
   },
   async createEvent(payload) {
     try {
-      const organizerClubId = await getOrganizerClubId();
       const event = await apiRequest<BackendEvent>("/admin/events", {
         method: "POST",
-        body: {
-          organizerClubId,
-          ...payload,
-        },
+        body: payload,
       });
 
       return mapEvent(event);
@@ -594,13 +593,9 @@ export const adminService: AdminService = {
   },
   async createEventAndLinkCategories(payload, categoryIds) {
     try {
-      const organizerClubId = await getOrganizerClubId();
       const event = await apiRequest<BackendEvent>("/admin/events", {
         method: "POST",
-        body: {
-          organizerClubId,
-          ...payload,
-        },
+        body: payload,
       });
 
       if (categoryIds.length > 0) {
@@ -621,13 +616,10 @@ export const adminService: AdminService = {
   },
   async updateEvent(payload) {
     try {
-      const dashboard = await getDashboardSnapshot();
-      const currentEvent = dashboard.catalog.events.find((entry) => entry.id === payload.id);
-      const organizerClubId = currentEvent?.organizerClubId ?? (await getOrganizerClubId());
       const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
         method: "PATCH",
         body: {
-          organizerClubId,
+          organizerClubId: payload.organizerClubId,
           name: payload.name,
           status: payload.status,
           place: payload.place,
@@ -646,12 +638,10 @@ export const adminService: AdminService = {
   async updateEventAndLinkCategories(payload, categoryIds) {
     try {
       const dashboard = await getDashboardSnapshot();
-      const currentEvent = dashboard.catalog.events.find((entry) => entry.id === payload.id);
-      const organizerClubId = currentEvent?.organizerClubId ?? (await getOrganizerClubId());
       const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
         method: "PATCH",
         body: {
-          organizerClubId,
+          organizerClubId: payload.organizerClubId,
           name: payload.name,
           status: payload.status,
           place: payload.place,

@@ -48,7 +48,7 @@ const initialFormFields: RegisterFormFields = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ciPattern = /^[0-9A-Za-z-]{5,20}$/;
 const phonePattern = /^\+?[0-9\s-]{6,20}$/;
-const registerDraftStorageKey = "sicsemper.register.draft.v1";
+const registerDraftStorageKey = "nombre.register.draft.v1";
 
 type PasswordStrength = {
   label: string;

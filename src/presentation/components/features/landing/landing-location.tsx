@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { Bus, Car, MapPin } from "lucide-react";
 import { locationCards, locationMapImage, locationMapUrl } from "./landing-data";
 
@@ -16,10 +16,10 @@ export function LandingLocation() {
     >
       <div className="flex flex-col items-center gap-4">
         <h2 className="text-center text-4xl font-bold text-[color:var(--landing-text)] xl:text-[42px]">
-          UbicaciÃ³n del Evento
+          Ubicación del Evento
         </h2>
         <p className="text-center text-lg text-[color:var(--landing-muted)]">
-          Te esperamos en el corazÃ³n del distrito de diseÃ±o para dos dÃ­as inolvidables.
+          Te esperamos en el corazón del distrito de diseño para dos días inolvidables.
         </p>
       </div>
 
@@ -27,12 +27,12 @@ export function LandingLocation() {
         href={locationMapUrl}
         target="_blank"
         rel="noreferrer"
-        aria-label="Abrir ubicaciÃ³n del evento en Google Maps"
+        aria-label="Abrir ubicación del evento en Google Maps"
         className="group relative block h-[320px] w-full overflow-hidden rounded-[32px] border border-[color:var(--landing-border)] xl:h-[450px]"
       >
         <Image
           src={locationMapImage}
-          alt="UbicaciÃ³n del evento"
+          alt="Ubicación del evento"
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           sizes="100vw"

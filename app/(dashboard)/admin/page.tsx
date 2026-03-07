@@ -86,6 +86,26 @@ const formatDate = (iso: string | null | undefined) => {
   });
 };
 
+const toDateInputValue = (value: string | null | undefined) => {
+  if (!value) return "";
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const isoMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})T/);
+  if (isoMatch?.[1]) {
+    return isoMatch[1];
+  }
+
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString().slice(0, 10);
+};
+
 const roleLabel: Record<"PARTICIPANTE" | "JUEZ" | "ADMIN", string> = {
   PARTICIPANTE: "Participante",
   JUEZ: "Juez",
@@ -100,6 +120,7 @@ const participantStatusConfig: Record<string, { label: string; className: string
 
 type EventModalMode = "create" | "edit";
 type EventFormState = {
+  organizerClubId: string;
   name: string;
   place: string;
   startDate: string;
@@ -126,6 +147,7 @@ type SubcategoryFormState = {
 };
 
 const emptyEventForm: EventFormState = {
+  organizerClubId: "",
   name: "",
   place: "",
   startDate: "",
@@ -206,9 +228,11 @@ export default function AdminPage() {
 
   const users = useAdminStore((state) => state.users);
   const dashboard = useAdminStore((state) => state.dashboard);
+  const summary = useAdminStore((state) => state.summary);
   const loading = useAdminStore((state) => state.loading);
   const error = useAdminStore((state) => state.error);
 
+  const loadSummary = useAdminStore((state) => state.loadSummary);
   const loadDashboard = useAdminStore((state) => state.loadDashboard);
   const clearError = useAdminStore((state) => state.clearError);
   const createClub = useAdminStore((state) => state.createClub);
@@ -296,10 +320,18 @@ export default function AdminPage() {
   const [categoryDeleteConfirmText, setCategoryDeleteConfirmText] = useState("");
   const [participantDetailModal, setParticipantDetailModal] = useState<User | null>(null);
   const activeSection = resolveAdminSection(tabParam);
+  const needsFullDashboardData = activeSection !== "inicio" && activeSection !== "ajustes";
 
   useEffect(() => {
+    void loadSummary();
+  }, [loadSummary]);
+
+  useEffect(() => {
+    if (!needsFullDashboardData) {
+      return;
+    }
     void loadDashboard();
-  }, [loadDashboard]);
+  }, [loadDashboard, needsFullDashboardData]);
 
   const setActiveSection = (section: AdminSectionId) => {
     if (section === activeSection) {
@@ -314,10 +346,10 @@ export default function AdminPage() {
 
   const catalog = dashboard?.catalog;
   const assignments = useMemo(() => dashboard?.assignments ?? [], [dashboard?.assignments]);
-  const alerts = dashboard?.alerts ?? [];
-  const activity = dashboard?.activity ?? [];
+  const alerts = dashboard?.alerts ?? summary?.alerts ?? [];
+  const activity = dashboard?.activity ?? summary?.activity ?? [];
   const clubs = useMemo(() => dashboard?.clubs ?? [], [dashboard?.clubs]);
-  const kpis = dashboard?.kpis;
+  const kpis = dashboard?.kpis ?? summary?.kpis;
 
   const judgeUsers = useMemo(
     () => users.filter((candidate) => candidate.roles.includes("JUEZ")),
@@ -472,7 +504,10 @@ export default function AdminPage() {
     clearError();
     setEventModalMode("create");
     setEventModalTargetId(null);
-    setEventForm(emptyEventForm);
+    setEventForm({
+      ...emptyEventForm,
+      organizerClubId: clubs[0]?.id ?? "",
+    });
     setEventModalStep(1);
     setEventModalSelectedCategoryIds(new Set());
     setEventModalError(null);
@@ -480,6 +515,7 @@ export default function AdminPage() {
 
   const openEditEventModal = (eventItem: {
     id: string;
+    organizerClubId?: string;
     name: string;
     place?: string;
     startDate?: string;
@@ -495,10 +531,11 @@ export default function AdminPage() {
     setEventModalTargetId(eventItem.id);
     setEventModalStep(1);
     setEventForm({
+      organizerClubId: eventItem.organizerClubId ?? clubs[0]?.id ?? "",
       name: eventItem.name,
       place: eventItem.place ?? "",
-      startDate: eventItem.startDate ?? "",
-      endDate: eventItem.endDate ?? "",
+      startDate: toDateInputValue(eventItem.startDate),
+      endDate: toDateInputValue(eventItem.endDate),
       status: eventItem.status,
       description: eventItem.description ?? "",
       imageUrl: eventItem.imageUrl ?? "",
@@ -563,6 +600,16 @@ export default function AdminPage() {
   const handleSubmitEventModal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (clubs.length === 0) {
+      setEventModalError("Primero debes crear un club para asignarlo como organizador del evento.");
+      return;
+    }
+
+    if (!eventForm.organizerClubId) {
+      setEventModalError("Selecciona el club organizador del evento.");
+      return;
+    }
+
     if (
       !eventForm.name.trim() ||
       !eventForm.place.trim() ||
@@ -600,6 +647,7 @@ export default function AdminPage() {
       action: () =>
         createEventAndLinkCategories(
           {
+            organizerClubId: eventForm.organizerClubId,
             name: eventForm.name,
             status: eventForm.status,
             place: eventForm.place,
@@ -633,6 +681,7 @@ export default function AdminPage() {
         updateEventAndLinkCategories(
           {
             id: eventModalTargetId,
+            organizerClubId: eventForm.organizerClubId,
             name: eventForm.name,
             status: eventForm.status,
             place: eventForm.place,
@@ -1183,7 +1232,7 @@ export default function AdminPage() {
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-5 w-5 text-white" />
-            <span className="text-2xl font-bold tracking-[-0.5px] text-white">SicSemper</span>
+            <span className="text-2xl font-bold tracking-[-0.5px] text-white">NOMBRE</span>
           </div>
 
           <nav className="mt-16 flex flex-col gap-7">
@@ -1223,7 +1272,7 @@ export default function AdminPage() {
             <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
               <div className="flex items-center gap-3">
                 <ChevronDown className="h-4 w-4 text-white" />
-                <span className="text-lg font-bold tracking-[-0.3px] text-white">SicSemper</span>
+                <span className="text-lg font-bold tracking-[-0.3px] text-white">NOMBRE</span>
               </div>
               <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {visibleSidebarItems.map((item) => (
@@ -1247,7 +1296,7 @@ export default function AdminPage() {
             <header id="inicio" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
               <div className="flex flex-col gap-1">
                 <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
-                  Hola, Admin {user?.name?.split(" ")[0] ?? "SicSemper"}
+                  Hola, Admin {user?.name?.split(" ")[0] ?? "NOMBRE"}
                 </h1>
                 <p className="text-sm text-[#AAAAAA]">Centro de control operativo de competencias de modelismo</p>
               </div>
@@ -2093,6 +2142,24 @@ export default function AdminPage() {
 
                   {eventModalStep === 1 ? (
                   <form onSubmit={(event) => void handleSubmitEventModal(event)} className="grid gap-3 md:grid-cols-2">
+                    <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
+                      Club organizador
+                      <select
+                        value={eventForm.organizerClubId}
+                        onChange={(event) =>
+                          setEventForm((prev) => ({ ...prev, organizerClubId: event.target.value }))
+                        }
+                        className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+                      >
+                        <option value="">Selecciona club</option>
+                        {clubs.map((club) => (
+                          <option key={club.id} value={club.id}>
+                            {club.name} - {club.place}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
                     <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                       Nombre
                       <input

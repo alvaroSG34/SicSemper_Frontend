@@ -9,6 +9,7 @@ export type AlertStatus = "ABIERTA" | "EN_PROGRESO" | "RESUELTA";
 export type CatalogEvent = {
   id: Identifier;
   name: string;
+  organizerClubId?: Identifier;
   status: CatalogEventStatus;
   place?: string;
   startDate?: string;
@@ -94,6 +95,8 @@ export type AdminDashboardData = {
   };
 };
 
+export type AdminDashboardSummary = Pick<AdminDashboardData, "kpis" | "alerts" | "activity">;
+
 export type EventDeleteImpact = {
   eventId: Identifier;
   eventName: string;
@@ -133,6 +136,7 @@ export type UpdateClubPayload = CreateClubPayload & {
 };
 
 export type CreateEventPayload = {
+  organizerClubId: Identifier;
   name: string;
   place: string;
   startDate: string;
@@ -144,6 +148,7 @@ export type CreateEventPayload = {
 
 export type UpdateEventPayload = {
   id: Identifier;
+  organizerClubId: Identifier;
   name: string;
   place: string;
   startDate: string;

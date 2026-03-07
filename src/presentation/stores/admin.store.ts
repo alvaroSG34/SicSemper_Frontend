@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { adminService } from "@/application/admin/admin.service";
 import type {
   AdminDashboardData,
+  AdminDashboardSummary,
   AssignJudgeScopePayload,
   CategoryDeleteImpact,
   CatalogEventStatus,
@@ -15,8 +16,10 @@ import type { User } from "@/domain/user/user.types";
 type AdminStoreState = {
   users: User[];
   dashboard: AdminDashboardData | null;
+  summary: AdminDashboardSummary | null;
   loading: boolean;
   error: string | null;
+  loadSummary: () => Promise<void>;
   loadDashboard: () => Promise<void>;
   clearError: () => void;
   createClub: (payload: {
@@ -41,6 +44,7 @@ type AdminStoreState = {
   banParticipant: (userId: string) => Promise<void>;
   unbanParticipant: (userId: string) => Promise<void>;
   createEvent: (payload: {
+    organizerClubId: string;
     name: string;
     status?: CatalogEventStatus;
     place: string;
@@ -51,6 +55,7 @@ type AdminStoreState = {
   }) => Promise<void>;
   createEventAndLinkCategories: (
     payload: {
+      organizerClubId: string;
       name: string;
       status?: CatalogEventStatus;
       place: string;
@@ -63,6 +68,7 @@ type AdminStoreState = {
   ) => Promise<void>;
   updateEvent: (payload: {
     id: string;
+    organizerClubId: string;
     name: string;
     status: CatalogEventStatus;
     place: string;
@@ -74,6 +80,7 @@ type AdminStoreState = {
   updateEventAndLinkCategories: (
     payload: {
       id: string;
+      organizerClubId: string;
       name: string;
       status: CatalogEventStatus;
       place: string;
@@ -110,6 +117,9 @@ const getErrorMessage = (error: unknown): string => {
   return "Ocurrió un error inesperado en el panel admin.";
 };
 
+let dashboardRequest: Promise<AdminDashboardData> | null = null;
+let summaryRequest: Promise<AdminDashboardSummary> | null = null;
+
 const loadSnapshot = async (
   set: (partial: Partial<AdminStoreState>) => void,
   options?: { loading?: boolean },
@@ -123,6 +133,11 @@ const loadSnapshot = async (
   set({
     users: dashboard.users,
     dashboard,
+    summary: {
+      kpis: dashboard.kpis,
+      alerts: dashboard.alerts,
+      activity: dashboard.activity,
+    },
     error: null,
     loading: false,
   });
@@ -145,16 +160,71 @@ const executeMutation = async (
 export const useAdminStore = create<AdminStoreState>((set, get) => ({
   users: [],
   dashboard: null,
+  summary: null,
   loading: false,
   error: null,
   judgePermissionsMap: {},
   judgePermissionsLoading: {},
   judgePermissionsError: {},
-  loadDashboard: async () => {
+  loadSummary: async () => {
+    const state = get();
+    if (state.summary || state.dashboard) {
+      return;
+    }
+
+    if (!summaryRequest) {
+      set({ loading: true, error: null });
+      summaryRequest = adminService.getDashboardSummaryData();
+    }
+
+    const request = summaryRequest;
+
     try {
-      await loadSnapshot(set, { loading: true });
+      const summary = await request;
+      set({
+        summary,
+        error: null,
+        loading: false,
+      });
     } catch (error) {
       set({ loading: false, error: getErrorMessage(error) });
+    } finally {
+      if (summaryRequest === request) {
+        summaryRequest = null;
+      }
+    }
+  },
+  loadDashboard: async () => {
+    if (get().dashboard) {
+      return;
+    }
+
+    if (!dashboardRequest) {
+      set({ loading: true, error: null });
+      dashboardRequest = adminService.getDashboardData();
+    }
+
+    const request = dashboardRequest;
+
+    try {
+      const dashboard = await request;
+      set({
+        users: dashboard.users,
+        dashboard,
+        summary: {
+          kpis: dashboard.kpis,
+          alerts: dashboard.alerts,
+          activity: dashboard.activity,
+        },
+        error: null,
+        loading: false,
+      });
+    } catch (error) {
+      set({ loading: false, error: getErrorMessage(error) });
+    } finally {
+      if (dashboardRequest === request) {
+        dashboardRequest = null;
+      }
     }
   },
   clearError: () => set({ error: null }),

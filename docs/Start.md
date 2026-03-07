@@ -2,7 +2,7 @@ You are a senior frontend architect.
 
 Create a production-ready Next.js 16 project using App Router with a clean, scalable architecture.
 
-This project is called "SicSemper".
+This project is called "NOMBRE".
 It is frontend-only for now (NO backend, NO database).
 All data must come from a mock layer.
 The goal is pixel-perfect UI replication from Figma, with clean architecture and long-term maintainability.

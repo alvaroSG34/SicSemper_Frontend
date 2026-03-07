@@ -5,7 +5,7 @@ export function LandingFooter() {
         <div className="flex w-full flex-wrap justify-center gap-12 xl:gap-20">
           <div className="w-full xl:w-[280px]">
             <p className="text-xl font-semibold text-[color:var(--landing-text)]">
-              ▼ SicSemper
+              ▼ NOMBRE
             </p>
             <p className="mt-3 text-[13px] text-[color:var(--landing-muted)]">
               Plataforma oficial de gestión para competencias de modelismo y maquetas.

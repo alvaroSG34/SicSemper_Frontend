@@ -115,7 +115,7 @@ export default function JuezPage() {
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-5 w-5 text-white" />
-            <span className="text-2xl font-bold tracking-[-0.5px] text-white">SicSemper</span>
+            <span className="text-2xl font-bold tracking-[-0.5px] text-white">NOMBRE</span>
           </div>
 
           <nav className="mt-16 flex flex-col gap-8">
@@ -150,7 +150,7 @@ export default function JuezPage() {
             <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
               <div className="flex items-center gap-3">
                 <ChevronDown className="h-4 w-4 text-white" />
-                <span className="text-lg font-bold tracking-[-0.3px] text-white">SicSemper</span>
+                <span className="text-lg font-bold tracking-[-0.3px] text-white">NOMBRE</span>
               </div>
             </div>
 

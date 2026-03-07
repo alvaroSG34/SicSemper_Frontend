@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SicSemper",
+  title: "NOMBRE",
   description: "Plataforma de competencias de modelismo y evaluacion de maquetas",
 };
 
