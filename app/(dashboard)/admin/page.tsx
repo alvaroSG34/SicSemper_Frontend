@@ -106,6 +106,7 @@ type EventFormState = {
   endDate: string;
   status: CatalogEventStatus;
   description: string;
+  imageUrl: string;
 };
 type ClubModalMode = "create" | "edit";
 type ClubFormState = {
@@ -131,6 +132,7 @@ const emptyEventForm: EventFormState = {
   endDate: "",
   status: "BORRADOR",
   description: "",
+  imageUrl: "",
 };
 
 const emptyClubForm: ClubFormState = {
@@ -236,6 +238,8 @@ export default function AdminPage() {
   const [eventModalTargetId, setEventModalTargetId] = useState<string | null>(null);
   const [eventModalError, setEventModalError] = useState<string | null>(null);
   const [eventForm, setEventForm] = useState<EventFormState>(emptyEventForm);
+  const [isEventImageUploading, setIsEventImageUploading] = useState(false);
+  const eventImageFileInputRef = useRef<HTMLInputElement | null>(null);
   const [clubModalMode, setClubModalMode] = useState<ClubModalMode | null>(null);
   const [clubModalTargetId, setClubModalTargetId] = useState<string | null>(null);
   const [clubForm, setClubForm] = useState<ClubFormState>(emptyClubForm);
@@ -482,6 +486,7 @@ export default function AdminPage() {
     endDate?: string;
     status: CatalogEventStatus;
     description?: string;
+    imageUrl?: string;
   }) => {
     setActionFeedback(null);
     clearError();
@@ -496,6 +501,7 @@ export default function AdminPage() {
       endDate: eventItem.endDate ?? "",
       status: eventItem.status,
       description: eventItem.description ?? "",
+      imageUrl: eventItem.imageUrl ?? "",
     });
 
     const rootCategoryIds = new Set((catalog?.categories ?? []).map((c) => c.id));
@@ -521,6 +527,37 @@ export default function AdminPage() {
     setEventModalStep(1);
     setEventModalSelectedCategoryIds(new Set());
     setEventModalError(null);
+    if (eventImageFileInputRef.current) {
+      eventImageFileInputRef.current.value = "";
+    }
+  };
+
+  const handleEventImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsEventImageUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload/event-image", { method: "POST", body: fd });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        setEventModalError(data.error ?? "No se pudo subir la imagen del evento.");
+        return;
+      }
+
+      const data = (await res.json()) as { url: string };
+      setEventForm((prev) => ({ ...prev, imageUrl: data.url }));
+      setEventModalError(null);
+    } catch {
+      setEventModalError("No se pudo subir la imagen del evento.");
+    } finally {
+      setIsEventImageUploading(false);
+      if (eventImageFileInputRef.current) {
+        eventImageFileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleSubmitEventModal = async (event: FormEvent<HTMLFormElement>) => {
@@ -569,6 +606,7 @@ export default function AdminPage() {
             startDate: eventForm.startDate,
             endDate: eventForm.endDate,
             description: eventForm.description,
+            imageUrl: eventForm.imageUrl || undefined,
           },
           allCategoryIds,
         ),
@@ -601,6 +639,7 @@ export default function AdminPage() {
             startDate: eventForm.startDate,
             endDate: eventForm.endDate,
             description: eventForm.description,
+            imageUrl: eventForm.imageUrl || undefined,
           },
           allCategoryIds,
         ),
@@ -1592,17 +1631,30 @@ export default function AdminPage() {
                       key={item.id}
                       className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 md:flex md:items-center md:justify-between"
                     >
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold text-white">{item.name}</p>
-                          <span className="rounded-full border border-[#2D2D2D] bg-[#101010] px-2 py-0.5 text-[11px] text-[#B8B8B8]">
-                            {item.status}
-                          </span>
+                      <div className="flex items-start gap-3">
+                        <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={`Imagen de ${item.name}`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
+                          )}
                         </div>
-                        <p className="mt-1 text-xs text-[#9C9C9C]">{item.place || "Sin lugar definido"}</p>
-                        <p className="mt-1 text-xs text-[#9C9C9C]">
-                          {formatDate(item.startDate)} · {formatDate(item.endDate)}
-                        </p>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-semibold text-white">{item.name}</p>
+                            <span className="rounded-full border border-[#2D2D2D] bg-[#101010] px-2 py-0.5 text-[11px] text-[#B8B8B8]">
+                              {item.status}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-[#9C9C9C]">{item.place || "Sin lugar definido"}</p>
+                          <p className="mt-1 text-xs text-[#9C9C9C]">
+                            {formatDate(item.startDate)} · {formatDate(item.endDate)}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="mt-3 flex gap-2 md:mt-0">
@@ -2099,6 +2151,50 @@ export default function AdminPage() {
                       </select>
                     </label>
 
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-[#A8A8A8]">Imagen del evento (opcional)</p>
+                      <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
+                        <div className="h-16 w-24 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
+                          {eventForm.imageUrl ? (
+                            <img
+                              src={eventForm.imageUrl}
+                              alt="Imagen del evento"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => eventImageFileInputRef.current?.click()}
+                            disabled={isEventImageUploading || isEventModalPending}
+                            className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                          >
+                            {isEventImageUploading ? "Subiendo..." : "Seleccionar imagen"}
+                          </button>
+                          {eventForm.imageUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => setEventForm((prev) => ({ ...prev, imageUrl: "" }))}
+                              disabled={isEventImageUploading || isEventModalPending}
+                              className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#B8B8B8]"
+                            >
+                              Quitar imagen
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                      <input
+                        ref={eventImageFileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => void handleEventImageFileChange(e)}
+                        className="hidden"
+                      />
+                    </div>
+
                     <label className="flex flex-col gap-1 text-xs text-[#A8A8A8] md:col-span-2">
                       Descripción
                       <textarea
@@ -2353,6 +2449,50 @@ export default function AdminPage() {
                         className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
                       />
                     </label>
+
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-[#A8A8A8]">Imagen del evento (opcional)</p>
+                      <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
+                        <div className="h-16 w-24 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
+                          {eventForm.imageUrl ? (
+                            <img
+                              src={eventForm.imageUrl}
+                              alt="Imagen del evento"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => eventImageFileInputRef.current?.click()}
+                            disabled={isEventImageUploading || isEventModalPending}
+                            className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                          >
+                            {isEventImageUploading ? "Subiendo..." : "Seleccionar imagen"}
+                          </button>
+                          {eventForm.imageUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => setEventForm((prev) => ({ ...prev, imageUrl: "" }))}
+                              disabled={isEventImageUploading || isEventModalPending}
+                              className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#B8B8B8]"
+                            >
+                              Quitar imagen
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                      <input
+                        ref={eventImageFileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => void handleEventImageFileChange(e)}
+                        className="hidden"
+                      />
+                    </div>
 
                     <label className="flex flex-col gap-1 text-xs text-[#A8A8A8] md:col-span-2">
                       Descripción
@@ -2770,6 +2910,15 @@ export default function AdminPage() {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
 
 
 

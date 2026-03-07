@@ -123,15 +123,22 @@ export default function ParticipantePage() {
 
   useEffect(() => {
     void loadDashboard(user?.id);
-    void loadExploreEvents();
-  }, [loadDashboard, loadExploreEvents, user?.id]);
+  }, [loadDashboard, user?.id]);
 
   useEffect(() => {
-    if (!effectiveUserId) {
+    const sectionNeedsEvents = activeSection === "eventos" || activeSection === "resultados";
+    if (!sectionNeedsEvents || exploreEvents.length > 0) {
+      return;
+    }
+    void loadExploreEvents();
+  }, [activeSection, exploreEvents.length, loadExploreEvents]);
+
+  useEffect(() => {
+    if (activeSection !== "maquetas" || !effectiveUserId || myModels.length > 0) {
       return;
     }
     void loadMyModels(effectiveUserId);
-  }, [effectiveUserId, loadMyModels]);
+  }, [activeSection, effectiveUserId, loadMyModels, myModels.length]);
 
   useEffect(() => {
     const sectionNeedsEvent = activeSection === "eventos" || activeSection === "resultados";
@@ -326,3 +333,4 @@ export default function ParticipantePage() {
     </main>
   );
 }
+

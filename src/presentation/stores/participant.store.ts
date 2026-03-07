@@ -44,15 +44,24 @@ type ParticipantStoreState = {
   clearFlowState: () => void;
 };
 
+type ExplorePayload = {
+  events: ParticipantEventDetail[];
+  scales: ParticipantScale[];
+};
+
+let dashboardRequest: Promise<ParticipantDashboardData> | null = null;
+let exploreRequest: Promise<ExplorePayload> | null = null;
+const myModelsRequests = new Map<string, Promise<ParticipantModel[]>>();
+
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message;
   }
 
-  return "Ocurrió un error inesperado al cargar el dashboard de participante.";
+  return "Ocurrio un error inesperado al cargar el dashboard de participante.";
 };
 
-export const useParticipantStore = create<ParticipantStoreState>((set) => ({
+export const useParticipantStore = create<ParticipantStoreState>((set, get) => ({
   dashboard: null,
   loading: false,
   error: null,
@@ -66,10 +75,15 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
   flowError: null,
   flowSuccessMessage: null,
   loadDashboard: async (userId) => {
-    set({ loading: true, error: null });
+    if (!dashboardRequest) {
+      set({ loading: true, error: null });
+      dashboardRequest = participantService.getDashboardData(userId);
+    }
+
+    const request = dashboardRequest;
 
     try {
-      const dashboard = await participantService.getDashboardData(userId);
+      const dashboard = await request;
       set({
         dashboard,
         loading: false,
@@ -80,23 +94,38 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
         loading: false,
         error: getErrorMessage(error),
       });
+    } finally {
+      if (dashboardRequest === request) {
+        dashboardRequest = null;
+      }
     }
   },
   loadExploreEvents: async () => {
-    set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
+    const state = get();
 
-    try {
-      const [events, scales] = await Promise.all([
+    if (state.exploreEvents.length > 0 && state.scales.length > 0) {
+      return;
+    }
+
+    if (!exploreRequest) {
+      set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
+      exploreRequest = Promise.all([
         participantService.getUpcomingEvents(),
         participantService.getScales(),
-      ]);
+      ]).then(([events, scales]) => ({ events, scales }));
+    }
 
-      set((state) => ({
+    const request = exploreRequest;
+
+    try {
+      const { events, scales } = await request;
+
+      set((currentState) => ({
         exploreEvents: events,
         scales,
         selectedEvent:
-          state.selectedEvent && events.some((event) => event.id === state.selectedEvent?.id)
-            ? state.selectedEvent
+          currentState.selectedEvent && events.some((event) => event.id === currentState.selectedEvent?.id)
+            ? currentState.selectedEvent
             : null,
         flowLoading: false,
         flowError: null,
@@ -106,6 +135,10 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
         flowLoading: false,
         flowError: getErrorMessage(error),
       });
+    } finally {
+      if (exploreRequest === request) {
+        exploreRequest = null;
+      }
     }
   },
   selectEvent: async (eventId) => {
@@ -184,8 +217,19 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
     }
   },
   loadMyModels: async (userId) => {
+    if (!userId.trim()) {
+      return;
+    }
+
+    const existingRequest = myModelsRequests.get(userId);
+    const request = existingRequest ?? participantService.getMyModels(userId);
+
+    if (!existingRequest) {
+      myModelsRequests.set(userId, request);
+    }
+
     try {
-      const myModels = await participantService.getMyModels(userId);
+      const myModels = await request;
       set({
         myModels,
       });
@@ -193,6 +237,10 @@ export const useParticipantStore = create<ParticipantStoreState>((set) => ({
       set({
         flowError: getErrorMessage(error),
       });
+    } finally {
+      if (myModelsRequests.get(userId) === request) {
+        myModelsRequests.delete(userId);
+      }
     }
   },
   clearError: () => set({ error: null }),

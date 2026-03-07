@@ -47,6 +47,7 @@ type AdminStoreState = {
     startDate: string;
     endDate: string;
     description: string;
+    imageUrl?: string;
   }) => Promise<void>;
   createEventAndLinkCategories: (
     payload: {
@@ -56,6 +57,7 @@ type AdminStoreState = {
       startDate: string;
       endDate: string;
       description: string;
+      imageUrl?: string;
     },
     categoryIds: string[],
   ) => Promise<void>;
@@ -67,6 +69,7 @@ type AdminStoreState = {
     startDate: string;
     endDate: string;
     description: string;
+    imageUrl?: string;
   }) => Promise<void>;
   updateEventAndLinkCategories: (
     payload: {
@@ -77,6 +80,7 @@ type AdminStoreState = {
       startDate: string;
       endDate: string;
       description: string;
+      imageUrl?: string;
     },
     categoryIds: string[],
   ) => Promise<void>;
@@ -310,3 +314,6 @@ export const useAdminStore = create<AdminStoreState>((set, get) => ({
     }
   },
 }));
+
+
+

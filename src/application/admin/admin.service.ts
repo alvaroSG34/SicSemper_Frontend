@@ -24,7 +24,7 @@ import type {
   UpdateEventPayload,
   UpdateSubcategoryPayload,
 } from "@/domain/admin/admin.types";
-import type { User } from "@/domain/user/user.types";
+import type { User, UserRole } from "@/domain/user/user.types";
 import { ApiError, apiRequest } from "@/infrastructure/api/http-client";
 
 type BackendClub = {
@@ -64,6 +64,7 @@ type BackendEvent = {
   endDate: string | null;
   status: CatalogEvent["status"];
   description: string | null;
+  imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -169,6 +170,7 @@ const mapEvent = (event: BackendEvent): CatalogEvent => ({
   startDate: event.startDate ?? "",
   endDate: event.endDate ?? "",
   description: event.description ?? "",
+  imageUrl: event.imageUrl ?? "",
   createdAt: event.createdAt,
   updatedAt: event.updatedAt,
 });
@@ -632,6 +634,7 @@ export const adminService: AdminService = {
           startDate: payload.startDate,
           endDate: payload.endDate,
           description: payload.description,
+          imageUrl: payload.imageUrl,
         },
       });
 
@@ -655,6 +658,7 @@ export const adminService: AdminService = {
           startDate: payload.startDate,
           endDate: payload.endDate,
           description: payload.description,
+          imageUrl: payload.imageUrl,
         },
       });
 
@@ -889,3 +893,6 @@ export const adminService: AdminService = {
     }
   },
 };
+
+
+

@@ -14,6 +14,7 @@ export type CatalogEvent = {
   startDate?: string;
   endDate?: string;
   description?: string;
+  imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -137,6 +138,7 @@ export type CreateEventPayload = {
   startDate: string;
   endDate: string;
   description: string;
+  imageUrl?: string;
   status?: CatalogEventStatus;
 };
 
@@ -147,6 +149,7 @@ export type UpdateEventPayload = {
   startDate: string;
   endDate: string;
   description: string;
+  imageUrl?: string;
   status: CatalogEventStatus;
 };
 
@@ -189,3 +192,4 @@ export type JudgePermissionEntry = {
   grantedAt: string | null;
   grantedBy: { id: string; name: string } | null;
 };
+
