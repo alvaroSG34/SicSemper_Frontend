@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
 
 import {
@@ -40,6 +40,16 @@ const formatEventDateRange = (startDate: string, endDate: string) => {
   const start = formatEventDate(startDate);
   const end = formatEventDate(endDate);
   return start === end ? start : `${start} - ${end}`;
+};
+
+const participantSectionIds: ParticipantSectionId[] = ["inicio", "eventos", "maquetas", "resultados", "perfil"];
+
+const parseSectionParam = (value: string | null): ParticipantSectionId | null => {
+  if (!value) {
+    return null;
+  }
+
+  return participantSectionIds.includes(value as ParticipantSectionId) ? (value as ParticipantSectionId) : null;
 };
 
 type SelectedEventDetailsModalProps = {
@@ -281,6 +291,7 @@ function ParticipantDashboardError({ error, onRetry }: ParticipantDashboardError
 
 export default function ParticipantePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [activeSection, setActiveSection] = useState<ParticipantSectionId>("inicio");
@@ -311,6 +322,7 @@ export default function ParticipantePage() {
   const loadMyModels = useParticipantStore((state) => state.loadMyModels);
   const clearError = useParticipantStore((state) => state.clearError);
   const clearFlowState = useParticipantStore((state) => state.clearFlowState);
+  const requestedSection = parseSectionParam(searchParams.get("section"));
 
   const effectiveUserId = user?.id ?? dashboard?.profile.userId ?? "";
   const selectedEventCategoryGroups = selectedEvent ? categoriesByEventId[selectedEvent.id] ?? [] : [];
@@ -323,6 +335,16 @@ export default function ParticipantePage() {
   useEffect(() => {
     void loadDashboard(user?.id);
   }, [loadDashboard, user?.id]);
+
+  useEffect(() => {
+    if (!requestedSection || requestedSection === activeSection) {
+      return;
+    }
+
+    setActiveSection(requestedSection);
+    setIsSelectedEventModalOpen(false);
+    clearFlowState();
+  }, [activeSection, clearFlowState, requestedSection]);
 
   useEffect(() => {
     const sectionNeedsEvents = activeSection === "eventos" || activeSection === "resultados";
