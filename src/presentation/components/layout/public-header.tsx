@@ -36,6 +36,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
   PARTICIPANTE: "Participante",
   JUEZ: "Juez",
   ADMIN: "Admin",
+  SUPERADMIN: "Superadmin",
 };
 
 function getLinkHref(linkId: string, isLandingPage: boolean) {

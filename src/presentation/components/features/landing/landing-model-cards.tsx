@@ -14,6 +14,7 @@ export function LandingModelCards() {
             alt={model.name}
             width={256}
             height={220}
+            sizes="(min-width: 1280px) 256px, 100vw"
             className="h-[220px] w-full rounded-lg object-cover"
           />
           <div className="mt-3 flex flex-col gap-2">

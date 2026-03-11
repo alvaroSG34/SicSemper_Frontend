@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Check, Copy, Download, FileText, ImageIcon, Search, Tag, X } from "lucide-react";
 import { Outfit } from "next/font/google";
+import Image from "next/image";
 import type { ParticipantModel } from "@/domain/participant/participant.types";
 import { Skeleton } from "@/presentation/components/ui";
 
@@ -415,11 +416,14 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
                                           }
                                           aria-label={`Ampliar imagen ${file.fileName}`}
                                         >
-                                          <img
+                                          <Image
                                             src={resolvedFileUrl}
                                             alt={file.fileName}
+                                            width={640}
+                                            height={440}
+                                            sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                                             className="h-44 w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                                            loading="lazy"
+                                            unoptimized
                                           />
                                         </button>
                                       ) : (
@@ -520,10 +524,14 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
               <X className="h-5 w-5" />
             </button>
 
-            <img
+            <Image
               src={previewImage.url}
               alt={previewImage.fileName}
+              width={1600}
+              height={1200}
+              sizes="100vw"
               className="max-h-[82vh] w-full object-contain"
+              unoptimized
             />
             <div className="border-t border-[#2D2D2D] px-4 py-3 text-base text-[#D0D0D0]">
               {previewImage.fileName}

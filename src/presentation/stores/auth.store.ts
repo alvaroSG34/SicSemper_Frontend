@@ -12,6 +12,7 @@ type AuthStoreState = {
   currentRole: UserRole | null;
   initialized: boolean;
   initializing: boolean;
+  hydrateSession: (session: { user: User; currentRole: UserRole | null } | null) => void;
   initializeSession: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<RegisterError | null>;
@@ -24,6 +25,24 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
   currentRole: null,
   initialized: false,
   initializing: false,
+  hydrateSession: (session) => {
+    if (!session) {
+      set({
+        user: null,
+        currentRole: null,
+        initialized: true,
+        initializing: false,
+      });
+      return;
+    }
+
+    set({
+      user: session.user,
+      currentRole: session.currentRole ?? session.user.roles[0] ?? null,
+      initialized: true,
+      initializing: false,
+    });
+  },
   initializeSession: async () => {
     if (get().initialized || get().initializing) {
       return;

@@ -1,6 +1,8 @@
 "use client";
 
 import { Outfit } from "next/font/google";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
@@ -27,9 +29,12 @@ import type {
 } from "@/domain/admin/admin.types";
 import type { UserRole } from "@/domain/user/user.types";
 import type { User } from "@/domain/user/user.types";
-import { DashboardRoleSwitch } from "@/presentation/components/layout";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { Skeleton } from "@/presentation/components/ui";
+
+const DashboardRoleSwitch = dynamic(() =>
+  import("@/presentation/components/layout").then((module) => module.DashboardRoleSwitch),
+);
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -106,10 +111,11 @@ const toDateInputValue = (value: string | null | undefined) => {
   return parsed.toISOString().slice(0, 10);
 };
 
-const roleLabel: Record<"PARTICIPANTE" | "JUEZ" | "ADMIN", string> = {
+const roleLabel: Record<UserRole, string> = {
   PARTICIPANTE: "Participante",
   JUEZ: "Juez",
   ADMIN: "Admin",
+  SUPERADMIN: "Superadmin",
 };
 
 const participantStatusConfig: Record<string, { label: string; className: string }> = {
@@ -244,7 +250,6 @@ export default function AdminPage() {
   const banParticipant = useAdminStore((state) => state.banParticipant);
   const unbanParticipant = useAdminStore((state) => state.unbanParticipant);
   const createEventAndLinkCategories = useAdminStore((state) => state.createEventAndLinkCategories);
-  const updateEvent = useAdminStore((state) => state.updateEvent);
   const updateEventAndLinkCategories = useAdminStore((state) => state.updateEventAndLinkCategories);
   const getEventDeleteImpact = useAdminStore((state) => state.getEventDeleteImpact);
   const removeEvent = useAdminStore((state) => state.removeEvent);
@@ -1683,10 +1688,14 @@ export default function AdminPage() {
                       <div className="flex items-start gap-3">
                         <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                           {item.imageUrl ? (
-                            <img
+                            <Image
                               src={item.imageUrl}
                               alt={`Imagen de ${item.name}`}
+                              width={240}
+                              height={160}
+                              sizes="96px"
                               className="h-full w-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
@@ -1899,11 +1908,14 @@ export default function AdminPage() {
                     >
                       <div className="flex items-start gap-3">
                         {club.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={club.logoUrl}
                             alt={`Logo ${club.name}`}
+                            width={48}
+                            height={48}
+                            sizes="48px"
                             className="h-12 w-12 rounded-lg border border-[#2D2D2D] bg-[#101010] object-contain p-1"
+                            unoptimized
                           />
                         ) : (
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-[#2D2D2D] bg-[#101010] text-sm font-semibold text-[#7A7A7A]">
@@ -2223,10 +2235,14 @@ export default function AdminPage() {
                       <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
                         <div className="h-16 w-24 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                           {eventForm.imageUrl ? (
-                            <img
+                            <Image
                               src={eventForm.imageUrl}
                               alt="Imagen del evento"
+                              width={240}
+                              height={160}
+                              sizes="96px"
                               className="h-full w-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
@@ -2522,10 +2538,14 @@ export default function AdminPage() {
                       <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
                         <div className="h-16 w-24 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                           {eventForm.imageUrl ? (
-                            <img
+                            <Image
                               src={eventForm.imageUrl}
                               alt="Imagen del evento"
+                              width={240}
+                              height={160}
+                              sizes="96px"
                               className="h-full w-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center text-[10px] text-[#7F7F7F]">Sin imagen</div>
@@ -2574,11 +2594,14 @@ export default function AdminPage() {
                       <span className="text-xs text-[#A8A8A8]">Logotipo del club</span>
                       <div className="flex items-center gap-3">
                         {clubForm.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={clubForm.logoUrl}
                             alt="Logo"
+                            width={56}
+                            height={56}
+                            sizes="56px"
                             className="h-14 w-14 rounded-lg border border-[#2D2D2D] object-contain bg-[#101010] p-1"
+                            unoptimized
                           />
                         ) : (
                           <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-[#2D2D2D] bg-[#101010] text-[10px] text-[#555]">
@@ -2977,10 +3000,6 @@ export default function AdminPage() {
     </main>
   );
 }
-
-
-
-
 
 
 

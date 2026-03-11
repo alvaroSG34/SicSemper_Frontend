@@ -18,6 +18,7 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   PARTICIPANTE: "/participante",
   JUEZ: "/juez",
   ADMIN: "/admin",
+  SUPERADMIN: "/admin",
 };
 
 const getDashboardRoute = (role: UserRole | null) => {

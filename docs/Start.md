@@ -103,7 +103,7 @@ User:
 - id
 - name
 - email
-- roles (PARTICIPANTE | JUEZ | ADMIN)
+- roles (PARTICIPANTE | JUEZ | ADMIN | SUPERADMIN)
 - verified
 
 Event:

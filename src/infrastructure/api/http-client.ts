@@ -1,4 +1,4 @@
-"use client";
+import { getApiBaseUrl } from "@/infrastructure/api/api-base-url";
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
@@ -31,16 +31,9 @@ export class ApiError extends Error {
   }
 }
 
-const DEFAULT_API_BASE_URL = "http://localhost:3001/api/v1";
-
-let accessToken: string | null = null;
-let refreshHandler: (() => Promise<string | null>) | null = null;
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
 
 const normalizePath = (path: string) => (path.startsWith("/") ? path : `/${path}`);
-
-const getApiBaseUrl = () =>
-  (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 
 const getUrl = (path: string) => `${getApiBaseUrl()}${normalizePath(path)}`;
 
@@ -96,14 +89,21 @@ const parseResponse = async (response: Response) => {
 };
 
 const runRefresh = async () => {
-  if (!refreshHandler) {
-    return null;
-  }
-
   if (!refreshPromise) {
-    refreshPromise = refreshHandler().finally(() => {
-      refreshPromise = null;
-    });
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(getUrl("/auth/refresh"), {
+          method: "POST",
+          credentials: "include",
+        });
+
+        return response.ok;
+      } catch {
+        return false;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
   }
 
   return refreshPromise;
@@ -119,10 +119,6 @@ const sendRequest = async (
 
   if (!headers.has("Content-Type") && options.body !== undefined && !isFormDataBody) {
     headers.set("Content-Type", "application/json");
-  }
-
-  if (!options.skipAuth && accessToken) {
-    headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
   const response = await fetch(getUrl(path), {
@@ -149,28 +145,14 @@ const sendRequest = async (
     !options.skipAuthRefresh &&
     typeof window !== "undefined"
   ) {
-    const nextToken = await runRefresh();
+    const refreshed = await runRefresh();
 
-    if (nextToken) {
+    if (refreshed) {
       return sendRequest(path, options, false);
     }
   }
 
   throw toApiError(response.status, payload);
-};
-
-export const setAccessToken = (token: string) => {
-  accessToken = token;
-};
-
-export const clearAccessToken = () => {
-  accessToken = null;
-};
-
-export const getAccessToken = () => accessToken;
-
-export const registerRefreshHandler = (handler: (() => Promise<string | null>) | null) => {
-  refreshHandler = handler;
 };
 
 export const apiRequest = async <T>(path: string, options: RequestOptions = {}): Promise<T> =>

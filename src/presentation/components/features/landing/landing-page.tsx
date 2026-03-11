@@ -1,14 +1,20 @@
+import dynamic from "next/dynamic";
 import { LandingAmbientBackground } from "./landing-ambient-background";
-import { LandingEvents } from "./landing-events";
-import { LandingFeaturedSpeakers } from "./landing-featured-speakers";
 import { LandingFooter } from "./landing-footer";
 import { LandingHeader } from "./landing-header";
-import { LandingHero } from "./landing-hero";
-import { LandingLocation } from "./landing-location";
-import { LandingOrganizersCard } from "./landing-organizers-card";
-import { LandingReveal } from "./landing-reveal";
-import { LandingSchedule } from "./landing-schedule";
-import { LandingSponsors } from "./landing-sponsors";
+
+const LandingReveal = dynamic(() => import("./landing-reveal").then((module) => module.LandingReveal));
+const LandingHero = dynamic(() => import("./landing-hero").then((module) => module.LandingHero));
+const LandingOrganizersCard = dynamic(() =>
+  import("./landing-organizers-card").then((module) => module.LandingOrganizersCard),
+);
+const LandingEvents = dynamic(() => import("./landing-events").then((module) => module.LandingEvents));
+const LandingFeaturedSpeakers = dynamic(() =>
+  import("./landing-featured-speakers").then((module) => module.LandingFeaturedSpeakers),
+);
+const LandingSchedule = dynamic(() => import("./landing-schedule").then((module) => module.LandingSchedule));
+const LandingSponsors = dynamic(() => import("./landing-sponsors").then((module) => module.LandingSponsors));
+const LandingLocation = dynamic(() => import("./landing-location").then((module) => module.LandingLocation));
 
 export function LandingPageFeature() {
   return (

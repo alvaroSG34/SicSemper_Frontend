@@ -39,7 +39,10 @@ const normalizeCountdownPart = (value: string) => {
   return toTwoDigits(numeric);
 };
 
-const buildCountdownFromStartDate = (startDate: string | null | undefined): CountdownParts | null => {
+const buildCountdownFromStartDate = (
+  startDate: string | null | undefined,
+  referenceNow: number = Date.now(),
+): CountdownParts | null => {
   if (!startDate) {
     return null;
   }
@@ -49,7 +52,7 @@ const buildCountdownFromStartDate = (startDate: string | null | undefined): Coun
     return null;
   }
 
-  const remainingMs = Math.max(targetDate.getTime() - Date.now(), 0);
+  const remainingMs = Math.max(targetDate.getTime() - referenceNow, 0);
   const totalMinutes = Math.floor(remainingMs / 60000);
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
@@ -83,27 +86,29 @@ export function ParticipantNextChallenge({
     [challenge.countdown.days, challenge.countdown.hours, challenge.countdown.minutes],
   );
 
-  const [countdown, setCountdown] = useState<CountdownParts>(
-    () => buildCountdownFromStartDate(challenge.startDate) ?? fallbackCountdown,
-  );
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const nextCountdown = buildCountdownFromStartDate(challenge.startDate);
-    if (!nextCountdown) {
-      setCountdown(fallbackCountdown);
+    if (!challenge.startDate) {
       return;
     }
 
-    setCountdown(nextCountdown);
-
     const intervalId = window.setInterval(() => {
-      setCountdown(buildCountdownFromStartDate(challenge.startDate) ?? ZERO_COUNTDOWN);
+      setNow(Date.now());
     }, 1000);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [challenge.startDate, fallbackCountdown]);
+  }, [challenge.startDate]);
+
+  const countdown = useMemo<CountdownParts>(() => {
+    if (!challenge.startDate) {
+      return fallbackCountdown;
+    }
+
+    return buildCountdownFromStartDate(challenge.startDate, now) ?? ZERO_COUNTDOWN;
+  }, [challenge.startDate, fallbackCountdown, now]);
 
   const isEventInCourse =
     challenge.startDate !== null &&

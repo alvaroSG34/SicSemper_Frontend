@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   ActivityLogItem,
   AdminClub,
@@ -144,6 +142,7 @@ const adminErrorMessages: Record<string, string> = {
   EVENT_CATEGORY_ALREADY_EXISTS: "Esa categoria ya esta vinculada al evento.",
   JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
+  SUPERADMIN_IMMUTABLE: "No se puede modificar un usuario con rol SUPERADMIN.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
 };
 

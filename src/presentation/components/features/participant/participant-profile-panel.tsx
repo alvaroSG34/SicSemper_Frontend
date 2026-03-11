@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -346,7 +347,15 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 overflow-hidden rounded-full border border-[#2D2D2D] bg-[#151515]">
                 {photoUrl ? (
-                  <img src={photoUrl} alt="Foto de perfil" className="h-full w-full object-cover" />
+                  <Image
+                    src={photoUrl}
+                    alt="Foto de perfil"
+                    width={64}
+                    height={64}
+                    sizes="64px"
+                    className="h-full w-full object-cover"
+                    unoptimized
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-[#9C9C9C]">
                     {profileInitial}

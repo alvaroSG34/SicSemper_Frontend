@@ -1,13 +1,5 @@
-"use client";
-
 import type { User, UserRole } from "@/domain/user/user.types";
-import {
-  ApiError,
-  apiRequest,
-  clearAccessToken,
-  registerRefreshHandler,
-  setAccessToken,
-} from "@/infrastructure/api/http-client";
+import { ApiError, apiRequest } from "@/infrastructure/api/http-client";
 
 export type RegisterPayload = {
   name: string;
@@ -38,10 +30,10 @@ export type RegisterResult = {
 type AuthResponse = {
   user: User;
   activeRole: UserRole;
-  accessToken: string;
+  accessToken?: string;
 };
 
-type MeResponse = {
+type SessionResponse = {
   user: User;
   activeRole: UserRole;
 };
@@ -61,6 +53,7 @@ const authErrorMessages: Record<string, string> = {
   INVALID_CREDENTIALS: "Correo o contrasena incorrectos.",
   MISSING_REFRESH_TOKEN: "Tu sesion expiro. Vuelve a iniciar sesion.",
   ROLE_NOT_ASSIGNED: "Ese rol no esta disponible para tu usuario.",
+  SUPERADMIN_IMMUTABLE: "No se puede modificar un usuario con rol SUPERADMIN.",
   SESSION_INVALID: "Tu sesion expiro. Vuelve a iniciar sesion.",
   TOKEN_INVALID: "Tu sesion ya no es valida. Vuelve a iniciar sesion.",
   USER_NOT_FOUND: "No se pudo recuperar tu usuario.",
@@ -86,44 +79,20 @@ const toErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const applySession = (payload: AuthResponse | MeResponse) => {
+const applySession = (payload: AuthResponse | SessionResponse) => {
   activeRole = payload.activeRole;
-
-  if ("accessToken" in payload) {
-    setAccessToken(payload.accessToken);
-  }
-
   return payload.user;
 };
 
 const clearSession = () => {
-  clearAccessToken();
   activeRole = null;
 };
-
-const refreshSession = async (): Promise<string | null> => {
-  try {
-    const response = await apiRequest<AuthResponse>("/auth/refresh", {
-      method: "POST",
-      skipAuthRefresh: true,
-    });
-
-    applySession(response);
-    return response.accessToken;
-  } catch {
-    clearSession();
-    return null;
-  }
-};
-
-registerRefreshHandler(refreshSession);
 
 export const authService: AuthService = {
   async login(email, password) {
     try {
       const response = await apiRequest<AuthResponse>("/auth/login", {
         method: "POST",
-        skipAuth: true,
         skipAuthRefresh: true,
         body: {
           email,
@@ -145,7 +114,6 @@ export const authService: AuthService = {
     try {
       const response = await apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
-        skipAuth: true,
         skipAuthRefresh: true,
         body: payload,
       });
@@ -178,7 +146,7 @@ export const authService: AuthService = {
         skipAuthRefresh: true,
       });
     } catch {
-      // The local session is cleared regardless of the backend response.
+      // Local session is cleared regardless of backend response.
     } finally {
       clearSession();
     }
@@ -198,7 +166,7 @@ export const authService: AuthService = {
   },
   async getCurrentUser() {
     try {
-      const response = await apiRequest<MeResponse>("/auth/me");
+      const response = await apiRequest<SessionResponse>("/auth/session");
       return applySession(response);
     } catch (error) {
       if (error instanceof ApiError && error.statusCode === 401) {
@@ -216,7 +184,6 @@ export const getCurrentSessionRole = (): UserRole | null => activeRole;
 export const listRegisterClubs = async (): Promise<RegisterClubOption[]> => {
   return apiRequest<RegisterClubOption[]>("/auth/register/clubs", {
     method: "GET",
-    skipAuth: true,
     skipAuthRefresh: true,
   });
 };

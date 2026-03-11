@@ -2,6 +2,7 @@
 
 import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
 import { Outfit } from "next/font/google";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type {
   ParticipantEventAllowedCategoryGroup,
@@ -165,7 +166,15 @@ export function ParticipantEventsExplorer({
                 aria-label={`Ver detalles del evento ${event.name}`}
               >
                 {imageUrl ? (
-                  <img src={imageUrl} alt={`Imagen de ${event.name}`} className="h-40 w-full object-cover" />
+                  <Image
+                    src={imageUrl}
+                    alt={`Imagen de ${event.name}`}
+                    width={640}
+                    height={360}
+                    sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    className="h-40 w-full object-cover"
+                    unoptimized
+                  />
                 ) : (
                   <div className="flex h-40 w-full items-center justify-center bg-gradient-to-br from-[#202B53] via-[#1B1B2A] to-[#2A1A2E]">
                     <span className="text-xs uppercase tracking-[1.8px] text-[#A9AEDB]">Sin imagen</span>
@@ -237,10 +246,14 @@ export function ParticipantEventsExplorer({
 
             <div className="space-y-5 p-5 sm:p-6">
               {detailEvent.imageUrl?.trim() ? (
-                <img
+                <Image
                   src={detailEvent.imageUrl}
                   alt={`Imagen de ${detailEvent.name}`}
+                  width={1200}
+                  height={560}
+                  sizes="(min-width: 1024px) 760px, 100vw"
                   className="h-56 w-full rounded-xl object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="flex h-56 w-full items-center justify-center rounded-xl bg-gradient-to-br from-[#202B53] via-[#1B1B2A] to-[#2A1A2E]">

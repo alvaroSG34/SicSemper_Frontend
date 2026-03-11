@@ -1,6 +1,6 @@
 import type { Identifier } from "@/core/types";
 
-export type UserRole = "PARTICIPANTE" | "JUEZ" | "ADMIN";
+export type UserRole = "PARTICIPANTE" | "JUEZ" | "ADMIN" | "SUPERADMIN";
 
 export type User = {
   id: Identifier;

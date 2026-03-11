@@ -9,12 +9,14 @@ const roleLabel: Record<UserRole, string> = {
   PARTICIPANTE: "Participante",
   JUEZ: "Juez",
   ADMIN: "Admin",
+  SUPERADMIN: "Superadmin",
 };
 
 const dashboardRouteByRole: Record<UserRole, string> = {
   PARTICIPANTE: "/participante",
   JUEZ: "/juez",
   ADMIN: "/admin",
+  SUPERADMIN: "/admin",
 };
 
 export function DashboardRoleSwitch() {

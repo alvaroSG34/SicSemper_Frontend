@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
@@ -105,7 +106,7 @@ const getFieldErrors = (form: RegisterFormFields): FieldErrors => {
     errors.ci = "Ingresa un CI valido (5 a 20 caracteres, solo letras, numeros o guion).";
   }
 
-if (form.phone.trim() && !/^[0-9\s-]{4,18}$/.test(form.phone.trim())) {
+  if (form.phone.trim() && !phonePattern.test(form.phone.trim())) {
     errors.phone = "Ingresa un numero de telefono valido (solo digitos).";
   }
 
@@ -683,11 +684,14 @@ export default function RegisterPage() {
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         {selectedClub?.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={selectedClub.logoUrl}
                             alt={selectedClub.name}
+                            width={24}
+                            height={24}
+                            sizes="24px"
                             className="h-6 w-6 shrink-0 rounded border border-[#2a2a2a] bg-[#181818] object-contain p-0.5"
+                            unoptimized
                           />
                         ) : (
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[#2a2a2a] bg-[#181818] text-[10px] font-bold text-[#666]">
@@ -741,11 +745,14 @@ export default function RegisterPage() {
                               }`}
                             >
                               {club.logoUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
+                                <Image
                                   src={club.logoUrl}
                                   alt={club.name}
+                                  width={24}
+                                  height={24}
+                                  sizes="24px"
                                   className="h-6 w-6 shrink-0 rounded border border-[#2a2a2a] bg-[#181818] object-contain p-0.5"
+                                  unoptimized
                                 />
                               ) : (
                                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-[#2a2a2a] bg-[#181818] text-[10px] font-bold text-[#666]">

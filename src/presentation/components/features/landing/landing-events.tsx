@@ -27,6 +27,7 @@ export function LandingEvents() {
         alt="Eventos destacados"
         width={500}
         height={340}
+        sizes="(min-width: 1280px) 500px, 100vw"
         className="h-auto w-full max-w-[500px] rounded-2xl object-cover"
       />
     </section>

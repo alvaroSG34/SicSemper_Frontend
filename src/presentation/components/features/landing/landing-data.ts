@@ -7,19 +7,19 @@ export const firstSpeakers = [
     name: "ANDERSON\nADAM",
     role: "MAESTRO MODELISTA / JURADO TECNICO",
     image:
-      "https://images.unsplash.com/photo-1664101606938-e664f5852fac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODR8&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1664101606938-e664f5852fac?crop=entropy&cs=tinysrgb&fit=max&fm=webp&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODR8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "EDWARDS\nREYES",
     role: "ESPECIALISTA EN DETALLADO",
     image:
-      "https://images.unsplash.com/photo-1575299833801-85ce40813bac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1575299833801-85ce40813bac?crop=entropy&cs=tinysrgb&fit=max&fm=webp&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     name: "ROGERS\nPARKER",
     role: "CONSTRUCTOR DE DIORAMAS",
     image:
-      "https://images.unsplash.com/photo-1574132190990-cfd62178bb1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1574132190990-cfd62178bb1c?crop=entropy&cs=tinysrgb&fit=max&fm=webp&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3NzA2ODEzODV8&ixlib=rb-4.1.0&q=80&w=1080",
   },
 ] as const;
 
@@ -28,19 +28,19 @@ export const modelCards = [
     name: "Avion Personalizado",
     category: "Aviones",
     scale: "1:100",
-    image: "/Images/Avion.jpg",
+    image: "/Images/Avion.webp",
   },
   {
     name: "M4 Sherman",
     category: "Tanques",
     scale: "1:72",
-    image: "/Images/Tanque.jpg",
+    image: "/Images/Tanque.webp",
   },
   {
     name: "Bluenose II",
     category: "Barcos",
     scale: "1:75",
-    image: "/Images/Barco.jpg",
+    image: "/Images/Barco.webp",
   },
 ] as const;
 
@@ -52,12 +52,12 @@ export const eventsCopy = {
     "NOMBRE reúne a constructores, coleccionistas y entusiastas de las maquetas en un espacio donde cada pieza cuenta una historia. Desde aviones y tanques hasta creaciones personalizadas, nuestra competencia es el escenario perfecto para demostrar tu talento y compartir tu trabajo con una comunidad que valora cada detalle.",
   descriptionTwo:
     "Participa, compite y conecta con personas que comparten tu misma pasión. Aquí no solo presentas una maqueta: presentas horas de dedicación, técnica y creatividad.",
-  image: "/Images/Evento.jpg",
+  image: "/Images/Evento.webp",
 } as const;
 
 export const featuredSpeakersGroup = {
   image:
-    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600",
+    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=webp&q=80&w=1600",
   members: [
     {
       name: "Dale Slemp",
@@ -153,7 +153,7 @@ export const locationCards = [
   },
 ] as const;
 
-export const locationMapImage = "/Images/Ubicacion.png";
+export const locationMapImage = "/Images/Ubicacion.webp";
 
 export const locationMapUrl =
   "https://www.google.com/maps/search/?api=1&query=Salon+Hotel+Guarayo+Av.+Roca+y+Coronado+Santa+Cruz+Bolivia";

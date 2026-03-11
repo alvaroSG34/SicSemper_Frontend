@@ -1,19 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
 
 import {
-  ParticipantEventsExplorer,
   ParticipantHeader,
   ParticipantKpis,
-  ParticipantMobileSidebar,
-  ParticipantMyModels,
   ParticipantNextChallenge,
-  ParticipantProfilePanel,
   ParticipantSidebar,
-  ParticipantUploadModelWizard,
 } from "@/presentation/components/features/participant";
 import type {
   ParticipantEventAllowedCategoryGroup,
@@ -22,6 +19,32 @@ import type {
 } from "@/domain/participant/participant.types";
 import { useAuthStore, useParticipantStore } from "@/presentation/stores";
 import { Skeleton } from "@/presentation/components/ui";
+
+const ParticipantMobileSidebar = dynamic(() =>
+  import("@/presentation/components/features/participant").then(
+    (module) => module.ParticipantMobileSidebar,
+  ),
+);
+const ParticipantEventsExplorer = dynamic(() =>
+  import("@/presentation/components/features/participant").then(
+    (module) => module.ParticipantEventsExplorer,
+  ),
+);
+const ParticipantMyModels = dynamic(() =>
+  import("@/presentation/components/features/participant").then(
+    (module) => module.ParticipantMyModels,
+  ),
+);
+const ParticipantProfilePanel = dynamic(() =>
+  import("@/presentation/components/features/participant").then(
+    (module) => module.ParticipantProfilePanel,
+  ),
+);
+const ParticipantUploadModelWizard = dynamic(() =>
+  import("@/presentation/components/features/participant").then(
+    (module) => module.ParticipantUploadModelWizard,
+  ),
+);
 
 const eventDateFormatter = new Intl.DateTimeFormat("es-BO", {
   dateStyle: "medium",
@@ -112,7 +135,15 @@ function SelectedEventDetailsModal({
 
         <div className="space-y-5 p-5 sm:p-6">
           {event.imageUrl?.trim() ? (
-            <img src={event.imageUrl} alt={`Imagen de ${event.name}`} className="h-56 w-full rounded-xl object-cover" />
+            <Image
+              src={event.imageUrl}
+              alt={`Imagen de ${event.name}`}
+              width={1200}
+              height={560}
+              sizes="(min-width: 1024px) 760px, 100vw"
+              className="h-56 w-full rounded-xl object-cover"
+              unoptimized
+            />
           ) : (
             <div className="flex h-56 w-full items-center justify-center rounded-xl bg-gradient-to-br from-[#202B53] via-[#1B1B2A] to-[#2A1A2E]">
               <span className="text-xs uppercase tracking-[1.8px] text-[#A9AEDB]">Sin imagen disponible</span>
@@ -476,10 +507,14 @@ export default function ParticipantePage() {
               <article className="mt-5 overflow-hidden rounded-2xl border border-[#2D2D2D] bg-[#121212]">
                 <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
                   {selectedEvent.imageUrl?.trim() ? (
-                    <img
+                    <Image
                       src={selectedEvent.imageUrl}
                       alt={`Imagen de ${selectedEvent.name}`}
+                      width={440}
+                      height={360}
+                      sizes="(min-width: 768px) 220px, 100vw"
                       className="h-[180px] w-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="flex h-[180px] w-full items-center justify-center bg-gradient-to-br from-[#202B53] via-[#1B1B2A] to-[#2A1A2E]">

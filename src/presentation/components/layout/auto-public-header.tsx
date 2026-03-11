@@ -12,6 +12,7 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   PARTICIPANTE: "/participante",
   JUEZ: "/juez",
   ADMIN: "/admin",
+  SUPERADMIN: "/admin",
 };
 
 export function AutoPublicHeader() {
@@ -22,6 +23,8 @@ export function AutoPublicHeader() {
 
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
+  const initialized = useAuthStore((state) => state.initialized);
+  const initializeSession = useAuthStore((state) => state.initializeSession);
   const switchRole = useAuthStore((state) => state.switchRole);
   const logout = useAuthStore((state) => state.logout);
 
@@ -35,6 +38,14 @@ export function AutoPublicHeader() {
 
     return dashboardRouteByRole[activeRole];
   }, [activeRole]);
+
+  useEffect(() => {
+    if (initialized) {
+      return;
+    }
+
+    void initializeSession();
+  }, [initializeSession, initialized]);
 
   useEffect(() => {
     if (pathname !== "/") {

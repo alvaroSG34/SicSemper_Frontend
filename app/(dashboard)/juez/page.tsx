@@ -1,6 +1,7 @@
 "use client";
 
 import { Outfit } from "next/font/google";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -17,9 +18,12 @@ import {
   Trophy,
 } from "lucide-react";
 import { useEffect } from "react";
-import { DashboardRoleSwitch } from "@/presentation/components/layout";
 import { useAuthStore, useJudgeStore } from "@/presentation/stores";
 import { Skeleton } from "@/presentation/components/ui";
+
+const DashboardRoleSwitch = dynamic(() =>
+  import("@/presentation/components/layout").then((module) => module.DashboardRoleSwitch),
+);
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -395,5 +399,4 @@ export default function JuezPage() {
     </main>
   );
 }
-
 
