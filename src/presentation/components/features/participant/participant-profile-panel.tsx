@@ -6,9 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
-import { participantService } from "@/application/participant/participant.service";
 import type { ParticipantProfileDetails } from "@/domain/participant/participant.types";
 import { Skeleton } from "@/presentation/components/ui";
+import { useParticipantProfile } from "./use-participant-profile";
 
 const inputClassName =
   "h-11 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-4 text-sm text-white outline-none transition-colors focus:border-[#5B68F1]";
@@ -63,6 +63,7 @@ const toFormValues = (profile: ParticipantProfileDetails): ProfileFormValues => 
 });
 
 export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfilePanelProps) {
+  const { getProfile, updateProfile } = useParticipantProfile();
   const [profile, setProfile] = useState<ParticipantProfileDetails | null>(null);
   const [clubs, setClubs] = useState<RegisterClubOption[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
@@ -121,7 +122,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
       setSuccessMessage(null);
 
       const [profileResult, clubsResult] = await Promise.allSettled([
-        participantService.getProfile(),
+        getProfile(),
         listRegisterClubs(),
       ]);
 
@@ -154,7 +155,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
     return () => {
       isMounted = false;
     };
-  }, [reset, reloadToken]);
+  }, [getProfile, reset, reloadToken]);
 
   const handlePhotoFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -217,7 +218,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
     setSuccessMessage(null);
 
     try {
-      const updatedProfile = await participantService.updateProfile({
+      const updatedProfile = await updateProfile({
         name: values.name.trim(),
         birthDate: values.birthDate || null,
         ci: values.ci?.trim() || null,

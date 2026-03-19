@@ -80,13 +80,35 @@ export type AdminClub = {
   members: number;
 };
 
+export type AdminPermissionRole = {
+  code: User["roles"][number];
+  name: string;
+};
+
+export type AdminPermission = {
+  id: Identifier;
+  code: string;
+  name: string;
+  description: string | null;
+  assignedRoles: AdminPermissionRole[];
+  roleAssignmentsCount: number;
+  userAssignmentsCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminDashboardData = {
   kpis: AdminKpis;
+  effectivePermissions: string[];
   users: User[];
   activity: ActivityLogItem[];
   alerts: SystemAlert[];
   assignments: JudgeAssignmentScope[];
   clubs: AdminClub[];
+  permissions: {
+    total: number;
+    items: AdminPermission[];
+  };
   catalog: {
     events: CatalogEvent[];
     categories: CatalogCategory[];
@@ -95,7 +117,10 @@ export type AdminDashboardData = {
   };
 };
 
-export type AdminDashboardSummary = Pick<AdminDashboardData, "kpis" | "alerts" | "activity">;
+export type AdminDashboardSummary = Pick<
+  AdminDashboardData,
+  "kpis" | "effectivePermissions" | "alerts" | "activity"
+>;
 
 export type EventDeleteImpact = {
   eventId: Identifier;
@@ -133,6 +158,18 @@ export type CreateClubPayload = {
 
 export type UpdateClubPayload = CreateClubPayload & {
   id: Identifier;
+};
+
+export type CreateAdminPayload = {
+  name: string;
+  email: string;
+  password: string;
+  birthDate?: string;
+  ci?: string;
+  country?: string;
+  city?: string;
+  phone?: string;
+  clubId?: string;
 };
 
 export type CreateEventPayload = {
@@ -187,6 +224,7 @@ export type AssignJudgeScopePayload = {
 };
 
 export type JudgePermissionCode =
+  | "JUDGE_DASHBOARD_READ"
   | "JUDGE_REVIEW_START"
   | "JUDGE_REVIEW_COMPLETE"
   | "JUDGE_MODELS_READ";
@@ -194,7 +232,21 @@ export type JudgePermissionCode =
 export type JudgePermissionEntry = {
   code: JudgePermissionCode;
   granted: boolean;
+  grantedByRole: boolean;
+  grantedDirectly: boolean;
   grantedAt: string | null;
   grantedBy: { id: string; name: string } | null;
 };
 
+export type AdminPermissionCode = string;
+
+export type AdminPermissionEntry = {
+  code: AdminPermissionCode;
+  name: string;
+  description: string | null;
+  granted: boolean;
+  grantedByRole: boolean;
+  grantedDirectly: boolean;
+  grantedAt: string | null;
+  grantedBy: { id: string; name: string } | null;
+};

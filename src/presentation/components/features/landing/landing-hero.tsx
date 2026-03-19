@@ -10,6 +10,7 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   PARTICIPANTE: "/participante",
   JUEZ: "/juez",
   ADMIN: "/admin",
+  SUPERADMIN: "/admin",
 };
 
 export function LandingHero() {

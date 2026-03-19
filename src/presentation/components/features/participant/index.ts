@@ -1,11 +1,16 @@
 export { ParticipantHeader } from "./participant-header";
+export { ParticipantHomeSection } from "./participant-home-section";
 export { ParticipantKpis } from "./participant-kpis";
 export { ParticipantNextChallenge } from "./participant-next-challenge";
 export { ParticipantEventDetail } from "./participant-event-detail";
+export { ParticipantEventsSection } from "./participant-events-section";
 export { ParticipantEventsExplorer } from "./participant-events-explorer";
+export { ParticipantModelsSection } from "./participant-models-section";
 export { ParticipantMyModels } from "./participant-my-models";
 export { ParticipantOpenEvents } from "./participant-open-events";
 export { ParticipantProfilePanel } from "./participant-profile-panel";
+export { ParticipantProfileSection } from "./participant-profile-section";
+export { ParticipantResultsSection } from "./participant-results-section";
 export { ParticipantMobileSidebar } from "./participant-sidebar";
 export { ParticipantSidebar } from "./participant-sidebar";
 export { ParticipantUploadModelWizard } from "./participant-upload-model-wizard";
