@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, Copy, Download, FileText, ImageIcon, Search, Tag, X } from "lucide-react";
+import { CalendarClock, Check, ChevronDown, Copy, Download, FileText, ImageIcon, Search, Tag, X } from "lucide-react";
 import { Outfit } from "next/font/google";
 import Image from "next/image";
 import type { ParticipantModel } from "@/domain/participant/participant.types";
@@ -76,6 +76,7 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
   const [eventFilter, setEventFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [copiedModelId, setCopiedModelId] = useState<string | null>(null);
+  const [expandedModelId, setExpandedModelId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; fileName: string } | null>(null);
 
   const showSkeleton = loading && models.length === 0;
@@ -161,6 +162,10 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
     }
   };
 
+  const toggleModelExpand = (modelId: string) => {
+    setExpandedModelId((currentModelId) => (currentModelId === modelId ? null : modelId));
+  };
+
   useEffect(() => {
     if (!previewImage) {
       return;
@@ -208,7 +213,10 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
                 <Search className="pointer-events-none absolute left-3 h-5 w-5 text-[#9B9B9B]" />
                 <input
                   value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onChange={(event) => {
+                    setSearchTerm(event.target.value);
+                    setExpandedModelId(null);
+                  }}
                   placeholder="Buscar por nombre, codigo, marca o evento"
                   className="h-11 w-full rounded-lg border border-[#3A3A3A] bg-[#101010] pl-11 pr-3 text-base text-white placeholder:text-[#9C9C9C] outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
                 />
@@ -216,7 +224,10 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
 
               <select
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as StatusFilterOption)}
+                onChange={(event) => {
+                  setStatusFilter(event.target.value as StatusFilterOption);
+                  setExpandedModelId(null);
+                }}
                 className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
               >
                 <option value="ALL">Todos los estados</option>
@@ -227,7 +238,10 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
 
               <select
                 value={eventFilter}
-                onChange={(event) => setEventFilter(event.target.value)}
+                onChange={(event) => {
+                  setEventFilter(event.target.value);
+                  setExpandedModelId(null);
+                }}
                 className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
               >
                 <option value="ALL">Todos los eventos</option>
@@ -240,7 +254,10 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
 
               <select
                 value={sortBy}
-                onChange={(event) => setSortBy(event.target.value as SortOption)}
+                onChange={(event) => {
+                  setSortBy(event.target.value as SortOption);
+                  setExpandedModelId(null);
+                }}
                 className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40 md:col-span-4"
               >
                 <option value="recent">Orden: Mas recientes</option>
@@ -285,15 +302,52 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
               </p>
             ) : null}
 
-            {filteredModels.map((model) => {
-              const imageFiles = model.files.filter((file) => file.mimeType.startsWith("image/"));
-              const pdfFiles = model.files.filter(
-                (file) => file.mimeType === "application/pdf" || file.fileName.toLowerCase().endsWith(".pdf"),
-              );
+            {filteredModels.length > 0 ? (
+              <div className="overflow-x-auto rounded-2xl border border-[#383838] bg-[#1A1A1A]">
+                <div className="min-w-[980px]">
+                  <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] border-b border-[#393939] bg-[#141414] px-4 py-3 text-sm font-semibold uppercase tracking-[1px] text-[#D0D0D0] sm:px-5">
+                    <p>Nombre</p>
+                    <p>Marca</p>
+                    <p>Evento</p>
+                    <p>Categoria</p>
+                    <p>Subcategoria</p>
+                    <p className="text-center">Detalle</p>
+                  </div>
 
-              return (
-                <article key={model.id} className="rounded-2xl border border-[#383838] bg-[#1A1A1A] p-4 sm:p-5 xl:p-6">
-                  <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                  {filteredModels.map((model) => {
+                    const imageFiles = model.files.filter((file) => file.mimeType.startsWith("image/"));
+                    const pdfFiles = model.files.filter(
+                      (file) => file.mimeType === "application/pdf" || file.fileName.toLowerCase().endsWith(".pdf"),
+                    );
+                    const isExpanded = expandedModelId === model.id;
+
+                    return (
+                      <article key={model.id} className="border-b border-[#333333] last:border-b-0">
+                        <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] items-center gap-3 px-4 py-3.5 text-sm text-[#E2E2E2] sm:px-5">
+                          <p className="truncate text-base font-semibold text-white">{model.nombreModelo}</p>
+                          <p className="truncate">{model.marca}</p>
+                          <p className="truncate">{model.eventName}</p>
+                          <p className="truncate">{model.categoryName}</p>
+                          <p className="truncate">{model.subcategoryName ?? "Sin subcategoria"}</p>
+                          <div className="flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleModelExpand(model.id)}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
+                              aria-expanded={isExpanded}
+                              aria-controls={`model-detail-${model.id}`}
+                              aria-label={isExpanded ? "Ocultar detalle de la maqueta" : "Ver detalle de la maqueta"}
+                            >
+                              <ChevronDown
+                                className={`h-5 w-5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                              />
+                            </button>
+                          </div>
+                        </div>
+
+                        {isExpanded ? (
+                          <div id={`model-detail-${model.id}`} className="border-t border-[#333333] bg-[#181818] p-4 sm:p-5 xl:p-6">
+                            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
                     <div className="space-y-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -499,9 +553,14 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
                       )}
                     </section>
                   </div>
-                </article>
-              );
-            })}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </div>
+) : null}
           </div>
         ) : null}
       </article>
