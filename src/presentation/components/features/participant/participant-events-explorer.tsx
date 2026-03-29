@@ -43,6 +43,7 @@ type ParticipantEventsExplorerProps = {
   categoriesErrorByEventId: Record<string, string | null>;
   onLoadEventCategories: (eventId: string) => Promise<void>;
   onStartUpload: (eventId: string) => Promise<boolean>;
+  onGoToMyModelsByEvent: (eventId: string) => void;
 };
 
 export function ParticipantEventsExplorer({
@@ -54,6 +55,7 @@ export function ParticipantEventsExplorer({
   categoriesErrorByEventId,
   onLoadEventCategories,
   onStartUpload,
+  onGoToMyModelsByEvent,
 }: ParticipantEventsExplorerProps) {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
@@ -195,7 +197,7 @@ export function ParticipantEventsExplorer({
                     </p>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                       type="button"
                       onClick={(clickEvent) => {
@@ -206,6 +208,17 @@ export function ParticipantEventsExplorer({
                       className="inline-flex h-10 items-center justify-center rounded-xl bg-[#5B68F1] px-3 text-sm font-semibold text-white transition hover:bg-[#6975f3] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {isUploading ? "Cargando..." : "Subir maqueta"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onGoToMyModelsByEvent(event.id);
+                      }}
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-[#3A3A3A] px-3 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
+                    >
+                      Ver maquetas subidas
                     </button>
 
                     <button
@@ -343,6 +356,16 @@ export function ParticipantEventsExplorer({
                   className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#5B68F1] px-4 text-sm font-semibold text-white transition hover:bg-[#6975f3] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {uploadingEventId === detailEvent.id ? "Cargando..." : "Subir maqueta"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetailEventId(null);
+                    onGoToMyModelsByEvent(detailEvent.id);
+                  }}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#3A3A3A] px-4 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
+                >
+                  Ver maquetas subidas
                 </button>
                 <button
                   type="button"

@@ -1,25 +1,45 @@
-import type { JudgeQueueItem, JudgeSummary } from "@/domain/judge/judge.types";
+import type { JudgeReviewCriteria } from "@/domain/judge/judge.types";
 import { useJudgeStore } from "./judge.store";
 
-export type JudgeQueueSlice = {
-  loading: boolean;
-  pendingQueue: JudgeQueueItem[];
-  summary: JudgeSummary | null;
-  startReview: (modelId: string) => Promise<void>;
-  completeReview: (modelId: string) => Promise<void>;
-};
-
-export const useJudgeQueueSlice = (): JudgeQueueSlice => {
+export const useJudgeQueueSlice = () => {
   const loading = useJudgeStore((state) => state.loading);
   const dashboard = useJudgeStore((state) => state.dashboard);
+  const modelFilters = useJudgeStore((state) => state.modelFilters);
+  const models = useJudgeStore((state) => state.models);
+  const modelsLoading = useJudgeStore((state) => state.modelsLoading);
+  const modelsError = useJudgeStore((state) => state.modelsError);
+  const selectedModelId = useJudgeStore((state) => state.selectedModelId);
+  const modelDetail = useJudgeStore((state) => state.modelDetail);
+  const detailLoading = useJudgeStore((state) => state.detailLoading);
+  const detailError = useJudgeStore((state) => state.detailError);
+  const loadModels = useJudgeStore((state) => state.loadModels);
+  const selectModel = useJudgeStore((state) => state.selectModel);
   const startReview = useJudgeStore((state) => state.startReview);
-  const completeReview = useJudgeStore((state) => state.completeReview);
+  const saveDraft = useJudgeStore((state) => state.saveDraft);
+  const submitReview = useJudgeStore((state) => state.submitReview);
 
   return {
     loading,
-    pendingQueue: dashboard?.pendingQueue ?? [],
     summary: dashboard?.summary ?? null,
+    modelFilters,
+    models,
+    modelsLoading,
+    modelsError,
+    selectedModelId,
+    modelDetail,
+    detailLoading,
+    detailError,
+    loadModels,
+    selectModel,
     startReview,
-    completeReview,
+    saveDraft: (modelId: string, payload: { criteria?: JudgeReviewCriteria; generalComment?: string }) =>
+      saveDraft(modelId, payload),
+    submitReview: (
+      modelId: string,
+      payload: {
+        criteria: Record<"tecnica" | "pintura" | "fidelidad" | "detalle" | "presentacion", number>;
+        generalComment?: string;
+      },
+    ) => submitReview(modelId, payload),
   };
 };

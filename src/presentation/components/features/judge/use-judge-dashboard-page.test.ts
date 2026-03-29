@@ -5,7 +5,6 @@ const push = vi.fn();
 const logout = vi.fn<Promise<void>, []>();
 const loadDashboard = vi.fn<Promise<void>, []>();
 const startReview = vi.fn<Promise<void>, [string]>();
-const completeReview = vi.fn<Promise<void>, [string]>();
 const clearError = vi.fn();
 
 const authState = {
@@ -50,7 +49,6 @@ const judgeState = {
   error: null as string | null,
   loadDashboard,
   startReview,
-  completeReview,
   clearError,
 };
 
@@ -87,11 +85,9 @@ describe("useJudgeDashboardPage", () => {
 
     await act(async () => {
       await result.current.startReview("m-1");
-      await result.current.completeReview("m-1");
     });
 
     expect(startReview).toHaveBeenCalledWith("m-1");
-    expect(completeReview).toHaveBeenCalledWith("m-1");
   });
 
   it("hace logout y redirige", async () => {

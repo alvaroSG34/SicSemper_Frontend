@@ -10,7 +10,6 @@ export const useJudgeDashboardPage = () => {
   const error = useJudgeStore((state) => state.error);
   const loadDashboard = useJudgeStore((state) => state.loadDashboard);
   const startReview = useJudgeStore((state) => state.startReview);
-  const completeReview = useJudgeStore((state) => state.completeReview);
   const clearError = useJudgeStore((state) => state.clearError);
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export const useJudgeDashboardPage = () => {
     assignedEvents,
     loadDashboard,
     startReview,
-    completeReview,
     clearError,
     handleLogout,
   };

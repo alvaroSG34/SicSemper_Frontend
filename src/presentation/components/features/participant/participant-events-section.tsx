@@ -5,9 +5,10 @@ import { useParticipantEvents } from "./use-participant-events";
 
 type ParticipantEventsSectionProps = {
   onGoToResults: () => void;
+  onGoToMyModelsByEvent: (eventId: string) => void;
 };
 
-export function ParticipantEventsSection({ onGoToResults }: ParticipantEventsSectionProps) {
+export function ParticipantEventsSection({ onGoToResults, onGoToMyModelsByEvent }: ParticipantEventsSectionProps) {
   const {
     exploreEvents,
     selectedEvent,
@@ -30,6 +31,7 @@ export function ParticipantEventsSection({ onGoToResults }: ParticipantEventsSec
         categoriesErrorByEventId={categoriesErrorByEventId}
         onLoadEventCategories={loadEventCategoriesForDetail}
         onStartUpload={handleStartUpload}
+        onGoToMyModelsByEvent={onGoToMyModelsByEvent}
       />
     </section>
   );

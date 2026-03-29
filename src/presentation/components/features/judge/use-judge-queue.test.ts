@@ -1,78 +1,76 @@
 import { act, renderHook } from "@testing-library/react";
 import { useJudgeQueue } from "./use-judge-queue";
 
+const loadModels = vi.fn<Promise<void>, [unknown?]>();
 const startReview = vi.fn<Promise<void>, [string]>();
-const completeReview = vi.fn<Promise<void>, [string]>();
 
-let loading = false;
-let pendingQueue = [
-  {
-    id: "m-1",
-    project: "Modelo",
-    participantName: "Participante",
-    eventName: "Evento",
-    category: "Categoria",
-    priority: "Alta",
-    time: "10m",
-    status: "ENVIADA",
-    canStart: true,
-    canComplete: false,
-  },
-];
-const summary = {
-  pendingUrgent: 2,
-  nextCutoff: "Hoy 18:00",
-  coveragePercent: 40,
+let modelsLoading = false;
+let models: {
+  items: Array<{ id: string }>;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+} | null = {
+  items: [{ id: "m-1" }],
+  total: 1,
+  page: 1,
+  pageSize: 12,
+  totalPages: 1,
 };
 
 vi.mock("@/presentation/stores/judge-queue.slice", () => ({
   useJudgeQueueSlice: () => ({
-    loading,
-    pendingQueue,
-    summary,
+    loading: false,
+    summary: null,
+    modelFilters: { page: 1, pageSize: 12 },
+    models,
+    modelsLoading,
+    modelsError: null,
+    selectedModelId: null,
+    modelDetail: null,
+    detailLoading: false,
+    detailError: null,
+    loadModels,
+    selectModel: vi.fn<Promise<void>, [string | null]>(),
     startReview,
-    completeReview,
+    saveDraft: vi.fn(),
+    submitReview: vi.fn(),
   }),
 }));
 
 describe("useJudgeQueue", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    loading = false;
-    pendingQueue = [
-      {
-        id: "m-1",
-        project: "Modelo",
-        participantName: "Participante",
-        eventName: "Evento",
-        category: "Categoria",
-        priority: "Alta",
-        time: "10m",
-        status: "ENVIADA",
-        canStart: true,
-        canComplete: false,
-      },
-    ];
+    modelsLoading = false;
+    models = {
+      items: [{ id: "m-1" }],
+      total: 1,
+      page: 1,
+      pageSize: 12,
+      totalPages: 1,
+    };
   });
 
-  it("construye headline segun loading y cantidad", () => {
+  it("construye headline segun loading y total", () => {
     const { result, rerender } = renderHook(() => useJudgeQueue());
-    expect(result.current.queueHeadline).toBe("1 maquetas por revisar");
+    expect(result.current.queueHeadline).toBe("1 maquetas asignadas");
 
-    loading = true;
+    modelsLoading = true;
     rerender();
     expect(result.current.queueHeadline).toBe("Cargando asignaciones...");
   });
 
-  it("expone acciones del slice", async () => {
+  it("carga modelos al montar y expone acciones", async () => {
+    models = null;
     const { result } = renderHook(() => useJudgeQueue());
+
+    expect(loadModels).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await result.current.startReview("m-1");
-      await result.current.completeReview("m-1");
     });
 
     expect(startReview).toHaveBeenCalledWith("m-1");
-    expect(completeReview).toHaveBeenCalledWith("m-1");
   });
 });

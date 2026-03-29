@@ -11,6 +11,7 @@ type AdminMutationsStoreSlice = Pick<
   | "removeClub"
   | "promoteToJudge"
   | "demoteJudge"
+  | "createJudge"
   | "createAdmin"
   | "promoteToAdmin"
   | "demoteAdmin"
@@ -65,6 +66,11 @@ export const createAdminMutationsStoreSlice: StateCreator<
   demoteJudge: async (userId) => {
     await executeMutation(set, async () => {
       await adminService.demoteJudge(userId);
+    });
+  },
+  createJudge: async (payload) => {
+    await executeMutation(set, async () => {
+      await adminService.createJudge(payload);
     });
   },
   createAdmin: async (payload) => {

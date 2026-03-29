@@ -42,6 +42,7 @@ export type AdminStoreState = {
   removeClub: (clubId: string) => Promise<void>;
   promoteToJudge: (userId: string) => Promise<void>;
   demoteJudge: (userId: string) => Promise<void>;
+  createJudge: (payload: CreateAdminPayload) => Promise<void>;
   createAdmin: (payload: CreateAdminPayload) => Promise<void>;
   promoteToAdmin: (userId: string) => Promise<void>;
   demoteAdmin: (userId: string) => Promise<void>;

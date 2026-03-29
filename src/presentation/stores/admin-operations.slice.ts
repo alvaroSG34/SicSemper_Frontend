@@ -19,6 +19,7 @@ export type AdminOperationsSlice = {
   updateSubcategory: ReturnType<typeof useAdminStore.getState>['updateSubcategory'];
   removeSubcategory: ReturnType<typeof useAdminStore.getState>['removeSubcategory'];
   createAdmin: ReturnType<typeof useAdminStore.getState>['createAdmin'];
+  createJudge: ReturnType<typeof useAdminStore.getState>['createJudge'];
   promoteToAdmin: ReturnType<typeof useAdminStore.getState>['promoteToAdmin'];
   demoteAdmin: ReturnType<typeof useAdminStore.getState>['demoteAdmin'];
   promoteToJudge: ReturnType<typeof useAdminStore.getState>['promoteToJudge'];
@@ -51,6 +52,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
   const removeSubcategory = useAdminStore((state) => state.removeSubcategory);
 
   const createAdmin = useAdminStore((state) => state.createAdmin);
+  const createJudge = useAdminStore((state) => state.createJudge);
   const promoteToAdmin = useAdminStore((state) => state.promoteToAdmin);
   const demoteAdmin = useAdminStore((state) => state.demoteAdmin);
 
@@ -82,6 +84,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
     updateSubcategory,
     removeSubcategory,
     createAdmin,
+    createJudge,
     promoteToAdmin,
     demoteAdmin,
     promoteToJudge,

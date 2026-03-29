@@ -15,10 +15,10 @@ const outfit = Outfit({
 type ParticipantMyModelsProps = {
   models: ParticipantModel[];
   loading?: boolean;
+  initialEventFilterId?: string | null;
 };
 
 type SortOption = "recent" | "oldest" | "name";
-type StatusFilterOption = "ALL" | ParticipantModel["status"];
 
 const dateFormatter = new Intl.DateTimeFormat("es-BO", {
   dateStyle: "medium",
@@ -70,10 +70,16 @@ const statusStyles: Record<ParticipantModel["status"], string> = {
   CALIFICADA: "border-[#10B981]/60 bg-[#047857]/20 text-[#A7F3D0]",
 };
 
-export function ParticipantMyModels({ models, loading = false }: ParticipantMyModelsProps) {
+export function ParticipantMyModels({
+  models,
+  loading = false,
+  initialEventFilterId,
+}: ParticipantMyModelsProps) {
+  const normalizedInitialEventFilterId = initialEventFilterId?.trim();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilterOption>("ALL");
-  const [eventFilter, setEventFilter] = useState<string>("ALL");
+  const [eventFilter, setEventFilter] = useState<string>(normalizedInitialEventFilterId || "ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [copiedModelId, setCopiedModelId] = useState<string | null>(null);
   const [expandedModelId, setExpandedModelId] = useState<string | null>(null);
@@ -95,6 +101,38 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
       .map(([id, name]) => ({ id, name }))
       .sort((left, right) => left.name.localeCompare(right.name));
   }, [models]);
+
+  const categoryOptions = useMemo(() => {
+    const categoriesMap = new Map<string, string>();
+
+    for (const model of models) {
+      if (!categoriesMap.has(model.categoryId)) {
+        categoriesMap.set(model.categoryId, model.categoryName);
+      }
+    }
+
+    return Array.from(categoriesMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [models]);
+
+  const subcategoryOptions = useMemo(() => {
+    const subcategoriesMap = new Map<string, string>();
+
+    for (const model of models) {
+      if (categoryFilter !== "ALL" && model.categoryId !== categoryFilter) {
+        continue;
+      }
+
+      if (!subcategoriesMap.has(model.subcategoryId)) {
+        subcategoriesMap.set(model.subcategoryId, model.subcategoryName ?? "Sin subcategoria");
+      }
+    }
+
+    return Array.from(subcategoriesMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [categoryFilter, models]);
 
   const modelsByStatus = useMemo(
     () =>
@@ -126,10 +164,11 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
         model.marca.toLowerCase().includes(normalizedSearch) ||
         model.eventName.toLowerCase().includes(normalizedSearch);
 
-      const matchesStatus = statusFilter === "ALL" || model.status === statusFilter;
       const matchesEvent = eventFilter === "ALL" || model.eventId === eventFilter;
+      const matchesCategory = categoryFilter === "ALL" || model.categoryId === categoryFilter;
+      const matchesSubcategory = subcategoryFilter === "ALL" || model.subcategoryId === subcategoryFilter;
 
-      return matchesSearch && matchesStatus && matchesEvent;
+      return matchesSearch && matchesEvent && matchesCategory && matchesSubcategory;
     });
 
     nextModels.sort((left, right) => {
@@ -148,7 +187,7 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
     });
 
     return nextModels;
-  }, [eventFilter, models, normalizedSearch, sortBy, statusFilter]);
+  }, [categoryFilter, eventFilter, models, normalizedSearch, sortBy, subcategoryFilter]);
 
   const copyModelCode = async (modelId: string, code: string) => {
     try {
@@ -208,7 +247,7 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
               </div>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="mt-5 grid gap-3 md:grid-cols-5">
               <label className="relative flex items-center md:col-span-2">
                 <Search className="pointer-events-none absolute left-3 h-5 w-5 text-[#9B9B9B]" />
                 <input
@@ -221,20 +260,6 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
                   className="h-11 w-full rounded-lg border border-[#3A3A3A] bg-[#101010] pl-11 pr-3 text-base text-white placeholder:text-[#9C9C9C] outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
                 />
               </label>
-
-              <select
-                value={statusFilter}
-                onChange={(event) => {
-                  setStatusFilter(event.target.value as StatusFilterOption);
-                  setExpandedModelId(null);
-                }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
-              >
-                <option value="ALL">Todos los estados</option>
-                <option value="ENVIADA">ENVIADA</option>
-                <option value="EN_REVISION">EN_REVISION</option>
-                <option value="CALIFICADA">CALIFICADA</option>
-              </select>
 
               <select
                 value={eventFilter}
@@ -253,12 +278,45 @@ export function ParticipantMyModels({ models, loading = false }: ParticipantMyMo
               </select>
 
               <select
+                value={categoryFilter}
+                onChange={(event) => {
+                  setCategoryFilter(event.target.value);
+                  setSubcategoryFilter("ALL");
+                  setExpandedModelId(null);
+                }}
+                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+              >
+                <option value="ALL">Todas las categorias</option>
+                {categoryOptions.map((categoryOption) => (
+                  <option key={categoryOption.id} value={categoryOption.id}>
+                    {categoryOption.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={subcategoryFilter}
+                onChange={(event) => {
+                  setSubcategoryFilter(event.target.value);
+                  setExpandedModelId(null);
+                }}
+                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+              >
+                <option value="ALL">Todas las subcategorias</option>
+                {subcategoryOptions.map((subcategoryOption) => (
+                  <option key={subcategoryOption.id} value={subcategoryOption.id}>
+                    {subcategoryOption.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
                 value={sortBy}
                 onChange={(event) => {
                   setSortBy(event.target.value as SortOption);
                   setExpandedModelId(null);
                 }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40 md:col-span-4"
+                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40 md:col-span-5"
               >
                 <option value="recent">Orden: Mas recientes</option>
                 <option value="oldest">Orden: Mas antiguas</option>
