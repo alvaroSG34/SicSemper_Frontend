@@ -16,6 +16,12 @@ const participantStatusConfig: Record<string, { label: string; className: string
   SUSPENDIDO: { label: 'Suspendido', className: 'bg-red-900/40 text-red-400' },
 };
 
+const isParticipantOnlyUser = (user: User) =>
+  user.roles.includes('PARTICIPANTE') &&
+  !user.roles.includes('JUEZ') &&
+  !user.roles.includes('ADMIN') &&
+  !user.roles.includes('SUPERADMIN');
+
 export const useAdminParticipants = (users: User[]) => {
   const { banParticipant, unbanParticipant } = useAdminOperations();
   const [participantSearch, setParticipantSearch] = useState('');
@@ -30,7 +36,7 @@ export const useAdminParticipants = (users: User[]) => {
     const normalizedQuery = participantSearch.trim().toLowerCase();
 
     return users.filter((candidate) => {
-      if (!candidate.roles.includes('PARTICIPANTE')) return false;
+      if (!isParticipantOnlyUser(candidate)) return false;
       const matchesSearch =
         normalizedQuery.length === 0
           ? true
@@ -43,7 +49,7 @@ export const useAdminParticipants = (users: User[]) => {
   }, [users, participantSearch]);
 
   const participantKpis = useMemo(() => {
-    const participants = users.filter((user) => user.roles.includes('PARTICIPANTE'));
+    const participants = users.filter(isParticipantOnlyUser);
     return {
       total: participants.length,
       verified: participants.filter((user) => user.verified).length,

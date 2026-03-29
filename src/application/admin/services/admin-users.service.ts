@@ -32,6 +32,7 @@ export const adminUsersService: Pick<
   | "listUsers"
   | "promoteToJudge"
   | "demoteJudge"
+  | "createJudge"
   | "createAdmin"
   | "promoteToAdmin"
   | "demoteAdmin"
@@ -64,6 +65,17 @@ export const adminUsersService: Pick<
       return mapApiJudgeUserToDomainUser(user);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo quitar el rol de juez."));
+    }
+  },
+  async createJudge(payload) {
+    try {
+      const user = await apiRequest<BackendAdminManagedUser>("/admin/judges", {
+        method: "POST",
+        body: mapCreateAdminPayloadToApiRequest(payload),
+      });
+      return mapApiAdminManagedUserToDomainUser(user);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo crear el juez."));
     }
   },
   async createAdmin(payload) {

@@ -79,7 +79,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "clubes", label: "Clubes", icon: Shield },
   { id: "admins", label: "Admins", icon: Crown },
   { id: "permisos", label: "Permisos", icon: KeyRound },
-  { id: "categorias", label: "CategorÃ­as", icon: FolderTree },
+  { id: "categorias", label: "Categorías", icon: FolderTree },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
@@ -514,30 +514,31 @@ export default function AdminPage() {
                 categories={catalog?.categories ?? []}
                 subcategories={catalog?.subcategories ?? []}
                 eventCategories={catalog?.eventCategories ?? []}
+                users={users}
+                assignments={assignments}
                 headingClassName={outfit.className}
                 loading={loading}
                 canCreateEvents={adminAccess.module.events.create}
                 canUpdateEvents={adminAccess.module.events.update}
                 canDeleteEvents={adminAccess.module.events.delete}
+                canReadJudgeAssignments={adminAccess.module.judgeAssignments.read}
+                canManageJudgeAssignments={
+                  adminAccess.module.judgeAssignments.create &&
+                  adminAccess.module.judgeAssignments.delete
+                }
               />
             ) : null}
             {activeSection === "jueces" && adminAccess.section.jueces ? (
               <AdminJudgesSection
                 users={users}
                 assignments={assignments}
-                events={catalog?.events ?? []}
-                eventCategories={catalog?.eventCategories ?? []}
                 headingClassName={outfit.className}
                 canManageJudgeRole={adminAccess.module.users.update}
+                canCreateJudge={adminAccess.module.users.create}
                 canReadJudgePermissions={adminAccess.module.judgePermissions.read}
                 canManageJudgePermissions={
                   adminAccess.module.judgePermissions.create &&
                   adminAccess.module.judgePermissions.delete
-                }
-                canReadJudgeAssignments={adminAccess.module.judgeAssignments.read}
-                canManageJudgeAssignments={
-                  adminAccess.module.judgeAssignments.create &&
-                  adminAccess.module.judgeAssignments.delete
                 }
               />
             ) : null}
@@ -652,7 +653,7 @@ export default function AdminPage() {
             ) : null}
             {!isAdminPermissionManagerVisible ? (
               <footer className="pb-6 text-xs text-[#777777]">
-                {loading ? "Actualizando panel..." : "Panel Admin v1 Â· Datos de demostracion en memoria de sesion"}
+                {loading ? "Actualizando panel..." : "Panel Admin v1 · Datos de demostracion en memoria de sesion"}
                 <span className="ml-2 inline-flex items-center gap-1">
                   <ArrowRight className="h-3 w-3" />
                   Modo demostracion sin conexion a servicios externos

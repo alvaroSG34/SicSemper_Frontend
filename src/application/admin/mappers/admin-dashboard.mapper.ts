@@ -93,7 +93,7 @@ export const buildCatalogFromApiAdminDashboard = (
     id: entry.id,
     eventId: entry.eventId,
     categoryId: entry.categoryId,
-    name: entry.categoryParentName ? `${entry.categoryParentName} â€º ${entry.categoryName}` : entry.categoryName,
+    name: entry.categoryParentName ? `${entry.categoryParentName} › ${entry.categoryName}` : entry.categoryName,
   }));
 
   return {

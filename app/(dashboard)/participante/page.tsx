@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import {
   ParticipantEventsSection,
@@ -111,6 +112,7 @@ function ParticipantDashboardError({ error, onRetry }: ParticipantDashboardError
 export default function ParticipantePage() {
   const searchParams = useSearchParams();
   const initialSection = parseSectionParam(searchParams.get("section"));
+  const [modelsPrefilterEventId, setModelsPrefilterEventId] = useState<string | null>(null);
   const {
     userId,
     dashboard,
@@ -156,6 +158,10 @@ export default function ParticipantePage() {
           onGoToResults={() => {
             handleSelectSection("resultados");
           }}
+          onGoToMyModelsByEvent={(eventId) => {
+            setModelsPrefilterEventId(eventId);
+            handleSelectSection("maquetas");
+          }}
         />
       );
     }
@@ -172,7 +178,12 @@ export default function ParticipantePage() {
     }
 
     if (activeSection === "maquetas") {
-      return <ParticipantModelsSection effectiveUserId={effectiveUserId} />;
+      return (
+        <ParticipantModelsSection
+          effectiveUserId={effectiveUserId}
+          initialEventFilterId={modelsPrefilterEventId}
+        />
+      );
     }
 
     if (activeSection === "perfil") {

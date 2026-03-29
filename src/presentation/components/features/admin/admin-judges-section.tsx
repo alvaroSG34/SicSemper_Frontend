@@ -1,11 +1,5 @@
-import type {
-  CatalogEvent,
-  EventCategoryOption,
-  JudgeAssignmentScope,
-} from '@/domain/admin/admin.types';
+import type { JudgeAssignmentScope } from '@/domain/admin/admin.types';
 import type { User } from '@/domain/user/user.types';
-import { AdminJudgeAssignmentsModal } from './admin-judge-assignments-modal';
-import { useAdminJudgeAssignments } from './use-admin-judge-assignments';
 import { AdminJudgePermissionsModal } from './admin-judge-permissions-modal';
 import { useAdminJudgePermissions } from './use-admin-judge-permissions';
 import { useAdminJudges } from './use-admin-judges';
@@ -13,27 +7,21 @@ import { useAdminJudges } from './use-admin-judges';
 type AdminJudgesSectionProps = {
   users: User[];
   assignments: JudgeAssignmentScope[];
-  events: CatalogEvent[];
-  eventCategories: EventCategoryOption[];
   headingClassName: string;
   canManageJudgeRole: boolean;
+  canCreateJudge: boolean;
   canReadJudgePermissions: boolean;
   canManageJudgePermissions: boolean;
-  canReadJudgeAssignments: boolean;
-  canManageJudgeAssignments: boolean;
 };
 
 export function AdminJudgesSection({
   users,
   assignments,
-  events,
-  eventCategories,
   headingClassName,
   canManageJudgeRole,
+  canCreateJudge,
   canReadJudgePermissions,
   canManageJudgePermissions,
-  canReadJudgeAssignments,
-  canManageJudgeAssignments,
 }: AdminJudgesSectionProps) {
   const {
     actionFeedback,
@@ -51,22 +39,15 @@ export function AdminJudgesSection({
     setAddJudgeSelectedUserId,
     filteredNonJudgeUsers,
     handleAddJudge,
+    createJudgeModalOpen,
+    openCreateJudgeModal,
+    closeCreateJudgeModal,
+    createJudgeForm,
+    setCreateJudgeForm,
+    handleCreateJudge,
     handleToggleJudgeRole,
     pendingAction,
   } = useAdminJudges({ users, assignments });
-  const {
-    judgeAssignmentModal,
-    openJudgeAssignmentsModal,
-    closeJudgeAssignmentsModal,
-    selectedEventCategoryId,
-    setSelectedEventCategoryId,
-    activeJudgeAssignments,
-    availableEventCategories,
-    pendingAssignmentAction,
-    assignmentFeedback,
-    handleAssignScope,
-    handleRemoveScope,
-  } = useAdminJudgeAssignments({ assignments, events, eventCategories });
   const {
     judgePermissionSearch,
     setJudgePermissionSearch,
@@ -88,22 +69,22 @@ export function AdminJudgesSection({
         </div>
         <div className="flex flex-wrap gap-2">
           {canManageJudgeRole ? (
-            <>
-              <button
-                type="button"
-                onClick={openAddJudgeModal}
-                className="inline-flex h-8 items-center justify-center rounded-md border border-[#F59E0B]/60 bg-[#2C2110] px-2.5 text-[11px] font-semibold text-white"
-              >
-                Promover
-              </button>
-              <button
-                type="button"
-                onClick={openAddJudgeModal}
-                className="inline-flex h-8 items-center justify-center rounded-md border border-[#10B981]/60 bg-[#10261E] px-2.5 text-[11px] font-semibold text-white"
-              >
-                Agregar juez
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={openAddJudgeModal}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-[#F59E0B]/60 bg-[#2C2110] px-2.5 text-[11px] font-semibold text-white"
+            >
+              Promover
+            </button>
+          ) : null}
+          {canCreateJudge ? (
+            <button
+              type="button"
+              onClick={openCreateJudgeModal}
+              className="inline-flex h-8 items-center justify-center rounded-md border border-[#10B981]/60 bg-[#10261E] px-2.5 text-[11px] font-semibold text-white"
+            >
+              Crear juez
+            </button>
           ) : null}
         </div>
       </div>
@@ -164,15 +145,6 @@ export function AdminJudgesSection({
                   Permisos
                 </button>
               ) : null}
-              {canReadJudgeAssignments ? (
-                <button
-                  type="button"
-                  onClick={() => openJudgeAssignmentsModal(judge)}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
-                >
-                  Alcances
-                </button>
-              ) : null}
             </article>
           );
         })}
@@ -186,7 +158,7 @@ export function AdminJudgesSection({
       {addJudgeModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-md rounded-2xl border border-[#2D2D2D] bg-[#111111] p-6">
-            <h3 className={`${headingClassName} mb-4 text-[18px] font-semibold text-white`}>Agregar juez</h3>
+            <h3 className={`${headingClassName} mb-4 text-[18px] font-semibold text-white`}>Promover a juez</h3>
             <input
               value={addJudgeSearch}
               onChange={(event) => setAddJudgeSearch(event.target.value)}
@@ -238,6 +210,58 @@ export function AdminJudgesSection({
         </div>
       ) : null}
 
+      {createJudgeModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#2D2D2D] bg-[#111111] p-6">
+            <h3 className={`${headingClassName} mb-4 text-[18px] font-semibold text-white`}>Crear juez</h3>
+            <div className="grid gap-2">
+              <input
+                value={createJudgeForm.name}
+                onChange={(event) =>
+                  setCreateJudgeForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+                placeholder="Nombre completo"
+                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+              />
+              <input
+                value={createJudgeForm.email}
+                onChange={(event) =>
+                  setCreateJudgeForm((prev) => ({ ...prev, email: event.target.value }))
+                }
+                placeholder="Correo"
+                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+              />
+              <input
+                type="password"
+                value={createJudgeForm.password}
+                onChange={(event) =>
+                  setCreateJudgeForm((prev) => ({ ...prev, password: event.target.value }))
+                }
+                placeholder="Contrasena (min. 8)"
+                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+              />
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                disabled={pendingAction?.startsWith('judge:create:') === true}
+                onClick={() => void handleCreateJudge()}
+                className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#10B981] text-xs font-semibold text-white disabled:opacity-50"
+              >
+                {pendingAction?.startsWith('judge:create:') ? 'Creando...' : 'Crear juez'}
+              </button>
+              <button
+                type="button"
+                onClick={closeCreateJudgeModal}
+                className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-xs font-semibold text-white"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <AdminJudgePermissionsModal
         headingClassName={headingClassName}
         modal={judgePermissionModal}
@@ -250,20 +274,7 @@ export function AdminJudgesSection({
         onToggle={handleToggleJudgePermission}
         canManageJudgePermissions={canManageJudgePermissions}
       />
-      <AdminJudgeAssignmentsModal
-        headingClassName={headingClassName}
-        modal={judgeAssignmentModal}
-        selectedEventCategoryId={selectedEventCategoryId}
-        onSelectEventCategoryId={setSelectedEventCategoryId}
-        availableEventCategories={availableEventCategories}
-        activeAssignments={activeJudgeAssignments}
-        pendingAction={pendingAssignmentAction}
-        feedback={assignmentFeedback}
-        onClose={closeJudgeAssignmentsModal}
-        onAssign={handleAssignScope}
-        onRemove={handleRemoveScope}
-        canManageJudgeAssignments={canManageJudgeAssignments}
-      />
     </section>
   );
 }
+

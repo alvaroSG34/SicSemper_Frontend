@@ -35,7 +35,6 @@ const MODULES: readonly { key: AdminModuleKey; label: string; description: strin
   { key: 'EVENT_CATEGORIES', label: 'EventCategories', description: 'Vínculos evento-categoría' },
   { key: 'JUDGE_ASSIGNMENTS', label: 'JudgeAssignments', description: 'Asignaciones de jueces' },
   { key: 'JUDGE_PERMISSIONS', label: 'JudgePermissions', description: 'Permisos de jueces' },
-  { key: 'ADMIN_PERMISSIONS', label: 'AdminPermissions', description: 'Permisos de administradores' },
 ];
 
 const ACTION_LABEL: Record<CrudAction, string> = {
@@ -366,6 +365,9 @@ export function AdminAdminPermissionsManager({
                   <article key={entry.code} className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
                     <p className="text-[11px] font-semibold tracking-[1.2px] text-[#AFAFAF]">
                       {ACTION_LABEL[action]} · {entry.code}
+                    </p>
+                    <p className="mt-1 text-xs text-[#9C9C9C]">
+                      {entry.description?.trim() || 'Sin descripcion disponible para este permiso'}
                     </p>
                     <button
                       type="button"

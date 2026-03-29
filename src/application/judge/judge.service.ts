@@ -1,7 +1,11 @@
 import type {
   JudgeDashboardData,
+  JudgeModelDetail,
+  JudgeModelListResponse,
   JudgeQueueItem,
-  JudgeRecentReview,
+  JudgeReviewMutationResult,
+  JudgeSaveDraftPayload,
+  JudgeSubmitReviewPayload,
 } from "@/domain/judge/judge.types";
 import { ApiError, apiRequest } from "@/infrastructure/api/http-client";
 
@@ -9,6 +13,9 @@ const judgeErrorMessages: Record<string, string> = {
   MODEL_NOT_ASSIGNED_TO_JUDGE: "La maqueta no esta asignada a este juez.",
   ROLE_FORBIDDEN: "Tu rol activo no tiene acceso al panel de juez.",
   USER_NOT_FOUND: "No se encontro al juez actual.",
+  REVIEW_ALREADY_SUBMITTED: "La evaluacion ya fue enviada y esta bloqueada.",
+  REVIEW_CRITERIA_INCOMPLETE: "Completa los 5 criterios antes de enviar.",
+  REVIEW_CRITERIA_OUT_OF_RANGE: "Cada criterio debe estar entre 0 y 10.",
 };
 
 const toErrorMessage = (error: unknown, fallback: string) => {
@@ -31,8 +38,19 @@ const toErrorMessage = (error: unknown, fallback: string) => {
 
 export interface JudgeService {
   getDashboardData(): Promise<JudgeDashboardData>;
+  listModels(input: {
+    status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
+    eventId?: string;
+    priority?: "Alta" | "Media" | "Baja";
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<JudgeModelListResponse>;
+  getModelDetail(modelId: string): Promise<JudgeModelDetail>;
   startReview(modelId: string): Promise<JudgeQueueItem>;
-  completeReview(modelId: string): Promise<JudgeRecentReview>;
+  saveDraft(modelId: string, payload: JudgeSaveDraftPayload): Promise<JudgeReviewMutationResult>;
+  submitReview(modelId: string, payload: JudgeSubmitReviewPayload): Promise<JudgeReviewMutationResult>;
+  completeReview(modelId: string, payload: JudgeSubmitReviewPayload): Promise<JudgeReviewMutationResult>;
 }
 
 export const judgeService: JudgeService = {
@@ -41,6 +59,36 @@ export const judgeService: JudgeService = {
       return await apiRequest<JudgeDashboardData>("/judge/dashboard");
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar el dashboard de juez."));
+    }
+  },
+  async listModels(input) {
+    try {
+      const searchParams = new URLSearchParams();
+      if (input.status) {
+        searchParams.set("status", input.status);
+      }
+      if (input.eventId) {
+        searchParams.set("eventId", input.eventId);
+      }
+      if (input.priority) {
+        searchParams.set("priority", input.priority);
+      }
+      if (input.search?.trim()) {
+        searchParams.set("search", input.search.trim());
+      }
+      searchParams.set("page", String(input.page ?? 1));
+      searchParams.set("pageSize", String(input.pageSize ?? 12));
+
+      return await apiRequest<JudgeModelListResponse>(`/judge/models?${searchParams.toString()}`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar la lista de maquetas asignadas."));
+    }
+  },
+  async getModelDetail(modelId) {
+    try {
+      return await apiRequest<JudgeModelDetail>(`/judge/models/${modelId}`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));
     }
   },
   async startReview(modelId) {
@@ -52,13 +100,34 @@ export const judgeService: JudgeService = {
       throw new Error(toErrorMessage(error, "No se pudo iniciar la revision."));
     }
   },
-  async completeReview(modelId) {
+  async saveDraft(modelId, payload) {
     try {
-      return await apiRequest<JudgeRecentReview>(`/judge/models/${modelId}/complete-review`, {
+      return await apiRequest<JudgeReviewMutationResult>(`/judge/models/${modelId}/save-draft`, {
         method: "PATCH",
+        body: payload,
       });
     } catch (error) {
-      throw new Error(toErrorMessage(error, "No se pudo completar la revision."));
+      throw new Error(toErrorMessage(error, "No se pudo guardar el borrador de revision."));
+    }
+  },
+  async submitReview(modelId, payload) {
+    try {
+      return await apiRequest<JudgeReviewMutationResult>(`/judge/models/${modelId}/submit-review`, {
+        method: "PATCH",
+        body: payload,
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo enviar la revision."));
+    }
+  },
+  async completeReview(modelId, payload) {
+    try {
+      return await apiRequest<JudgeReviewMutationResult>(`/judge/models/${modelId}/complete-review`, {
+        method: "PATCH",
+        body: payload,
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo enviar la revision."));
     }
   },
 };

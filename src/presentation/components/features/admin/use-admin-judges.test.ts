@@ -5,12 +5,14 @@ import { useAdminJudges } from './use-admin-judges';
 
 const promoteToJudge = vi.fn();
 const demoteJudge = vi.fn();
+const createJudge = vi.fn();
 const clearError = vi.fn();
 
 vi.mock('./use-admin-operations', () => ({
   useAdminOperations: () => ({
     promoteToJudge,
     demoteJudge,
+    createJudge,
   }),
 }));
 
@@ -70,6 +72,7 @@ describe('useAdminJudges', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    createJudge.mockResolvedValue(undefined);
   });
 
   it('filters judges by search', () => {
@@ -97,5 +100,30 @@ describe('useAdminJudges', () => {
     expect(result.current.addJudgeSelectedUserId).toBe('');
     expect(result.current.filteredNonJudgeUsers).toHaveLength(1);
     expect(result.current.filteredNonJudgeUsers[0]?.id).toBe('user-participant');
+  });
+
+  it('creates a new judge user', async () => {
+    const { result } = renderHook(() => useAdminJudges({ users, assignments }));
+
+    act(() => {
+      result.current.openCreateJudgeModal();
+      result.current.setCreateJudgeForm((prev) => ({
+        ...prev,
+        name: 'Nuevo Juez',
+        email: 'nuevo-juez@example.com',
+        password: 'password123',
+      }));
+    });
+
+    await act(async () => {
+      await result.current.handleCreateJudge();
+    });
+
+    expect(createJudge).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Nuevo Juez',
+        email: 'nuevo-juez@example.com',
+      }),
+    );
   });
 });

@@ -38,6 +38,7 @@ export interface AdminService {
   removeClub(clubId: string): Promise<void>;
   promoteToJudge(userId: string): Promise<User>;
   demoteJudge(userId: string): Promise<User>;
+  createJudge(payload: CreateAdminPayload): Promise<User>;
   createAdmin(payload: CreateAdminPayload): Promise<User>;
   promoteToAdmin(userId: string): Promise<User>;
   demoteAdmin(userId: string): Promise<User>;

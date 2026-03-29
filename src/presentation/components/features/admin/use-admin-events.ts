@@ -7,6 +7,7 @@ import type {
   CatalogSubcategory,
   EventCategoryOption,
   EventDeleteImpact,
+  JudgeAssignmentScope,
 } from '@/domain/admin/admin.types';
 import { useAdminOperations } from './use-admin-operations';
 import { useAdminStore } from '@/presentation/stores/admin.store';
@@ -24,6 +25,12 @@ type EventFormState = {
   imageUrl: string;
 };
 
+type EventCategoryRemovalImpact = {
+  removedEventCategoryIds: string[];
+  removedCategoryNames: string[];
+  removedAssignmentsCount: number;
+};
+
 const emptyEventForm: EventFormState = {
   organizerClubId: '',
   name: '',
@@ -35,11 +42,7 @@ const emptyEventForm: EventFormState = {
   imageUrl: '',
 };
 
-export const eventStatusOptions: CatalogEventStatus[] = [
-  'ACTIVO',
-  'PAUSADO',
-  'BORRADOR',
-];
+export const eventStatusOptions: CatalogEventStatus[] = ['ACTIVO', 'PAUSADO', 'BORRADOR'];
 
 const toDateInputValue = (value: string | null | undefined) => {
   if (!value) return '';
@@ -67,6 +70,8 @@ type UseAdminEventsParams = {
   categories: CatalogCategory[];
   subcategories: CatalogSubcategory[];
   eventCategories: EventCategoryOption[];
+  assignments: JudgeAssignmentScope[];
+  canReadJudgeAssignments: boolean;
 };
 
 export const useAdminEvents = ({
@@ -75,28 +80,21 @@ export const useAdminEvents = ({
   categories,
   subcategories,
   eventCategories,
+  assignments,
+  canReadJudgeAssignments,
 }: UseAdminEventsParams) => {
-  const {
-    createEventAndLinkCategories,
-    updateEventAndLinkCategories,
-    getEventDeleteImpact,
-    removeEvent,
-  } = useAdminOperations();
+  const { createEventAndLinkCategories, updateEventAndLinkCategories, getEventDeleteImpact, removeEvent } =
+    useAdminOperations();
   const clearError = useAdminStore((state) => state.clearError);
 
   const [eventSearch, setEventSearch] = useState('');
-  const [eventStatusFilter, setEventStatusFilter] = useState<
-    'TODOS' | CatalogEventStatus
-  >('TODOS');
-  const [eventModalMode, setEventModalMode] = useState<EventModalMode | null>(
-    null,
-  );
+  const [eventStatusFilter, setEventStatusFilter] = useState<'TODOS' | CatalogEventStatus>('TODOS');
+  const [eventModalMode, setEventModalMode] = useState<EventModalMode | null>(null);
   const [eventModalStep, setEventModalStep] = useState<1 | 2>(1);
-  const [eventModalSelectedCategoryIds, setEventModalSelectedCategoryIds] =
-    useState<Set<string>>(new Set());
-  const [eventModalTargetId, setEventModalTargetId] = useState<string | null>(
-    null,
+  const [eventModalSelectedCategoryIds, setEventModalSelectedCategoryIds] = useState<Set<string>>(
+    new Set(),
   );
+  const [eventModalTargetId, setEventModalTargetId] = useState<string | null>(null);
   const [eventModalError, setEventModalError] = useState<string | null>(null);
   const [eventForm, setEventForm] = useState<EventFormState>(emptyEventForm);
   const [isEventImageUploading, setIsEventImageUploading] = useState(false);
@@ -125,14 +123,16 @@ export const useAdminEvents = ({
     return map;
   }, [subcategories]);
 
+  const categoryById = useMemo(
+    () => new Map(categories.map((category) => [category.id, category] as const)),
+    [categories],
+  );
+
   const filteredEvents = useMemo(() => {
     const normalizedQuery = eventSearch.trim().toLowerCase();
 
     return events.filter((eventItem) => {
-      const matchesStatus =
-        eventStatusFilter === 'TODOS'
-          ? true
-          : eventItem.status === eventStatusFilter;
+      const matchesStatus = eventStatusFilter === 'TODOS' ? true : eventItem.status === eventStatusFilter;
       const matchesSearch =
         normalizedQuery.length === 0
           ? true
@@ -143,6 +143,60 @@ export const useAdminEvents = ({
       return matchesStatus && matchesSearch;
     });
   }, [eventSearch, eventStatusFilter, events]);
+
+  const collectCategoryAndSubcategoryIds = () => {
+    const allCategoryIds: string[] = [];
+    for (const rootId of eventModalSelectedCategoryIds) {
+      allCategoryIds.push(rootId);
+      (subcategoriesByCategoryId.get(rootId) ?? []).forEach((subcategory) =>
+        allCategoryIds.push(subcategory.id),
+      );
+    }
+    return allCategoryIds;
+  };
+
+  const eventModalCategoryRemovalImpact = useMemo<EventCategoryRemovalImpact>(() => {
+    if (eventModalMode !== 'edit' || !eventModalTargetId) {
+      return {
+        removedEventCategoryIds: [],
+        removedCategoryNames: [],
+        removedAssignmentsCount: 0,
+      };
+    }
+
+    const desiredCategoryIds = new Set<string>();
+    for (const rootId of eventModalSelectedCategoryIds) {
+      desiredCategoryIds.add(rootId);
+      for (const subcategory of subcategoriesByCategoryId.get(rootId) ?? []) {
+        desiredCategoryIds.add(subcategory.id);
+      }
+    }
+    const currentLinks = eventCategories.filter((entry) => entry.eventId === eventModalTargetId);
+    const removedLinks = currentLinks.filter((entry) => !desiredCategoryIds.has(entry.categoryId));
+    const removedEventCategoryIds = removedLinks.map((entry) => entry.id);
+    const removedEventCategorySet = new Set(removedEventCategoryIds);
+    const removedAssignmentsCount = canReadJudgeAssignments
+      ? assignments.filter(
+          (assignment) =>
+            assignment.eventId === eventModalTargetId &&
+            removedEventCategorySet.has(assignment.eventCategoryId),
+        ).length
+      : 0;
+
+    return {
+      removedEventCategoryIds,
+      removedCategoryNames: removedLinks.map((entry) => entry.name),
+      removedAssignmentsCount,
+    };
+  }, [
+    assignments,
+    canReadJudgeAssignments,
+    eventCategories,
+    eventModalMode,
+    eventModalSelectedCategoryIds,
+    eventModalTargetId,
+    subcategoriesByCategoryId,
+  ]);
 
   const executeAction = async (
     actionKey: string,
@@ -166,15 +220,24 @@ export const useAdminEvents = ({
     } catch (error) {
       setActionFeedback({
         type: 'error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'No se pudo completar la accion.',
+        message: error instanceof Error ? error.message : 'No se pudo completar la accion.',
       });
       return false;
     } finally {
       setPendingAction((current) => (current === actionKey ? null : current));
     }
+  };
+
+  const toggleCategorySelection = (categoryId: string) => {
+    setEventModalSelectedCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
   };
 
   const openCreateEventModal = () => {
@@ -215,7 +278,8 @@ export const useAdminEvents = ({
         .filter(
           (entry) =>
             entry.eventId === eventItem.id &&
-            rootCategoryIds.has(entry.categoryId),
+            rootCategoryIds.has(entry.categoryId) &&
+            categoryById.get(entry.categoryId)?.parentId === null,
         )
         .map((entry) => entry.categoryId),
     );
@@ -226,10 +290,7 @@ export const useAdminEvents = ({
     if (pendingAction === 'event:create') {
       return;
     }
-    if (
-      eventModalTargetId &&
-      pendingAction === `event:update:${eventModalTargetId}`
-    ) {
+    if (eventModalTargetId && pendingAction === `event:update:${eventModalTargetId}`) {
       return;
     }
 
@@ -244,9 +305,7 @@ export const useAdminEvents = ({
     }
   };
 
-  const handleEventImageFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleEventImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.currentTarget.value = '';
     if (!file) {
@@ -281,9 +340,7 @@ export const useAdminEvents = ({
     event.preventDefault();
 
     if (clubs.length === 0) {
-      setEventModalError(
-        'Primero debes crear un club para asignarlo como organizador del evento.',
-      );
+      setEventModalError('Primero debes crear un club para asignarlo como organizador del evento.');
       return;
     }
 
@@ -299,55 +356,69 @@ export const useAdminEvents = ({
       !eventForm.endDate ||
       !eventForm.description.trim()
     ) {
-      setEventModalError(
-        'Completa todos los campos requeridos para guardar el evento.',
-      );
+      setEventModalError('Completa todos los campos requeridos para guardar el evento.');
       return;
     }
 
     if (eventForm.startDate > eventForm.endDate) {
-      setEventModalError(
-        'La fecha de inicio no puede ser mayor que la fecha de fin.',
-      );
+      setEventModalError('La fecha de inicio no puede ser mayor que la fecha de fin.');
       return;
     }
 
     setEventModalError(null);
-    if (eventModalMode === 'create' || eventModalMode === 'edit') {
-      setEventModalStep(2);
-    }
+    setEventModalStep(2);
   };
 
-  const collectCategoryAndSubcategoryIds = () => {
-    const allCategoryIds: string[] = [];
-    for (const rootId of eventModalSelectedCategoryIds) {
-      allCategoryIds.push(rootId);
-      (subcategoriesByCategoryId.get(rootId) ?? []).forEach((subcategory) =>
-        allCategoryIds.push(subcategory.id),
-      );
+  const handleFinalizeEventModal = async () => {
+    if (!eventModalMode) {
+      return;
     }
-    return allCategoryIds;
-  };
+    if (eventModalMode === 'edit' && !eventModalTargetId) {
+      return;
+    }
 
-  const handleConfirmCreateEvent = async () => {
+    setEventModalError(null);
+
     const allCategoryIds = collectCategoryAndSubcategoryIds();
+    const actionKey = eventModalMode === 'create' ? 'event:create' : `event:update:${eventModalTargetId}`;
+
     const success = await executeAction(
-      'event:create',
-      'Evento creado correctamente.',
-      () =>
-        createEventAndLinkCategories(
-          {
-            organizerClubId: eventForm.organizerClubId,
-            name: eventForm.name,
-            status: eventForm.status,
-            place: eventForm.place,
-            startDate: eventForm.startDate,
-            endDate: eventForm.endDate,
-            description: eventForm.description,
-            imageUrl: eventForm.imageUrl || undefined,
-          },
-          allCategoryIds,
-        ),
+      actionKey,
+      eventModalMode === 'create' ? 'Evento creado correctamente.' : 'Evento actualizado correctamente.',
+      async () => {
+        if (eventModalMode === 'create') {
+          await createEventAndLinkCategories(
+            {
+              organizerClubId: eventForm.organizerClubId,
+              name: eventForm.name,
+              status: eventForm.status,
+              place: eventForm.place,
+              startDate: eventForm.startDate,
+              endDate: eventForm.endDate,
+              description: eventForm.description,
+              imageUrl: eventForm.imageUrl || undefined,
+            },
+            allCategoryIds,
+          );
+        } else if (eventModalTargetId) {
+          await updateEventAndLinkCategories(
+            {
+              id: eventModalTargetId,
+              organizerClubId: eventForm.organizerClubId,
+              name: eventForm.name,
+              status: eventForm.status,
+              place: eventForm.place,
+              startDate: eventForm.startDate,
+              endDate: eventForm.endDate,
+              description: eventForm.description,
+              imageUrl: eventForm.imageUrl || undefined,
+            },
+            allCategoryIds,
+          );
+        }
+
+        clearError();
+      },
     );
 
     if (success) {
@@ -355,39 +426,7 @@ export const useAdminEvents = ({
     }
   };
 
-  const handleConfirmUpdateEvent = async () => {
-    if (!eventModalTargetId) return;
-
-    const allCategoryIds = collectCategoryAndSubcategoryIds();
-    const success = await executeAction(
-      `event:update:${eventModalTargetId}`,
-      'Evento actualizado correctamente.',
-      () =>
-        updateEventAndLinkCategories(
-          {
-            id: eventModalTargetId,
-            organizerClubId: eventForm.organizerClubId,
-            name: eventForm.name,
-            status: eventForm.status,
-            place: eventForm.place,
-            startDate: eventForm.startDate,
-            endDate: eventForm.endDate,
-            description: eventForm.description,
-            imageUrl: eventForm.imageUrl || undefined,
-          },
-          allCategoryIds,
-        ),
-    );
-
-    if (success) {
-      closeEventModal();
-    }
-  };
-
-  const openEventDeleteImpactModal = async (
-    eventId: string,
-    eventName: string,
-  ) => {
+  const openEventDeleteImpactModal = async (eventId: string, eventName: string) => {
     setActionFeedback(null);
     clearError();
     setEventDeleteImpactModal({
@@ -428,10 +467,7 @@ export const useAdminEvents = ({
   };
 
   const closeEventDeleteImpactModal = () => {
-    if (
-      eventDeleteImpactModal &&
-      pendingAction === `event:delete:${eventDeleteImpactModal.eventId}`
-    ) {
+    if (eventDeleteImpactModal && pendingAction === `event:delete:${eventDeleteImpactModal.eventId}`) {
       return;
     }
     setEventDeleteImpactModal(null);
@@ -443,10 +479,8 @@ export const useAdminEvents = ({
     }
 
     const { eventId } = eventDeleteImpactModal;
-    const success = await executeAction(
-      `event:delete:${eventId}`,
-      'Evento eliminado correctamente.',
-      () => removeEvent(eventId),
+    const success = await executeAction(`event:delete:${eventId}`, 'Evento eliminado correctamente.', () =>
+      removeEvent(eventId),
     );
 
     if (success) {
@@ -459,9 +493,7 @@ export const useAdminEvents = ({
 
   const isEventModalPending =
     pendingAction === 'event:create' ||
-    (eventModalTargetId
-      ? pendingAction === `event:update:${eventModalTargetId}`
-      : false);
+    (eventModalTargetId ? pendingAction === `event:update:${eventModalTargetId}` : false);
 
   return {
     actionFeedback,
@@ -477,7 +509,7 @@ export const useAdminEvents = ({
     eventModalStep,
     setEventModalStep,
     eventModalSelectedCategoryIds,
-    setEventModalSelectedCategoryIds,
+    toggleCategorySelection,
     eventModalError,
     eventForm,
     setEventForm,
@@ -486,8 +518,8 @@ export const useAdminEvents = ({
     handleEventImageFileChange,
     handleSubmitEventModal,
     isEventModalPending,
-    handleConfirmCreateEvent,
-    handleConfirmUpdateEvent,
+    eventModalCategoryRemovalImpact,
+    handleFinalizeEventModal,
     closeEventModal,
     categoryItems: categories,
     subcategoriesByCategoryId,
@@ -498,4 +530,3 @@ export const useAdminEvents = ({
     confirmDeleteEvent,
   };
 };
-
