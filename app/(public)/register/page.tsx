@@ -1,13 +1,13 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import { CITIES_BY_COUNTRY, COUNTRY_OPTIONS } from "@/core/constants";
 import { AutoPublicHeader } from "@/presentation/components/layout";
+import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useAuthStore } from "@/presentation/stores";
 
 const inputClassName =
@@ -684,7 +684,7 @@ export default function RegisterPage() {
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         {selectedClub?.logoUrl ? (
-                          <Image
+                          <ImageWithSkeleton
                             src={selectedClub.logoUrl}
                             alt={selectedClub.name}
                             width={24}
@@ -745,7 +745,7 @@ export default function RegisterPage() {
                               }`}
                             >
                               {club.logoUrl ? (
-                                <Image
+                                <ImageWithSkeleton
                                   src={club.logoUrl}
                                   alt={club.name}
                                   width={24}

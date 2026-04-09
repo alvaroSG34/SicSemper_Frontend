@@ -31,6 +31,8 @@ export type SyntheticCatalog = AdminDashboardData["catalog"];
 export interface AdminService {
   getDashboardSummaryData(): Promise<AdminDashboardSummary>;
   getDashboardData(): Promise<AdminDashboardData>;
+  uploadClubLogo(file: File): Promise<{ url: string }>;
+  uploadEventImage(file: File): Promise<{ url: string }>;
   listUsers(): Promise<User[]>;
   createClub(payload: CreateClubPayload): Promise<AdminClub>;
   updateClub(payload: UpdateClubPayload): Promise<AdminClub>;

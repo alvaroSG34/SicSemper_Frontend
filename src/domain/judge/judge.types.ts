@@ -9,6 +9,18 @@ export type JudgeProfile = {
   displayName: string;
   fullName: string;
   initials: string;
+  email?: string;
+  status?: 'ACTIVO' | 'INACTIVO' | 'SUSPENDIDO';
+  ci?: string;
+  country?: string;
+  city?: string;
+  phone?: string;
+  birthDate?: string;
+  club?: {
+    id: Identifier;
+    name: string;
+    place: string;
+  } | null;
   verified: boolean;
 };
 

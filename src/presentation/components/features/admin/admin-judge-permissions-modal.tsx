@@ -60,9 +60,7 @@ export function AdminJudgePermissionsModal({
             placeholder="Buscar por codigo"
             className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
           />
-          <p className="flex h-10 items-center rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-xs text-[#9C9C9C]">
-            {entries.length} permiso(s) visible(s)
-          </p>
+        
         </div>
 
         {errorMap[modal.userId] ? (

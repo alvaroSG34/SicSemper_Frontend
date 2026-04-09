@@ -22,9 +22,13 @@ const isParticipantOnlyUser = (user: User) =>
   !user.roles.includes('ADMIN') &&
   !user.roles.includes('SUPERADMIN');
 
+type ParticipantRoleFilter = 'TODOS' | 'SOLO_PARTICIPANTES';
+
 export const useAdminParticipants = (users: User[]) => {
   const { banParticipant, unbanParticipant } = useAdminOperations();
   const [participantSearch, setParticipantSearch] = useState('');
+  const [participantRoleFilter, setParticipantRoleFilter] =
+    useState<ParticipantRoleFilter>('SOLO_PARTICIPANTES');
   const [participantDetailModal, setParticipantDetailModal] = useState<User | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<{
@@ -32,11 +36,18 @@ export const useAdminParticipants = (users: User[]) => {
     message: string;
   } | null>(null);
 
+  const participantPool = useMemo(() => {
+    if (participantRoleFilter === 'TODOS') {
+      return users.filter((candidate) => candidate.roles.includes('PARTICIPANTE'));
+    }
+
+    return users.filter(isParticipantOnlyUser);
+  }, [participantRoleFilter, users]);
+
   const filteredUsers = useMemo(() => {
     const normalizedQuery = participantSearch.trim().toLowerCase();
 
-    return users.filter((candidate) => {
-      if (!isParticipantOnlyUser(candidate)) return false;
+    return participantPool.filter((candidate) => {
       const matchesSearch =
         normalizedQuery.length === 0
           ? true
@@ -46,16 +57,15 @@ export const useAdminParticipants = (users: User[]) => {
 
       return matchesSearch;
     });
-  }, [users, participantSearch]);
+  }, [participantPool, participantSearch]);
 
   const participantKpis = useMemo(() => {
-    const participants = users.filter(isParticipantOnlyUser);
     return {
-      total: participants.length,
-      verified: participants.filter((user) => user.verified).length,
-      active: participants.filter((user) => user.status === 'ACTIVO').length,
+      total: participantPool.length,
+      verified: participantPool.filter((user) => user.verified).length,
+      active: participantPool.filter((user) => user.status === 'ACTIVO').length,
     };
-  }, [users]);
+  }, [participantPool]);
 
   const executeAction = async (
     actionKey: string,
@@ -100,6 +110,8 @@ export const useAdminParticipants = (users: User[]) => {
     participantStatusConfig,
     participantSearch,
     setParticipantSearch,
+    participantRoleFilter,
+    setParticipantRoleFilter,
     filteredUsers,
     participantKpis,
     participantDetailModal,

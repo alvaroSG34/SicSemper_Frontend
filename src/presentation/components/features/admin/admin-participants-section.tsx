@@ -1,3 +1,4 @@
+import { ImageWithSkeleton } from '@/presentation/components/ui';
 import type { User } from '@/domain/user/user.types';
 import { useAdminParticipants } from './use-admin-participants';
 
@@ -5,6 +6,35 @@ type AdminParticipantsSectionProps = {
   users: User[];
   headingClassName: string;
   canUpdateUsers: boolean;
+};
+
+const getParticipantInitial = (user: User) => {
+  const source = user.name?.trim() || user.email?.trim() || 'P';
+  return source.charAt(0).toUpperCase();
+};
+
+const ParticipantAvatar = ({ user }: { user: User }) => {
+  const hasPhoto = Boolean(user.photoUrl?.trim());
+
+  return (
+    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#2D2D2D] bg-[#151515]">
+      {hasPhoto ? (
+        <ImageWithSkeleton
+          src={user.photoUrl as string}
+          alt={`Foto de perfil de ${user.name}`}
+          width={48}
+          height={48}
+          sizes="48px"
+          className="h-full w-full object-cover"
+          unoptimized
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#9C9C9C]">
+          {getParticipantInitial(user)}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export function AdminParticipantsSection({
@@ -17,6 +47,8 @@ export function AdminParticipantsSection({
     participantStatusConfig,
     participantSearch,
     setParticipantSearch,
+    participantRoleFilter,
+    setParticipantRoleFilter,
     filteredUsers,
     participantKpis,
     participantDetailModal,
@@ -71,9 +103,16 @@ export function AdminParticipantsSection({
             placeholder="Buscar por nombre o correo"
             className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
           />
-          <p className="flex h-10 items-center rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-xs text-[#9C9C9C]">
-            {filteredUsers.length} participante(s) visibles
-          </p>
+          <select
+            value={participantRoleFilter}
+            onChange={(event) =>
+              setParticipantRoleFilter(event.target.value as 'TODOS' | 'SOLO_PARTICIPANTES')
+            }
+            className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+          >
+            <option value="TODOS">Todos</option>
+            <option value="SOLO_PARTICIPANTES">Solo participantes</option>
+          </select>
         </div>
 
         <div className="space-y-3">
@@ -86,23 +125,26 @@ export function AdminParticipantsSection({
                 key={candidate.id}
                 className="flex flex-col gap-3 rounded-xl bg-[#1A1A1A] p-4 md:flex-row md:items-center md:justify-between"
               >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-white">{candidate.name}</p>
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusCfg.className}`}
-                    >
-                      {statusCfg.label}
-                    </span>
+                <div className="flex min-w-0 items-center gap-3">
+                  <ParticipantAvatar user={candidate} />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-white">{candidate.name}</p>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusCfg.className}`}
+                      >
+                        {statusCfg.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#8D8D8D]">{candidate.email}</p>
+                    {candidate.club ? (
+                      <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                        Club: <span className="text-[#D1D1D1]">{candidate.club.name}</span>
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-[#9C9C9C]">Sin club asignado</p>
+                    )}
                   </div>
-                  <p className="text-xs text-[#8D8D8D]">{candidate.email}</p>
-                  {candidate.club ? (
-                    <p className="mt-1 text-[11px] text-[#9C9C9C]">
-                      Club: <span className="text-[#D1D1D1]">{candidate.club.name}</span>
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-[11px] text-[#9C9C9C]">Sin club asignado</p>
-                  )}
                 </div>
 
                 <button
@@ -127,11 +169,14 @@ export function AdminParticipantsSection({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-lg rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
-                  {participantDetailModal.name}
-                </h4>
-                <p className="mt-0.5 text-xs text-[#9C9C9C]">{participantDetailModal.email}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <ParticipantAvatar user={participantDetailModal} />
+                <div className="min-w-0">
+                  <h4 className={`${headingClassName} truncate text-[20px] font-semibold text-white`}>
+                    {participantDetailModal.name}
+                  </h4>
+                  <p className="mt-0.5 truncate text-xs text-[#9C9C9C]">{participantDetailModal.email}</p>
+                </div>
               </div>
               <button
                 type="button"
@@ -268,3 +313,4 @@ export function AdminParticipantsSection({
     </>
   );
 }
+

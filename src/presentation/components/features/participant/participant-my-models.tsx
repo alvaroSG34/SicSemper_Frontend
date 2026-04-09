@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Check, ChevronDown, Copy, Download, FileText, ImageIcon, Search, Tag, X } from "lucide-react";
 import { Outfit } from "next/font/google";
-import Image from "next/image";
 import type { ParticipantModel } from "@/domain/participant/participant.types";
-import { Skeleton } from "@/presentation/components/ui";
+import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -528,7 +527,7 @@ export function ParticipantMyModels({
                                           }
                                           aria-label={`Ampliar imagen ${file.fileName}`}
                                         >
-                                          <Image
+                                          <ImageWithSkeleton
                                             src={resolvedFileUrl}
                                             alt={file.fileName}
                                             width={640}
@@ -641,7 +640,7 @@ export function ParticipantMyModels({
               <X className="h-5 w-5" />
             </button>
 
-            <Image
+            <ImageWithSkeleton
               src={previewImage.url}
               alt={previewImage.fileName}
               width={1600}
@@ -659,3 +658,4 @@ export function ParticipantMyModels({
     </>
   );
 }
+

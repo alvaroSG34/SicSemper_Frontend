@@ -18,6 +18,12 @@ const adminErrorMessages: Record<string, string> = {
   EMAIL_ALREADY_IN_USE: "Ese correo ya esta registrado.",
   CI_ALREADY_IN_USE: "Ese CI ya esta registrado.",
   CLUB_NOT_FOUND: "El club seleccionado no existe.",
+  CLUB_LOGO_FILE_REQUIRED: "Debes seleccionar un logo para continuar.",
+  CLUB_LOGO_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG, WEBP o GIF.",
+  CLUB_LOGO_FILE_SIZE_INVALID: "El logo del club debe pesar maximo 2MB.",
+  EVENT_IMAGE_FILE_REQUIRED: "Debes seleccionar una imagen para continuar.",
+  EVENT_IMAGE_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG o WEBP.",
+  EVENT_IMAGE_FILE_SIZE_INVALID: "La imagen del evento debe pesar maximo 2MB.",
   SUPERADMIN_IMMUTABLE: "No se puede modificar un usuario con rol SUPERADMIN.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
 };

@@ -68,6 +68,7 @@ export interface ParticipantService {
   getDashboardData(userId?: string): Promise<ParticipantDashboardData>;
   getProfile(): Promise<ParticipantProfileDetails>;
   updateProfile(payload: UpdateParticipantProfilePayload): Promise<ParticipantProfileDetails>;
+  uploadProfilePhoto(file: File): Promise<{ url: string }>;
   getUpcomingEvents(): Promise<ParticipantEventDetail[]>;
   getEventDetailForParticipant(eventId: string): Promise<ParticipantEventDetail | null>;
   getCategoriesForEvent(eventId: string): Promise<ParticipantCategoryOption[]>;
@@ -103,6 +104,9 @@ const participantErrorMessages: Record<string, string> = {
   IMAGE_SIZE_INVALID: "Cada imagen debe ser menor o igual a 5MB.",
   PDF_LIMIT_EXCEEDED: "Solo puedes adjuntar hasta 2 archivos PDF.",
   PDF_SIZE_INVALID: "Cada PDF debe ser menor o igual a 10MB.",
+  PHOTO_FILE_REQUIRED: "Debes seleccionar una imagen para continuar.",
+  PHOTO_FILE_SIZE_INVALID: "La foto de perfil debe pesar maximo 2MB.",
+  PHOTO_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG o WEBP.",
   PHOTO_REQUIRED: "Debes subir una foto de perfil para guardar tus datos.",
   SCALE_NOT_FOUND: "La escala seleccionada no existe.",
   SUBCATEGORY_CATEGORY_MISMATCH: "La subcategoria no pertenece a la categoria seleccionada.",
@@ -176,6 +180,19 @@ export const participantService: ParticipantService = {
       });
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo actualizar tu perfil."));
+    }
+  },
+  async uploadProfilePhoto(file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      return await apiRequest<{ url: string }>("/participant/uploads/profile-photo", {
+        method: "POST",
+        body: formData,
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo subir la foto de perfil."));
     }
   },
   async getUpcomingEvents() {

@@ -1,3 +1,4 @@
+import { ImageWithSkeleton } from '@/presentation/components/ui';
 import type { JudgeAssignmentScope } from '@/domain/admin/admin.types';
 import type { User } from '@/domain/user/user.types';
 import { AdminJudgePermissionsModal } from './admin-judge-permissions-modal';
@@ -12,6 +13,35 @@ type AdminJudgesSectionProps = {
   canCreateJudge: boolean;
   canReadJudgePermissions: boolean;
   canManageJudgePermissions: boolean;
+};
+
+const getJudgeInitial = (user: User) => {
+  const source = user.name?.trim() || user.email?.trim() || 'J';
+  return source.charAt(0).toUpperCase();
+};
+
+const JudgeAvatar = ({ user }: { user: User }) => {
+  const hasPhoto = Boolean(user.photoUrl?.trim());
+
+  return (
+    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-[#2D2D2D] bg-[#151515]">
+      {hasPhoto ? (
+        <ImageWithSkeleton
+          src={user.photoUrl as string}
+          alt={`Foto de perfil de ${user.name}`}
+          width={48}
+          height={48}
+          sizes="48px"
+          className="h-full w-full object-cover"
+          unoptimized
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#9C9C9C]">
+          {getJudgeInitial(user)}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export function AdminJudgesSection({
@@ -119,12 +149,15 @@ export function AdminJudgesSection({
               key={judge.id}
               className="flex flex-col gap-3 rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div>
-                <p className="text-sm font-semibold text-white">{judge.name}</p>
-                <p className="text-xs text-[#8D8D8D]">{judge.email}</p>
-                <p className="mt-1 text-[11px] text-[#9C9C9C]">
-                  {assignmentsCount} alcance(s) asignado(s)
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <JudgeAvatar user={judge} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">{judge.name}</p>
+                  <p className="truncate text-xs text-[#8D8D8D]">{judge.email}</p>
+                  <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                    {assignmentsCount} alcance(s) asignado(s)
+                  </p>
+                </div>
               </div>
               {canManageJudgeRole ? (
                 <button
@@ -177,8 +210,13 @@ export function AdminJudgesSection({
                       : 'border border-[#2D2D2D] bg-[#1A1A1A]'
                   }`}
                 >
-                  <p className="text-sm font-semibold text-white">{candidate.name}</p>
-                  <p className="text-xs text-[#8D8D8D]">{candidate.email}</p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <JudgeAvatar user={candidate} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{candidate.name}</p>
+                      <p className="truncate text-xs text-[#8D8D8D]">{candidate.email}</p>
+                    </div>
+                  </div>
                 </button>
               ))}
               {filteredNonJudgeUsers.length === 0 ? (
@@ -277,4 +315,5 @@ export function AdminJudgesSection({
     </section>
   );
 }
+
 

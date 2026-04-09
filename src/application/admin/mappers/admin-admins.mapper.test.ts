@@ -53,6 +53,7 @@ describe('admin-admins.mapper', () => {
       id: 'user-1',
       name: 'Admin One',
       email: 'admin@example.com',
+      photoUrl: null,
       ci: null,
       country: 'Bolivia',
       city: 'La Paz',

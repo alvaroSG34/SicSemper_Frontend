@@ -2,13 +2,12 @@
 
 import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
 import { Outfit } from "next/font/google";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
-import { Skeleton } from "@/presentation/components/ui";
+import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -168,7 +167,7 @@ export function ParticipantEventsExplorer({
                 aria-label={`Ver detalles del evento ${event.name}`}
               >
                 {imageUrl ? (
-                  <Image
+                  <ImageWithSkeleton
                     src={imageUrl}
                     alt={`Imagen de ${event.name}`}
                     width={640}
@@ -259,7 +258,7 @@ export function ParticipantEventsExplorer({
 
             <div className="space-y-5 p-5 sm:p-6">
               {detailEvent.imageUrl?.trim() ? (
-                <Image
+                <ImageWithSkeleton
                   src={detailEvent.imageUrl}
                   alt={`Imagen de ${detailEvent.name}`}
                   width={1200}
@@ -348,33 +347,7 @@ export function ParticipantEventsExplorer({
                   : null}
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => void handleStartUpload(detailEvent.id)}
-                  disabled={Boolean(uploadingEventId)}
-                  className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#5B68F1] px-4 text-sm font-semibold text-white transition hover:bg-[#6975f3] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {uploadingEventId === detailEvent.id ? "Cargando..." : "Subir maqueta"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDetailEventId(null);
-                    onGoToMyModelsByEvent(detailEvent.id);
-                  }}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#3A3A3A] px-4 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
-                >
-                  Ver maquetas subidas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDetailEventId(null)}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#3A3A3A] px-4 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
-                >
-                  Cerrar
-                </button>
-              </div>
+             
             </div>
           </article>
         </div>
@@ -382,4 +355,5 @@ export function ParticipantEventsExplorer({
     </article>
   );
 }
+
 

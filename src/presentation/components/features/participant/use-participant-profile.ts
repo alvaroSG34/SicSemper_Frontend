@@ -13,6 +13,7 @@ export const useParticipantProfile = () => {
   return {
     getProfile: participantService.getProfile,
     updateProfile: participantService.updateProfile,
+    uploadProfilePhoto: participantService.uploadProfilePhoto,
     handleProfileUpdated,
   };
 };

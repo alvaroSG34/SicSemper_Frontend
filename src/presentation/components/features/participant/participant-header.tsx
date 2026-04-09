@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { Outfit } from "next/font/google";
 import { BadgeCheck, Bell } from "lucide-react";
 import type { ParticipantProfile } from "@/domain/participant/participant.types";
@@ -44,7 +44,7 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
 
         <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
           {hasPhoto ? (
-            <Image
+            <ImageWithSkeleton
               src={profile.photoUrl ?? ""}
               alt="Foto de perfil"
               fill
@@ -59,3 +59,4 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
     </header>
   );
 }
+

@@ -6,6 +6,7 @@ export type User = {
   id: Identifier;
   name: string;
   email: string;
+  photoUrl?: string | null;
   roles: UserRole[];
   verified: boolean;
   status?: string;

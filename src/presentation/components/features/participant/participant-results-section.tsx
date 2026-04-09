@@ -1,13 +1,12 @@
 "use client";
 
 import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
-import Image from "next/image";
 import { useEffect } from "react";
 import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
-import { Skeleton } from "@/presentation/components/ui";
+import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 import { ParticipantUploadModelWizard } from "./participant-upload-model-wizard";
 import { useParticipantResults } from "./use-participant-results";
 
@@ -100,7 +99,7 @@ function SelectedEventDetailsModal({
 
         <div className="space-y-5 p-5 sm:p-6">
           {event.imageUrl?.trim() ? (
-            <Image
+            <ImageWithSkeleton
               src={event.imageUrl}
               alt={`Imagen de ${event.name}`}
               width={1200}
@@ -260,7 +259,7 @@ export function ParticipantResultsSection({
           <article className="mt-5 overflow-hidden rounded-2xl border border-[#2D2D2D] bg-[#121212]">
             <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
               {selectedEvent.imageUrl?.trim() ? (
-                <Image
+                <ImageWithSkeleton
                   src={selectedEvent.imageUrl}
                   alt={`Imagen de ${selectedEvent.name}`}
                   width={440}
@@ -338,3 +337,4 @@ export function ParticipantResultsSection({
     </section>
   );
 }
+

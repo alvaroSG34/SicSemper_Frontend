@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Download, FileText, Save, X } from "lucide-react";
 import type { JudgeReviewCriteria } from "@/domain/judge/judge.types";
-import { getApiBaseUrl } from "@/infrastructure/api/api-base-url";
+import { ImgWithSkeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
 import { groupJudgeAssignedScopes } from "./judge-assigned-scopes";
 import { useJudgeQueue } from "./use-judge-queue";
@@ -24,6 +24,10 @@ const criteriaFields: Array<{ key: keyof Required<JudgeReviewCriteria>; label: s
 
 const isImageMimeType = (mimeType: string) => mimeType.startsWith("image/");
 const isPdfMimeType = (mimeType: string) => mimeType === "application/pdf";
+const DEFAULT_API_BASE_URL = "http://localhost:3001/api/v1";
+
+const resolveApiBaseUrl = () =>
+  (process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 
 const resolveMediaUrl = (input: { publicUrl: string | null; storageKey: string | null }) => {
   if (input.publicUrl) {
@@ -34,7 +38,7 @@ const resolveMediaUrl = (input: { publicUrl: string | null; storageKey: string |
     return null;
   }
 
-  const apiBaseUrl = getApiBaseUrl();
+  const apiBaseUrl = resolveApiBaseUrl();
   const apiOrigin = apiBaseUrl.replace(/\/api\/v1$/i, "");
   const normalizedStorageKey = input.storageKey.replace(/^\/+/, "");
   return `${apiOrigin}/uploads/${normalizedStorageKey}`;
@@ -559,7 +563,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
                                       className="h-full w-full"
                                       aria-label={`Ampliar imagen ${mediaItem.fileName}`}
                                     >
-                                      <img
+                                      <ImgWithSkeleton
                                         src={mediaUrl}
                                         alt={mediaItem.fileName}
                                         className="h-full w-full object-cover"
@@ -720,7 +724,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
               </button>
             </div>
             <div className="max-h-[80vh] overflow-auto rounded-xl border border-[#262626] bg-black/30 p-2">
-              <img
+              <ImgWithSkeleton
                 src={previewImage.url}
                 alt={previewImage.fileName}
                 className="mx-auto max-h-[75vh] w-auto max-w-full object-contain"

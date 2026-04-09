@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useEffect, useMemo, useState } from 'react';
 import type {
   AdminClub,
@@ -194,31 +194,7 @@ export function AdminEventsSection({
           </p>
         ) : null}
 
-        <div className="mb-4 grid gap-3 md:grid-cols-3">
-          <input
-            value={eventSearch}
-            onChange={(event) => setEventSearch(event.target.value)}
-            placeholder="Buscar por nombre, lugar o descripcion"
-            className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-          />
-          <select
-            value={eventStatusFilter}
-            onChange={(event) =>
-              setEventStatusFilter(event.target.value as 'TODOS' | (typeof eventStatusOptions)[number])
-            }
-            className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-          >
-            <option value="TODOS">Todos los estados</option>
-            {eventStatusOptions.map((status) => (
-              <option key={`filter-${status}`} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <p className="flex h-10 items-center rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-xs text-[#9C9C9C]">
-            {filteredEvents.length} evento(s) visibles
-          </p>
-        </div>
+      
 
         <div className="mt-4 space-y-3">
           {filteredEvents.map((item) => {
@@ -232,7 +208,7 @@ export function AdminEventsSection({
                 <div className="flex items-start gap-3">
                   <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                     {item.imageUrl ? (
-                      <Image
+                      <ImageWithSkeleton
                         src={item.imageUrl}
                         alt={`Imagen de ${item.name}`}
                         width={240}
@@ -309,78 +285,80 @@ export function AdminEventsSection({
       </section>
 
       {canReadJudgeAssignments && managedEvent ? (
-        <section className="mt-6 rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
-                Gestionar jueces por evento
-              </h4>
-              <p className="text-xs text-[#9C9C9C]">{managedEvent.name}</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleCloseJudgeManager}
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
-            >
-              Cerrar gestor
-            </button>
-          </div>
-
-          {assignmentFeedback ? (
-            <p
-              className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
-                assignmentFeedback.type === 'success'
-                  ? 'border-[#14532d] bg-[#052e16] text-[#86efac]'
-                  : 'border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]'
-              }`}
-            >
-              {assignmentFeedback.message}
-            </p>
-          ) : null}
-
-          {!canManageJudgeAssignments ? (
-            <p className="mb-4 rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-              No tienes permisos para crear/eliminar asignaciones. Puedes revisar en modo lectura.
-            </p>
-          ) : null}
-
-          {!isManagingEventReady ? (
-            <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-              Preparando gestor de asignaciones...
-            </p>
-          ) : selectedCategoryNodes.length === 0 ? (
-            <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-              Este evento no tiene categorias/subcategorias vinculadas para asignar jueces.
-            </p>
-          ) : (
-            <JudgeEventAssignmentBoard
-              judges={eligibleJudges}
-              assignedJudgeIds={assignedJudgeIds}
-              selectionsByJudge={judgeSubcategoryDraft}
-              categories={selectedCategoryNodes}
-              pending={Boolean(pendingAssignmentAction)}
-              canManage={canManageJudgeAssignments}
-              onAssignJudge={assignJudgeToEventDraft}
-              onUnassignJudge={unassignJudgeFromEventDraft}
-              onSetJudgeSelections={setJudgeSubcategoryDraft}
-              validationIssues={judgeValidationIssues}
-              leftTitle="Lista de jueces no asignados"
-              rightTitle="Lista de jueces asignados"
-            />
-          )}
-          <div className="mt-4 space-y-4">
-            <div className="rounded-xl border border-[#2D2D2D] bg-[#0F0F0F] px-4 py-3">
+        <div className="fixed inset-0 z-[55] flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-6xl max-h-[85vh] overflow-y-auto rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
+                  Gestionar jueces por evento
+                </h4>
+                <p className="text-xs text-[#9C9C9C]">{managedEvent.name}</p>
+              </div>
               <button
                 type="button"
-                disabled={isAssignmentPending || !canManageJudgeAssignments || !isManagingEventReady}
-                onClick={() => void handleSaveAssignments()}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                onClick={handleCloseJudgeManager}
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
               >
-                {isAssignmentPending ? 'Guardando asignaciones...' : 'Guardar asignaciones'}
+                Cerrar
               </button>
             </div>
+
+            {assignmentFeedback ? (
+              <p
+                className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+                  assignmentFeedback.type === 'success'
+                    ? 'border-[#14532d] bg-[#052e16] text-[#86efac]'
+                    : 'border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]'
+                }`}
+              >
+                {assignmentFeedback.message}
+              </p>
+            ) : null}
+
+            {!canManageJudgeAssignments ? (
+              <p className="mb-4 rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
+                No tienes permisos para crear/eliminar asignaciones. Puedes revisar en modo lectura.
+              </p>
+            ) : null}
+
+            {!isManagingEventReady ? (
+              <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
+                Preparando gestor de asignaciones...
+              </p>
+            ) : selectedCategoryNodes.length === 0 ? (
+              <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
+                Este evento no tiene categorias/subcategorias vinculadas para asignar jueces.
+              </p>
+            ) : (
+              <JudgeEventAssignmentBoard
+                judges={eligibleJudges}
+                assignedJudgeIds={assignedJudgeIds}
+                selectionsByJudge={judgeSubcategoryDraft}
+                categories={selectedCategoryNodes}
+                pending={Boolean(pendingAssignmentAction)}
+                canManage={canManageJudgeAssignments}
+                onAssignJudge={assignJudgeToEventDraft}
+                onUnassignJudge={unassignJudgeFromEventDraft}
+                onSetJudgeSelections={setJudgeSubcategoryDraft}
+                validationIssues={judgeValidationIssues}
+                leftTitle="Lista de jueces no asignados"
+                rightTitle="Lista de jueces asignados"
+              />
+            )}
+            <div className="mt-4 space-y-4">
+              <div className="rounded-xl border border-[#2D2D2D] bg-[#0F0F0F] px-4 py-3">
+                <button
+                  type="button"
+                  disabled={isAssignmentPending || !canManageJudgeAssignments || !isManagingEventReady}
+                  onClick={() => void handleSaveAssignments()}
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  {isAssignmentPending ? 'Guardando asignaciones...' : 'Guardar asignaciones'}
+                </button>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       ) : null}
 
       {eventModalMode ? (
@@ -509,7 +487,7 @@ export function AdminEventsSection({
                   <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
                     <div className="h-16 w-24 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                       {eventForm.imageUrl ? (
-                        <Image
+                        <ImageWithSkeleton
                           src={eventForm.imageUrl}
                           alt="Imagen del evento"
                           width={240}
@@ -759,3 +737,4 @@ export function AdminEventsSection({
     </>
   );
 }
+

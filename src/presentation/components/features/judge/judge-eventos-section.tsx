@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useMemo } from "react";
+import { ImgWithSkeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
 import { groupJudgeAssignedScopes } from "./judge-assigned-scopes";
 import { judgeHeadingFont } from "./judge-heading-font";
@@ -34,7 +35,7 @@ export function JudgeEventosSection() {
               <div className="grid gap-4 sm:grid-cols-[96px_1fr] sm:items-start">
                 <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border border-[#2D2D2D] bg-[#111111]">
                   {event.imageUrl ? (
-                    <img
+                    <ImgWithSkeleton
                       src={event.imageUrl}
                       alt={`Imagen del evento ${event.name}`}
                       className="h-full w-full object-cover"

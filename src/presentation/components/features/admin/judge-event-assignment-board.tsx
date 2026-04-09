@@ -1,3 +1,4 @@
+import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useMemo, useState } from 'react';
 import type { User } from '@/domain/user/user.types';
 import type { JudgeSubcategoryDraft } from './judge-assignment-tree.utils';
@@ -34,6 +35,35 @@ type JudgeEventAssignmentBoardProps = {
   validationIssues?: JudgeValidationIssue[];
   leftTitle?: string;
   rightTitle?: string;
+};
+
+const getJudgeInitials = (judge: User) => {
+  const source = judge.name?.trim() || judge.email?.trim() || 'J';
+  return source.charAt(0).toUpperCase();
+};
+
+const JudgeAvatar = ({ judge }: { judge: User }) => {
+  const hasPhoto = Boolean(judge.photoUrl?.trim());
+
+  return (
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#2D2D2D] bg-[#151515]">
+      {hasPhoto ? (
+        <ImageWithSkeleton
+          src={judge.photoUrl as string}
+          alt={`Foto de perfil de ${judge.name}`}
+          width={40}
+          height={40}
+          sizes="40px"
+          className="h-full w-full object-cover"
+          unoptimized
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-[#9C9C9C]">
+          {getJudgeInitials(judge)}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const CategoryCheckbox = ({
@@ -170,9 +200,12 @@ export function JudgeEventAssignmentBoard({
               className="rounded-xl border border-[#2D2D2D] bg-[#101010] px-4 py-3"
             >
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">{judge.name}</p>
-                  <p className="text-xs text-[#9C9C9C]">{judge.email}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <JudgeAvatar judge={judge} />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">{judge.name}</p>
+                    <p className="truncate text-xs text-[#9C9C9C]">{judge.email}</p>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -215,9 +248,12 @@ export function JudgeEventAssignmentBoard({
                     onClick={() => toggleJudgeExpanded(judge.id)}
                     className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{judge.name}</p>
-                      <p className="truncate text-xs text-[#9C9C9C]">{judge.email}</p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <JudgeAvatar judge={judge} />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{judge.name}</p>
+                        <p className="truncate text-xs text-[#9C9C9C]">{judge.email}</p>
+                      </div>
                     </div>
                     <span className="rounded-full border border-[#2D2D2D] px-2 py-0.5 text-[11px] text-[#D7D7D7]">
                       {selectedCount}
@@ -318,3 +354,4 @@ export function JudgeEventAssignmentBoard({
     </div>
   );
 }
+

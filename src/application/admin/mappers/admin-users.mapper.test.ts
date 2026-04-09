@@ -24,6 +24,7 @@ describe('admin-users.mapper', () => {
       id: 'user-1',
       name: 'Usuario Uno',
       email: 'user@example.com',
+      photoUrl: null,
       ci: null,
       country: 'Bolivia',
       city: 'La Paz',

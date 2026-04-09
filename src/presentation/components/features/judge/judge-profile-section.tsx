@@ -1,45 +1,84 @@
 "use client";
 
-import { useAuthStore, useJudgeStore } from "@/presentation/stores";
+import { useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
+
+const formatBirthDate = (value: string | undefined) => {
+  if (!value) return "--";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString("es-BO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
 export function JudgeProfileSection() {
   const profile = useJudgeStore((state) => state.dashboard?.profile);
-  const currentRole = useAuthStore((state) => state.currentRole);
+  const accountStatus = profile?.status ?? "--";
+  const verificationStatus = profile?.verified ? "Verificado" : "Pendiente";
+  const clubLabel = profile?.club ? `${profile.club.name} - ${profile.club.place}` : "Sin club";
 
   return (
-    <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
-      <h2 className={`${judgeHeadingFont.className} text-[22px] font-semibold text-white`}>Perfil del juez</h2>
-      <p className="mt-2 text-sm text-[#AAAAAA]">Vista de solo lectura en esta fase.</p>
+    <section className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-6 sm:p-8">
+      <div className="flex flex-col gap-2">
+        <h2 className={`${judgeHeadingFont.className} text-[24px] font-semibold text-white`}>Mi perfil</h2>
+        <p className="text-sm text-[#9C9C9C]">
+          Datos principales del juez para contacto y gestion administrativa.
+        </p>
+      </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
-          <p className="text-xs text-[#9C9C9C]">Nombre completo</p>
-          <p className="mt-1 text-sm font-semibold text-white">{profile?.fullName ?? "--"}</p>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <article className="rounded-2xl border border-[#242424] bg-[#111111] px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#7B7B7B]">Correo</p>
+          <p className="mt-2 text-sm text-white">{profile?.email ?? "--"}</p>
         </article>
-        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
-          <p className="text-xs text-[#9C9C9C]">Alias visible</p>
-          <p className="mt-1 text-sm font-semibold text-white">{profile?.displayName ?? "--"}</p>
-        </article>
-        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
-          <p className="text-xs text-[#9C9C9C]">Iniciales</p>
-          <p className="mt-1 text-sm font-semibold text-white">{profile?.initials ?? "--"}</p>
-        </article>
-        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
-          <p className="text-xs text-[#9C9C9C]">Rol activo</p>
-          <p className="mt-1 text-sm font-semibold text-white">{currentRole ?? "JUEZ"}</p>
-        </article>
-        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 sm:col-span-2">
-          <p className="text-xs text-[#9C9C9C]">Estado</p>
-          <p className="mt-1 text-sm font-semibold text-white">
-            {profile?.verified ? "Juez verificado" : "Revision activa"}
+        <article className="rounded-2xl border border-[#242424] bg-[#111111] px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-[#7B7B7B]">Estado</p>
+          <p className="mt-2 text-sm text-white">
+            {accountStatus} - {verificationStatus}
           </p>
         </article>
       </div>
 
-      <p className="mt-5 rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-        La edicion completa del perfil de juez se implementara en la Fase 2.
-      </p>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 md:col-span-2">
+          <p className="text-xs text-[#9C9C9C]">Nombre completo</p>
+          <p className="mt-1 text-sm font-semibold text-white">{profile?.fullName ?? "--"}</p>
+        </article>
+
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">C.I.</p>
+          <p className="mt-1 text-sm font-semibold text-white">{profile?.ci || "--"}</p>
+        </article>
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">Fecha de nacimiento</p>
+          <p className="mt-1 text-sm font-semibold text-white">{formatBirthDate(profile?.birthDate)}</p>
+        </article>
+
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">Pais</p>
+          <p className="mt-1 text-sm font-semibold text-white">{profile?.country || "--"}</p>
+        </article>
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">Ciudad</p>
+          <p className="mt-1 text-sm font-semibold text-white">{profile?.city || "--"}</p>
+        </article>
+
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">Telefono</p>
+          <p className="mt-1 text-sm font-semibold text-white">{profile?.phone || "--"}</p>
+        </article>
+        <article className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+          <p className="text-xs text-[#9C9C9C]">Club</p>
+          <p className="mt-1 text-sm font-semibold text-white">{clubLabel}</p>
+        </article>
+      </div>
     </section>
   );
 }

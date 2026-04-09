@@ -9,6 +9,7 @@ import type {
   EventDeleteImpact,
   JudgeAssignmentScope,
 } from '@/domain/admin/admin.types';
+import { adminUploadsService } from '@/application/admin/services/admin-uploads.service';
 import { useAdminOperations } from './use-admin-operations';
 import { useAdminStore } from '@/presentation/stores/admin.store';
 
@@ -314,23 +315,15 @@ export const useAdminEvents = ({
 
     setIsEventImageUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const response = await fetch('/api/upload/event-image', {
-        method: 'POST',
-        body: fd,
-      });
-      if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
-        setEventModalError(data.error ?? 'No se pudo subir la imagen del evento.');
-        return;
-      }
-
-      const data = (await response.json()) as { url: string };
+      const data = await adminUploadsService.uploadEventImage(file);
       setEventForm((prev) => ({ ...prev, imageUrl: data.url }));
       setEventModalError(null);
-    } catch {
-      setEventModalError('No se pudo subir la imagen del evento.');
+    } catch (error) {
+      setEventModalError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo subir la imagen del evento.',
+      );
     } finally {
       setIsEventImageUploading(false);
     }

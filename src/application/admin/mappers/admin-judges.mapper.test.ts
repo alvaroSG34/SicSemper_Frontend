@@ -30,6 +30,7 @@ describe('admin-judges.mapper', () => {
       id: 'judge-1',
       name: 'Judge One',
       email: 'judge@example.com',
+      photoUrl: null,
       ci: null,
       country: 'Bolivia',
       city: 'La Paz',

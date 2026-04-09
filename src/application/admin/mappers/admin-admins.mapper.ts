@@ -23,18 +23,26 @@ export const mapCreateAdminPayloadToApiRequest = (
 
 export const mapApiAdminManagedUserToDomainUser = (
   user: ApiAdminManagedUser | ApiPromoteAdminUser | ApiDemoteAdminUser,
-): User => ({
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  roles: user.roles.map((role) => role as UserRole),
-  verified: user.verified,
-  status: user.status,
-  ci: user.ci,
-  country: user.country,
-  city: user.city,
-  phone: user.phone,
-  birthDate: user.birthDate,
-  club: user.club,
-  createdAt: user.createdAt,
-});
+): User => {
+  const userWithPhoto = user as
+    | (ApiAdminManagedUser & { photoUrl?: string | null })
+    | (ApiPromoteAdminUser & { photoUrl?: string | null })
+    | (ApiDemoteAdminUser & { photoUrl?: string | null });
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    photoUrl: userWithPhoto.photoUrl ?? null,
+    roles: user.roles.map((role) => role as UserRole),
+    verified: user.verified,
+    status: user.status,
+    ci: user.ci,
+    country: user.country,
+    city: user.city,
+    phone: user.phone,
+    birthDate: user.birthDate,
+    club: user.club,
+    createdAt: user.createdAt,
+  };
+};

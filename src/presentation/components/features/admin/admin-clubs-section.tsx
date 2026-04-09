@@ -1,4 +1,4 @@
-﻿import Image from 'next/image';
+import { ImageWithSkeleton } from '@/presentation/components/ui';
 import type { AdminClub } from '@/domain/admin/admin.types';
 import { useAdminClubs } from './use-admin-clubs';
 
@@ -78,9 +78,7 @@ export function AdminClubsSection({
             placeholder="Buscar por nombre, lugar o correo"
             className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
           />
-          <p className="flex h-10 items-center rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-xs text-[#9C9C9C]">
-            {filteredClubs.length} club(es) visibles
-          </p>
+       
         </div>
 
         <div className="space-y-3">
@@ -94,7 +92,7 @@ export function AdminClubsSection({
                 <div className="flex items-start gap-3">
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
                     {club.logoUrl ? (
-                      <Image
+                      <ImageWithSkeleton
                         src={club.logoUrl}
                         alt={`Logo ${club.name}`}
                         width={128}
@@ -211,7 +209,7 @@ export function AdminClubsSection({
                 <span className="text-xs text-[#A8A8A8]">Logotipo del club</span>
                 <div className="flex items-center gap-3">
                   {clubForm.logoUrl ? (
-                    <Image
+                    <ImageWithSkeleton
                       src={clubForm.logoUrl}
                       alt="Logo"
                       width={56}
@@ -243,7 +241,7 @@ export function AdminClubsSection({
                         Quitar logotipo
                       </button>
                     ) : null}
-                    <p className="text-[10px] text-[#666]">JPEG, PNG, WebP · max. 2 MB</p>
+                    <p className="text-[10px] text-[#666]">JPEG, PNG, WebP � max. 2 MB</p>
                   </div>
                 </div>
                 <input
@@ -345,5 +343,6 @@ export function AdminClubsSection({
     </>
   );
 }
+
 
 

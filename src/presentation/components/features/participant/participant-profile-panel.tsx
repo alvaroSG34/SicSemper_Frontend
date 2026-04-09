@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import type { ParticipantProfileDetails } from "@/domain/participant/participant.types";
-import { Skeleton } from "@/presentation/components/ui";
+import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 import { useParticipantProfile } from "./use-participant-profile";
 
 const inputClassName =
@@ -30,10 +29,6 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 type UploadResponse = {
   url: string;
-};
-
-type UploadErrorResponse = {
-  error?: string;
 };
 
 const defaultFormValues: ProfileFormValues = {
@@ -63,7 +58,7 @@ const toFormValues = (profile: ParticipantProfileDetails): ProfileFormValues => 
 });
 
 export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfilePanelProps) {
-  const { getProfile, updateProfile } = useParticipantProfile();
+  const { getProfile, updateProfile, uploadProfilePhoto } = useParticipantProfile();
   const [profile, setProfile] = useState<ParticipantProfileDetails | null>(null);
   const [clubs, setClubs] = useState<RegisterClubOption[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
@@ -168,30 +163,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
     setSuccessMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload/profile-photo", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        let message = "No se pudo subir la foto de perfil.";
-        try {
-          const data = (await response.json()) as UploadErrorResponse;
-          if (data.error) {
-            message = data.error;
-          }
-        } catch {
-          // Keep fallback error
-        }
-
-        setLoadError(message);
-        return;
-      }
-
-      const data = (await response.json()) as UploadResponse;
+      const data = (await uploadProfilePhoto(file)) as UploadResponse;
       if (!data.url) {
         setLoadError("No se pudo obtener la URL de la foto subida.");
         return;
@@ -202,8 +174,8 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
         shouldTouch: true,
         shouldValidate: true,
       });
-    } catch {
-      setLoadError("No se pudo subir la foto de perfil.");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "No se pudo subir la foto de perfil.");
     } finally {
       setIsPhotoUploading(false);
       if (photoFileInputRef.current) {
@@ -348,7 +320,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 overflow-hidden rounded-full border border-[#2D2D2D] bg-[#151515]">
                 {photoUrl ? (
-                  <Image
+                  <ImageWithSkeleton
                     src={photoUrl}
                     alt="Foto de perfil"
                     width={64}
@@ -473,3 +445,4 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
     </section>
   );
 }
+
