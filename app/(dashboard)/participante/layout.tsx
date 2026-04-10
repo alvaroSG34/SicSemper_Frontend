@@ -14,7 +14,7 @@ export default async function ParticipantLayout({ children }: ParticipantLayoutP
   }
 
   if (session.activeRole !== "PARTICIPANTE") {
-    redirect(session.activeRole === "JUEZ" ? "/juez" : "/admin");
+    redirect(session.activeRole === "JUEZ" ? "/juez/inicio" : "/admin/inicio");
   }
 
   return children;

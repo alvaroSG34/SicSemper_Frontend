@@ -72,7 +72,7 @@ describe("useParticipantDashboardPage", () => {
 
   it("inicializa estado y marca sidebar activo", () => {
     const { result } = renderHook(() =>
-      useParticipantDashboardPage({ initialSection: "eventos" as ParticipantSectionId }),
+      useParticipantDashboardPage({ activeSection: "eventos" as ParticipantSectionId }),
     );
 
     expect(result.current.activeSection).toBe("eventos");
@@ -81,7 +81,7 @@ describe("useParticipantDashboardPage", () => {
   });
 
   it("ejecuta carga inicial y carga eventos cuando la seccion lo requiere", async () => {
-    renderHook(() => useParticipantDashboardPage({ initialSection: "eventos" }));
+    renderHook(() => useParticipantDashboardPage({ activeSection: "eventos" }));
 
     await waitFor(() => {
       expect(loadDashboard).toHaveBeenCalledWith("user-1");
@@ -91,20 +91,20 @@ describe("useParticipantDashboardPage", () => {
     });
   });
 
-  it("cambia seccion limpiando flow state", () => {
-    const { result } = renderHook(() => useParticipantDashboardPage({ initialSection: "inicio" }));
+  it("navega de seccion limpiando flow state", () => {
+    const { result } = renderHook(() => useParticipantDashboardPage({ activeSection: "inicio" }));
 
     act(() => {
       result.current.handleSelectSection("resultados");
     });
 
-    expect(result.current.activeSection).toBe("resultados");
     expect(clearFlowState).toHaveBeenCalledTimes(1);
+    expect(push).toHaveBeenCalledWith("/participante/resultados");
   });
 
   it("hace logout y redirige", async () => {
     logout.mockResolvedValue(undefined);
-    const { result } = renderHook(() => useParticipantDashboardPage({ initialSection: "inicio" }));
+    const { result } = renderHook(() => useParticipantDashboardPage({ activeSection: "inicio" }));
 
     await act(async () => {
       await result.current.handleLogout();

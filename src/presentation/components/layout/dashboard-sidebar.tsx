@@ -9,9 +9,9 @@ type SidebarItem = {
 };
 
 const sidebarItems: SidebarItem[] = [
-  { label: "Participante", href: "/participante", icon: LayoutDashboard },
-  { label: "Juez", href: "/juez", icon: Gavel },
-  { label: "Admin", href: "/admin", icon: ShieldCheck },
+  { label: "Participante", href: "/participante/inicio", icon: LayoutDashboard },
+  { label: "Juez", href: "/juez/inicio", icon: Gavel },
+  { label: "Admin", href: "/admin/inicio", icon: ShieldCheck },
 ];
 
 export function DashboardSidebar() {

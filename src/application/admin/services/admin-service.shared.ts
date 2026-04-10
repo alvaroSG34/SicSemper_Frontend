@@ -15,6 +15,7 @@ const adminErrorMessages: Record<string, string> = {
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
   USER_ALREADY_ADMIN: "El usuario ya tiene el rol ADMIN.",
   USER_IS_NOT_ADMIN: "El usuario no tiene rol ADMIN.",
+  NOTIFICATION_NOT_FOUND: "La notificacion ya no esta disponible para este usuario.",
   EMAIL_ALREADY_IN_USE: "Ese correo ya esta registrado.",
   CI_ALREADY_IN_USE: "Ese CI ya esta registrado.",
   CLUB_NOT_FOUND: "El club seleccionado no existe.",

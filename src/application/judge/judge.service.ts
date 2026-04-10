@@ -2,6 +2,8 @@ import type {
   JudgeDashboardData,
   JudgeModelDetail,
   JudgeModelListResponse,
+  JudgeNotificationsMutationResult,
+  JudgeNotificationsPageResponse,
   JudgeQueueItem,
   JudgeReviewMutationResult,
   JudgeSaveDraftPayload,
@@ -51,6 +53,10 @@ export interface JudgeService {
   saveDraft(modelId: string, payload: JudgeSaveDraftPayload): Promise<JudgeReviewMutationResult>;
   submitReview(modelId: string, payload: JudgeSubmitReviewPayload): Promise<JudgeReviewMutationResult>;
   completeReview(modelId: string, payload: JudgeSubmitReviewPayload): Promise<JudgeReviewMutationResult>;
+  listNotifications(page?: number, pageSize?: number): Promise<JudgeNotificationsPageResponse>;
+  markNotificationAsRead(notificationId: string): Promise<JudgeNotificationsMutationResult>;
+  markAllNotificationsAsRead(): Promise<JudgeNotificationsMutationResult>;
+  deleteNotification(notificationId: string): Promise<JudgeNotificationsMutationResult>;
 }
 
 export const judgeService: JudgeService = {
@@ -128,6 +134,52 @@ export const judgeService: JudgeService = {
       });
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo enviar la revision."));
+    }
+  },
+  async listNotifications(page, pageSize) {
+    try {
+      const searchParams = new URLSearchParams();
+      if (typeof page === "number") {
+        searchParams.set("page", String(page));
+      }
+      if (typeof pageSize === "number") {
+        searchParams.set("pageSize", String(pageSize));
+      }
+      const query = searchParams.toString();
+      const path = query ? `/judge/notifications?${query}` : "/judge/notifications";
+      return await apiRequest<JudgeNotificationsPageResponse>(path);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar las notificaciones del juez."));
+    }
+  },
+  async markNotificationAsRead(notificationId) {
+    try {
+      return await apiRequest<JudgeNotificationsMutationResult>(
+        `/judge/notifications/${notificationId}/read`,
+        {
+          method: "PATCH",
+        },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo marcar la notificacion como leida."));
+    }
+  },
+  async markAllNotificationsAsRead() {
+    try {
+      return await apiRequest<JudgeNotificationsMutationResult>("/judge/notifications/read-all", {
+        method: "PATCH",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron marcar todas las notificaciones como leidas."));
+    }
+  },
+  async deleteNotification(notificationId) {
+    try {
+      return await apiRequest<JudgeNotificationsMutationResult>(`/judge/notifications/${notificationId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la notificacion."));
     }
   },
 };

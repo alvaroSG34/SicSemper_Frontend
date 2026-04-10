@@ -1,4 +1,5 @@
 export { ParticipantHeader } from "./participant-header";
+export { ParticipantNotificationsBell } from "./participant-notifications-bell";
 export { ParticipantHomeSection } from "./participant-home-section";
 export { ParticipantKpis } from "./participant-kpis";
 export { ParticipantNextChallenge } from "./participant-next-challenge";

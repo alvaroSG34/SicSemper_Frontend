@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   if (session.activeRole !== "ADMIN" && session.activeRole !== "SUPERADMIN") {
-    redirect(session.activeRole === "JUEZ" ? "/juez" : "/participante");
+    redirect(session.activeRole === "JUEZ" ? "/juez/inicio" : "/participante/inicio");
   }
 
   return children;

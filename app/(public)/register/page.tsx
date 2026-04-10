@@ -444,7 +444,7 @@ export default function RegisterPage() {
       await new Promise((resolve) => {
         setTimeout(resolve, 700);
       });
-      router.push("/participante");
+      router.push("/participante/inicio");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No se pudo completar el registro.");
     } finally {

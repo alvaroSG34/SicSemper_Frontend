@@ -9,10 +9,10 @@ import { PublicHeader } from "./public-header";
 const LANDING_SECTION_IDS = ["inicio", "acerca", "agenda", "equipo", "ubicacion"] as const;
 
 const dashboardRouteByRole: Record<UserRole, string> = {
-  PARTICIPANTE: "/participante",
-  JUEZ: "/juez",
-  ADMIN: "/admin",
-  SUPERADMIN: "/admin",
+  PARTICIPANTE: "/participante/inicio",
+  JUEZ: "/juez/inicio",
+  ADMIN: "/admin/inicio",
+  SUPERADMIN: "/admin/inicio",
 };
 
 export function AutoPublicHeader() {

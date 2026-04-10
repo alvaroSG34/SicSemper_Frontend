@@ -7,10 +7,10 @@ import { useAuthStore } from "@/presentation/stores";
 import { heroDate, heroTitle } from "./landing-data";
 
 const dashboardRouteByRole: Record<UserRole, string> = {
-  PARTICIPANTE: "/participante",
-  JUEZ: "/juez",
-  ADMIN: "/admin",
-  SUPERADMIN: "/admin",
+  PARTICIPANTE: "/participante/inicio",
+  JUEZ: "/juez/inicio",
+  ADMIN: "/admin/inicio",
+  SUPERADMIN: "/admin/inicio",
 };
 
 export function LandingHero() {
@@ -45,7 +45,7 @@ export function LandingHero() {
             await switchRole("PARTICIPANTE");
           }
 
-          router.push("/participante?section=resultados");
+          router.push("/participante/resultados");
           return;
         }
 

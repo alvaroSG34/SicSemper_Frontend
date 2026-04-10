@@ -243,7 +243,11 @@ export function AdminClubsSection({
                         Quitar logotipo
                       </button>
                     ) : null}
+<<<<<<< Updated upstream
                     <p className="text-[10px] text-[#666]">JPEG, PNG, WebP · max. 2 MB</p>
+=======
+                    <p className="text-[10px] text-[#666]">JPEG, PNG, WebP - max. 2 MB</p>
+>>>>>>> Stashed changes
                   </div>
                 </div>
                 <input

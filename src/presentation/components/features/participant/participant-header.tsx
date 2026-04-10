@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { Outfit } from "next/font/google";
-import { BadgeCheck, Bell } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import type { ParticipantProfile } from "@/domain/participant/participant.types";
 import { DashboardRoleSwitch } from "@/presentation/components/layout";
+import { ParticipantNotificationsBell } from "./participant-notifications-bell";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -35,10 +36,7 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
           </div>
         ) : null}
 
-        <div className="relative flex h-10 w-10 items-center justify-center">
-          <Bell className="h-5 w-5 text-white" />
-          <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-[5px] bg-[#F15BB5]" />
-        </div>
+        <ParticipantNotificationsBell />
 
         <DashboardRoleSwitch />
 

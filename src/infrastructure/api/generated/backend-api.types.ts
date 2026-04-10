@@ -36,6 +36,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminMarkNotificationAsRead"];
+        trace?: never;
+    };
+    "/api/v1/admin/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminMarkAllNotificationsAsRead"];
+        trace?: never;
+    };
     "/api/v1/admin/clubs": {
         parameters: {
             query?: never;
@@ -482,6 +530,38 @@ export interface components {
             alerts: components["schemas"]["SystemAlert"][];
             activity: components["schemas"]["AdminActivityItem"][];
         };
+        /** @enum {string} */
+        AdminNotificationType: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO" | "ASIGNACION_JUEZ_CREADA_ELIMINADA" | "PERMISO_JUEZ_OTORGADO_REVOCADO" | "PERMISO_ADMIN_OTORGADO_REVOCADO" | "ROL_USUARIO_ACTUALIZADO" | "PARTICIPANTE_BANEADO" | "PARTICIPANTE_REHABILITADO" | "ALERTA_SISTEMA" | "NUEVO_REGISTRO_PARTICIPANTE";
+        /** @enum {string} */
+        AdminNotificationSeverity: "BAJA" | "MEDIA" | "ALTA";
+        AdminNotificationItem: {
+            id: string;
+            type: components["schemas"]["AdminNotificationType"];
+            severity: components["schemas"]["AdminNotificationSeverity"];
+            title: string;
+            detail: string;
+            targetPath: string | null;
+            metadata: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+            isRead: boolean;
+            /** Format: date-time */
+            readAt: string | null;
+        };
+        AdminNotificationsPage: {
+            items: components["schemas"]["AdminNotificationItem"][];
+            page: number;
+            pageSize: number;
+            total: number;
+            hasMore: boolean;
+            unreadCount: number;
+        };
+        AdminNotificationsMutationResult: {
+            success: boolean;
+            marked?: number;
+        };
         AdminClub: {
             id: string;
             name: string;
@@ -771,6 +851,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminDashboardSummary"];
+                };
+            };
+        };
+    };
+    adminListNotifications: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated admin notifications */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNotificationsPage"];
+                };
+            };
+        };
+    };
+    adminMarkNotificationAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Marked one notification as read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNotificationsMutationResult"];
+                };
+            };
+        };
+    };
+    adminMarkAllNotificationsAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Marked all visible notifications as read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminNotificationsMutationResult"];
                 };
             };
         };
