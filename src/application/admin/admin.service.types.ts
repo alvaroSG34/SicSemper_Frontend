@@ -4,6 +4,8 @@ import type {
   AdminDashboardSummary,
   AdminPermissionCode,
   AdminPermissionEntry,
+  AdminNotificationsMutationResult,
+  AdminNotificationsPageResponse,
   AssignJudgeScopePayload,
   CategoryDeleteImpact,
   CatalogCategory,
@@ -74,4 +76,8 @@ export interface AdminService {
     adminUserId: string,
     permission: AdminPermissionCode,
   ): Promise<AdminPermissionEntry[]>;
+  listNotifications(page?: number, pageSize?: number): Promise<AdminNotificationsPageResponse>;
+  markNotificationAsRead(notificationId: string): Promise<AdminNotificationsMutationResult>;
+  markAllNotificationsAsRead(): Promise<AdminNotificationsMutationResult>;
+  deleteNotification(notificationId: string): Promise<AdminNotificationsMutationResult>;
 }

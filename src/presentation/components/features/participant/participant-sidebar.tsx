@@ -1,6 +1,8 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { BarChart3, ChevronDown, Compass, FolderOpen, Home, LogOut, Settings, Trophy } from "lucide-react";
-import type { ParticipantSectionId, ParticipantSidebarItem } from "@/domain/participant/participant.types";
+import type { ParticipantSidebarItem } from "@/domain/participant/participant.types";
+import { participantSectionRouteById } from "./participant-routes";
 
 const sidebarIconByKey: Record<ParticipantSidebarItem["icon"], LucideIcon> = {
   home: Home,
@@ -13,11 +15,10 @@ const sidebarIconByKey: Record<ParticipantSidebarItem["icon"], LucideIcon> = {
 
 type ParticipantSidebarProps = {
   items: ParticipantSidebarItem[];
-  onSelectSection?: (sectionId: ParticipantSectionId) => void;
   onLogout?: () => void;
 };
 
-export function ParticipantSidebar({ items, onSelectSection, onLogout }: ParticipantSidebarProps) {
+export function ParticipantSidebar({ items, onLogout }: ParticipantSidebarProps) {
   return (
     <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
       <div className="flex items-center gap-3">
@@ -29,10 +30,9 @@ export function ParticipantSidebar({ items, onSelectSection, onLogout }: Partici
         {items.map((item) => {
           const Icon = sidebarIconByKey[item.icon];
           return (
-            <button
+            <Link
               key={item.id}
-              type="button"
-              onClick={() => onSelectSection?.(item.id)}
+              href={participantSectionRouteById[item.id]}
               className="flex items-center gap-4 text-left"
             >
               <Icon className={`h-5 w-5 ${item.active ? "text-[#5B68F1]" : "text-[#AAAAAA]"}`} />
@@ -43,7 +43,7 @@ export function ParticipantSidebar({ items, onSelectSection, onLogout }: Partici
               >
                 {item.label}
               </span>
-            </button>
+            </Link>
           );
         })}
       </nav>
@@ -60,7 +60,7 @@ export function ParticipantSidebar({ items, onSelectSection, onLogout }: Partici
   );
 }
 
-export function ParticipantMobileSidebar({ items, onSelectSection, onLogout }: ParticipantSidebarProps) {
+export function ParticipantMobileSidebar({ items, onLogout }: ParticipantSidebarProps) {
   return (
     <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
       <div className="flex items-center gap-3">
@@ -71,10 +71,9 @@ export function ParticipantMobileSidebar({ items, onSelectSection, onLogout }: P
         {items.map((item) => {
           const Icon = sidebarIconByKey[item.icon];
           return (
-            <button
+            <Link
               key={`mobile-${item.id}`}
-              type="button"
-              onClick={() => onSelectSection?.(item.id)}
+              href={participantSectionRouteById[item.id]}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${
                 item.active
                   ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
@@ -83,7 +82,7 @@ export function ParticipantMobileSidebar({ items, onSelectSection, onLogout }: P
             >
               <Icon className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
               {item.label}
-            </button>
+            </Link>
           );
         })}
       </nav>

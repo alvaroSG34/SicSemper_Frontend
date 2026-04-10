@@ -12,6 +12,11 @@ import type {
 import { adminUploadsService } from '@/application/admin/services/admin-uploads.service';
 import { useAdminOperations } from './use-admin-operations';
 import { useAdminStore } from '@/presentation/stores/admin.store';
+import {
+  combineLaPazDateAndTimeToUtcIso,
+  splitUtcIsoToLaPazDateAndTime,
+  toLaPazDateTimeTimestamp,
+} from '@/core/utils/event-datetime';
 
 type EventModalMode = 'create' | 'edit';
 
@@ -20,7 +25,9 @@ type EventFormState = {
   name: string;
   place: string;
   startDate: string;
+  startTime: string;
   endDate: string;
+  endTime: string;
   status: CatalogEventStatus;
   description: string;
   imageUrl: string;
@@ -37,33 +44,15 @@ const emptyEventForm: EventFormState = {
   name: '',
   place: '',
   startDate: '',
+  startTime: '',
   endDate: '',
+  endTime: '',
   status: 'BORRADOR',
   description: '',
   imageUrl: '',
 };
 
 export const eventStatusOptions: CatalogEventStatus[] = ['ACTIVO', 'PAUSADO', 'BORRADOR'];
-
-const toDateInputValue = (value: string | null | undefined) => {
-  if (!value) return '';
-  const trimmed = value.trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  const isoMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})T/);
-  if (isoMatch?.[1]) {
-    return isoMatch[1];
-  }
-
-  const parsed = new Date(trimmed);
-  if (Number.isNaN(parsed.getTime())) {
-    return '';
-  }
-
-  return parsed.toISOString().slice(0, 10);
-};
 
 type UseAdminEventsParams = {
   events: CatalogEvent[];
@@ -259,6 +248,9 @@ export const useAdminEvents = ({
     setActionFeedback(null);
     clearError();
     setEventModalError(null);
+    const startDateTime = splitUtcIsoToLaPazDateAndTime(eventItem.startDate);
+    const endDateTime = splitUtcIsoToLaPazDateAndTime(eventItem.endDate);
+
     setEventModalMode('edit');
     setEventModalTargetId(eventItem.id);
     setEventModalStep(1);
@@ -266,8 +258,10 @@ export const useAdminEvents = ({
       organizerClubId: eventItem.organizerClubId ?? clubs[0]?.id ?? '',
       name: eventItem.name,
       place: eventItem.place ?? '',
-      startDate: toDateInputValue(eventItem.startDate),
-      endDate: toDateInputValue(eventItem.endDate),
+      startDate: startDateTime.date,
+      startTime: startDateTime.time,
+      endDate: endDateTime.date,
+      endTime: endDateTime.time,
       status: eventItem.status,
       description: eventItem.description ?? '',
       imageUrl: eventItem.imageUrl ?? '',
@@ -346,15 +340,25 @@ export const useAdminEvents = ({
       !eventForm.name.trim() ||
       !eventForm.place.trim() ||
       !eventForm.startDate ||
+      !eventForm.startTime ||
       !eventForm.endDate ||
+      !eventForm.endTime ||
       !eventForm.description.trim()
     ) {
       setEventModalError('Completa todos los campos requeridos para guardar el evento.');
       return;
     }
 
-    if (eventForm.startDate > eventForm.endDate) {
-      setEventModalError('La fecha de inicio no puede ser mayor que la fecha de fin.');
+    const startTimestamp = toLaPazDateTimeTimestamp(eventForm.startDate, eventForm.startTime);
+    const endTimestamp = toLaPazDateTimeTimestamp(eventForm.endDate, eventForm.endTime);
+
+    if (startTimestamp === null || endTimestamp === null) {
+      setEventModalError('La fecha u hora ingresada no es valida.');
+      return;
+    }
+
+    if (startTimestamp > endTimestamp) {
+      setEventModalError('La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.');
       return;
     }
 
@@ -372,6 +376,14 @@ export const useAdminEvents = ({
 
     setEventModalError(null);
 
+    const startDateIso = combineLaPazDateAndTimeToUtcIso(eventForm.startDate, eventForm.startTime);
+    const endDateIso = combineLaPazDateAndTimeToUtcIso(eventForm.endDate, eventForm.endTime);
+
+    if (!startDateIso || !endDateIso) {
+      setEventModalError('La fecha u hora ingresada no es valida.');
+      return;
+    }
+
     const allCategoryIds = collectCategoryAndSubcategoryIds();
     const actionKey = eventModalMode === 'create' ? 'event:create' : `event:update:${eventModalTargetId}`;
 
@@ -386,8 +398,8 @@ export const useAdminEvents = ({
               name: eventForm.name,
               status: eventForm.status,
               place: eventForm.place,
-              startDate: eventForm.startDate,
-              endDate: eventForm.endDate,
+              startDate: startDateIso,
+              endDate: endDateIso,
               description: eventForm.description,
               imageUrl: eventForm.imageUrl || undefined,
             },
@@ -401,8 +413,8 @@ export const useAdminEvents = ({
               name: eventForm.name,
               status: eventForm.status,
               place: eventForm.place,
-              startDate: eventForm.startDate,
-              endDate: eventForm.endDate,
+              startDate: startDateIso,
+              endDate: endDateIso,
               description: eventForm.description,
               imageUrl: eventForm.imageUrl || undefined,
             },

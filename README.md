@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SicSemper Frontend
 
-## Getting Started
+Frontend de SicSemper con Next.js App Router.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 + React 19 + TypeScript estricto.
+- Tailwind CSS 4.
+- Zustand para estado.
+- React Hook Form + Zod para formularios/validacion.
+- Capa de servicios alineada con OpenAPI del backend.
+
+## Arquitectura
+
+El proyecto esta organizado por capas en `src/`:
+
+- `domain/`: tipos y reglas del dominio.
+- `application/`: servicios de negocio por modulo (auth/admin/judge/participant).
+- `infrastructure/`: cliente HTTP, contratos API y utilidades de integracion.
+- `presentation/`: componentes, hooks y stores.
+- `core/`: configuracion y utilidades base.
+
+Rutas principales en `app/`:
+
+- `(public)`: landing, login, registro.
+- `(dashboard)`: paneles de admin, juez y participante.
+
+## Requisitos
+
+- Node.js 22+
+- pnpm 10+
+
+## Setup local
+
+1. Instala dependencias:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Ejecuta el servidor de desarrollo:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Abre `http://localhost:3000`.
 
-## Learn More
+## Scripts utiles
 
-To learn more about Next.js, take a look at the following resources:
+- `pnpm dev`: desarrollo.
+- `pnpm build`: build de produccion.
+- `pnpm start`: servidor de produccion.
+- `pnpm lint`: lint global.
+- `pnpm test`: suite completa de tests (Vitest).
+- `pnpm test:admin`: tests de admin.
+- `pnpm test:judge`: tests de juez.
+- `pnpm test:participant`: tests de participante.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## OpenAPI y sincronizacion con backend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Para regenerar tipos desde el backend:
 
-## Deploy on Vercel
+```bash
+pnpm openapi:sync
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Este script:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Regenera el spec OpenAPI en el backend.
+2. Actualiza los tipos generados en frontend.
+
+## Notas
+
+- El archivo `src/core/config.ts` concentra configuracion global de app.
+- La UI sigue los disenos ubicados en la carpeta `Pencil.dev` del workspace.

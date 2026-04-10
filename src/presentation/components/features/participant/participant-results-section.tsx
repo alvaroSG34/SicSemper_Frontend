@@ -6,28 +6,14 @@ import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
+<<<<<<< Updated upstream
+import { Skeleton } from "@/presentation/components/ui";
+=======
+import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
 import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
+>>>>>>> Stashed changes
 import { ParticipantUploadModelWizard } from "./participant-upload-model-wizard";
 import { useParticipantResults } from "./use-participant-results";
-
-const eventDateFormatter = new Intl.DateTimeFormat("es-BO", {
-  dateStyle: "medium",
-});
-
-const formatEventDate = (value: string) => {
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Por definir";
-  }
-
-  return eventDateFormatter.format(parsedDate);
-};
-
-const formatEventDateRange = (startDate: string, endDate: string) => {
-  const start = formatEventDate(startDate);
-  const end = formatEventDate(endDate);
-  return start === end ? start : `${start} - ${end}`;
-};
 
 type SelectedEventDetailsModalProps = {
   open: boolean;
@@ -123,7 +109,7 @@ function SelectedEventDetailsModal({
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
                 <CalendarDays className="h-3.5 w-3.5" />
-                {formatEventDateRange(event.startDate, event.endDate)}
+                {formatEventDateRangeInLaPaz(event.startDate, event.endDate, "Por definir")}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -282,7 +268,11 @@ export function ParticipantResultsSection({
                 </p>
                 <p className="inline-flex items-center gap-1.5 text-xs text-[#CFCFCF]">
                   <CalendarDays className="h-3.5 w-3.5" />
-                  {formatEventDateRange(selectedEvent.startDate, selectedEvent.endDate)}
+                  {formatEventDateRangeInLaPaz(
+                    selectedEvent.startDate,
+                    selectedEvent.endDate,
+                    "Por definir",
+                  )}
                 </p>
                 <div className="flex items-center justify-between gap-3 pt-1">
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-2.5 py-1 text-[11px] text-[#CFCFCF]">

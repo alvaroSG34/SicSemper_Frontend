@@ -66,6 +66,7 @@ const buildCountdownFromStartDate = (
 };
 
 const startDateFormatter = new Intl.DateTimeFormat("es-BO", {
+  timeZone: "America/La_Paz",
   dateStyle: "medium",
   timeStyle: "short",
 });

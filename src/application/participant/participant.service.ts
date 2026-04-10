@@ -6,6 +6,8 @@ import type {
   ParticipantEventDetail,
   ParticipantProfileDetails,
   ParticipantModel,
+  ParticipantNotificationsMutationResult,
+  ParticipantNotificationsPageResponse,
   ParticipantScale,
   ParticipantSubcategoryOption,
   UpdateParticipantProfilePayload,
@@ -91,6 +93,17 @@ export interface ParticipantService {
   }>;
   createModelSubmission(payload: CreateParticipantModelPayload): Promise<ParticipantModel>;
   getMyModels(userId: string): Promise<ParticipantModel[]>;
+  listNotifications(
+    page?: number,
+    pageSize?: number,
+  ): Promise<ParticipantNotificationsPageResponse>;
+  markNotificationAsRead(
+    notificationId: string,
+  ): Promise<ParticipantNotificationsMutationResult>;
+  markAllNotificationsAsRead(): Promise<ParticipantNotificationsMutationResult>;
+  deleteNotification(
+    notificationId: string,
+  ): Promise<ParticipantNotificationsMutationResult>;
 }
 
 const participantErrorMessages: Record<string, string> = {
@@ -298,6 +311,61 @@ export const participantService: ParticipantService = {
       return models.map(mapModel);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar tu historial de maquetas."));
+    }
+  },
+  async listNotifications(page, pageSize) {
+    try {
+      const searchParams = new URLSearchParams();
+      if (typeof page === "number") {
+        searchParams.set("page", String(page));
+      }
+      if (typeof pageSize === "number") {
+        searchParams.set("pageSize", String(pageSize));
+      }
+
+      const query = searchParams.toString();
+      const path = query ? `/participant/notifications?${query}` : "/participant/notifications";
+      return await apiRequest<ParticipantNotificationsPageResponse>(path);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar tus notificaciones."));
+    }
+  },
+  async markNotificationAsRead(notificationId) {
+    try {
+      return await apiRequest<ParticipantNotificationsMutationResult>(
+        `/participant/notifications/${notificationId}/read`,
+        {
+          method: "PATCH",
+        },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo marcar la notificacion como leida."));
+    }
+  },
+  async markAllNotificationsAsRead() {
+    try {
+      return await apiRequest<ParticipantNotificationsMutationResult>(
+        "/participant/notifications/read-all",
+        {
+          method: "PATCH",
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudieron marcar todas las notificaciones como leidas."),
+      );
+    }
+  },
+  async deleteNotification(notificationId) {
+    try {
+      return await apiRequest<ParticipantNotificationsMutationResult>(
+        `/participant/notifications/${notificationId}`,
+        {
+          method: "DELETE",
+        },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la notificacion."));
     }
   },
 };

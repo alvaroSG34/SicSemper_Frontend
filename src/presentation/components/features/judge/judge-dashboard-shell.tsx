@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BadgeCheck,
-  Bell,
   ChevronDown,
   Home,
   LogOut,
@@ -16,6 +15,7 @@ import { DashboardRoleSwitch } from "@/presentation/components/layout";
 import { Skeleton } from "@/presentation/components/ui";
 import { useAuthStore, useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
+import { JudgeNotificationsBell } from "./judge-notifications-bell";
 
 type JudgeDashboardShellProps = Readonly<{
   children: ReactNode;
@@ -225,10 +225,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
                   </span>
                 </div>
 
-                <div className="relative flex h-10 w-10 items-center justify-center">
-                  <Bell className="h-5 w-5 text-white" />
-                  <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-[5px] bg-[#F15BB5]" />
-                </div>
+                <JudgeNotificationsBell />
 
                 <DashboardRoleSwitch />
 

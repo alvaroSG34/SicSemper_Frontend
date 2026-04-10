@@ -1,6 +1,7 @@
 import { CalendarRange, MapPin, Sparkles } from "lucide-react";
 import { Outfit } from "next/font/google";
 import type { ParticipantEventDetail } from "@/domain/participant/participant.types";
+import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -35,7 +36,7 @@ export function ParticipantEventDetail({ event, onStartUpload }: ParticipantEven
         </span>
         <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
           <CalendarRange className="h-4 w-4" />
-          {event.startDate} - {event.endDate}
+          {formatEventDateRangeInLaPaz(event.startDate, event.endDate, "Por definir")}
         </span>
         <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
           <Sparkles className="h-4 w-4" />

@@ -250,3 +250,43 @@ export type AdminPermissionEntry = {
   grantedAt: string | null;
   grantedBy: { id: string; name: string } | null;
 };
+
+export type AdminNotificationType =
+  | "EVENTO_CREADO_ACTUALIZADO_ELIMINADO"
+  | "ASIGNACION_JUEZ_CREADA_ELIMINADA"
+  | "PERMISO_JUEZ_OTORGADO_REVOCADO"
+  | "PERMISO_ADMIN_OTORGADO_REVOCADO"
+  | "ROL_USUARIO_ACTUALIZADO"
+  | "PARTICIPANTE_BANEADO"
+  | "PARTICIPANTE_REHABILITADO"
+  | "ALERTA_SISTEMA"
+  | "NUEVO_REGISTRO_PARTICIPANTE";
+
+export type AdminNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
+
+export type AdminNotificationItem = {
+  id: Identifier;
+  type: AdminNotificationType;
+  severity: AdminNotificationSeverity;
+  title: string;
+  detail: string;
+  targetPath: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  isRead: boolean;
+  readAt: string | null;
+};
+
+export type AdminNotificationsPageResponse = {
+  items: AdminNotificationItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+  unreadCount: number;
+};
+
+export type AdminNotificationsMutationResult = {
+  success: boolean;
+  marked?: number;
+};

@@ -187,3 +187,41 @@ export type JudgeReviewMutationResult = {
     allJudgesSubmitted: boolean;
   };
 };
+
+export type JudgeNotificationType =
+  | "ASIGNACION_CREADA"
+  | "ASIGNACION_REMOVIDA"
+  | "PERMISO_OTORGADO"
+  | "PERMISO_REVOCADO"
+  | "REVISION_REABIERTA"
+  | "ROL_JUEZ_OTORGADO"
+  | "ALERTA_SISTEMA";
+
+export type JudgeNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
+
+export type JudgeNotificationItem = {
+  id: Identifier;
+  type: JudgeNotificationType;
+  severity: JudgeNotificationSeverity;
+  title: string;
+  detail: string;
+  targetPath: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  isRead: boolean;
+  readAt: string | null;
+};
+
+export type JudgeNotificationsPageResponse = {
+  items: JudgeNotificationItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+  unreadCount: number;
+};
+
+export type JudgeNotificationsMutationResult = {
+  success: boolean;
+  marked?: number;
+};

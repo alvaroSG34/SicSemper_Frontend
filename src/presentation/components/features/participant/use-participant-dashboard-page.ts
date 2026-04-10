@@ -1,20 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { ParticipantSectionId } from "@/domain/participant/participant.types";
 import { useAuthStore, useParticipantStore } from "@/presentation/stores";
+import { participantSectionRouteById } from "./participant-routes";
 
 type UseParticipantDashboardPageParams = {
-  initialSection: ParticipantSectionId | null;
+  activeSection: ParticipantSectionId;
 };
 
 export const useParticipantDashboardPage = ({
-  initialSection,
+  activeSection,
 }: UseParticipantDashboardPageParams) => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-
-  const [activeSection, setActiveSection] = useState<ParticipantSectionId>(initialSection ?? "inicio");
 
   const dashboard = useParticipantStore((state) => state.dashboard);
   const loading = useParticipantStore((state) => state.loading);
@@ -51,10 +50,10 @@ export const useParticipantDashboardPage = ({
 
   const handleSelectSection = useCallback(
     (sectionId: ParticipantSectionId) => {
-      setActiveSection(sectionId);
       clearFlowState();
+      router.push(participantSectionRouteById[sectionId]);
     },
-    [clearFlowState],
+    [clearFlowState, router],
   );
 
   const handleLogout = useCallback(async () => {
@@ -68,6 +67,7 @@ export const useParticipantDashboardPage = ({
     loading,
     error,
     clearError,
+    clearFlowState,
     activeSection,
     effectiveUserId,
     sidebarItems,

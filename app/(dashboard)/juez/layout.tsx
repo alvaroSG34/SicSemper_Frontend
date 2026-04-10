@@ -15,7 +15,11 @@ export default async function JudgeLayout({ children }: JudgeLayoutProps) {
   }
 
   if (session.activeRole !== "JUEZ") {
-    redirect(session.activeRole === "ADMIN" || session.activeRole === "SUPERADMIN" ? "/admin" : "/participante");
+    redirect(
+      session.activeRole === "ADMIN" || session.activeRole === "SUPERADMIN"
+        ? "/admin/inicio"
+        : "/participante/inicio",
+    );
   }
 
   return <JudgeDashboardShell>{children}</JudgeDashboardShell>;

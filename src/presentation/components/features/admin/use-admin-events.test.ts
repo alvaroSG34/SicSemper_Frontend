@@ -170,6 +170,8 @@ describe('useAdminEvents', () => {
       expect.objectContaining({
         id: 'event-1',
         name: 'Evento Uno',
+        startDate: '2026-05-10T04:00:00.000Z',
+        endDate: '2026-05-11T04:00:00.000Z',
       }),
       expect.arrayContaining(['cat-1', 'sub-1', 'cat-2', 'sub-2']),
     );
@@ -192,5 +194,31 @@ describe('useAdminEvents', () => {
     );
     expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toHaveLength(2);
     expect(result.current.eventModalCategoryRemovalImpact.removedAssignmentsCount).toBe(1);
+  });
+
+  it('requires end date/time to be equal or after start date/time', async () => {
+    const { result } = renderHook(useHook);
+
+    act(() => {
+      result.current.openEditEventModal(events[0]!);
+      result.current.setEventForm((prev) => ({
+        ...prev,
+        startDate: '2026-05-12',
+        startTime: '10:30',
+        endDate: '2026-05-12',
+        endTime: '09:45',
+      }));
+    });
+
+    await act(async () => {
+      await result.current.handleSubmitEventModal({
+        preventDefault: vi.fn(),
+      } as unknown as FormEvent<HTMLFormElement>);
+    });
+
+    expect(result.current.eventModalStep).toBe(1);
+    expect(result.current.eventModalError).toBe(
+      'La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.',
+    );
   });
 });

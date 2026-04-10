@@ -15,10 +15,10 @@ const outfit = Outfit({
 });
 
 const dashboardRouteByRole: Record<UserRole, string> = {
-  PARTICIPANTE: "/participante",
-  JUEZ: "/juez",
-  ADMIN: "/admin",
-  SUPERADMIN: "/admin",
+  PARTICIPANTE: "/participante/inicio",
+  JUEZ: "/juez/inicio",
+  ADMIN: "/admin/inicio",
+  SUPERADMIN: "/admin/inicio",
 };
 
 const getDashboardRoute = (role: UserRole | null) => {

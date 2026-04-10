@@ -224,3 +224,43 @@ export type ParticipantDashboardData = {
   openEvents: ParticipantOpenEvent[];
 };
 
+export type ParticipantNotificationType =
+  | "MAQUETA_ENVIADA"
+  | "MAQUETA_EN_REVISION"
+  | "MAQUETA_CALIFICADA"
+  | "REVISION_REABIERTA"
+  | "EVENTO_INSCRITO_ACTUALIZADO"
+  | "EVENTO_INSCRITO_PAUSADO_ELIMINADO"
+  | "CUENTA_PARTICIPANTE_SUSPENDIDA"
+  | "CUENTA_PARTICIPANTE_REHABILITADA"
+  | "ALERTA_SISTEMA";
+
+export type ParticipantNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
+
+export type ParticipantNotificationItem = {
+  id: Identifier;
+  type: ParticipantNotificationType;
+  severity: ParticipantNotificationSeverity;
+  title: string;
+  detail: string;
+  targetPath: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  isRead: boolean;
+  readAt: string | null;
+};
+
+export type ParticipantNotificationsPageResponse = {
+  items: ParticipantNotificationItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+  unreadCount: number;
+};
+
+export type ParticipantNotificationsMutationResult = {
+  success: boolean;
+  marked?: number;
+};
+

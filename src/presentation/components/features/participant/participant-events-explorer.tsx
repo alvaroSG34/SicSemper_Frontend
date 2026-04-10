@@ -7,31 +7,17 @@ import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
+<<<<<<< Updated upstream
+import { Skeleton } from "@/presentation/components/ui";
+=======
 import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
+import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
+>>>>>>> Stashed changes
 
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["600", "700"],
 });
-
-const dateFormatter = new Intl.DateTimeFormat("es-BO", {
-  dateStyle: "medium",
-});
-
-const formatDate = (value: string): string => {
-  const parsedDate = new Date(value);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "Por definir";
-  }
-
-  return dateFormatter.format(parsedDate);
-};
-
-const formatDateRange = (startDate: string, endDate: string): string => {
-  const start = formatDate(startDate);
-  const end = formatDate(endDate);
-  return start === end ? start : `${start} - ${end}`;
-};
 
 type ParticipantEventsExplorerProps = {
   events: ParticipantEventDetail[];
@@ -192,7 +178,7 @@ export function ParticipantEventsExplorer({
                     </p>
                     <p className="inline-flex items-center gap-1.5">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {formatDateRange(event.startDate, event.endDate)}
+                      {formatEventDateRangeInLaPaz(event.startDate, event.endDate, "Por definir")}
                     </p>
                   </div>
 
@@ -282,7 +268,11 @@ export function ParticipantEventsExplorer({
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
                     <CalendarDays className="h-3.5 w-3.5" />
-                    {formatDateRange(detailEvent.startDate, detailEvent.endDate)}
+                    {formatEventDateRangeInLaPaz(
+                      detailEvent.startDate,
+                      detailEvent.endDate,
+                      "Por definir",
+                    )}
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#2D2D2D] px-3 py-1">
                     <Sparkles className="h-3.5 w-3.5" />

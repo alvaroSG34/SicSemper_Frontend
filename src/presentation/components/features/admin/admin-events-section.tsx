@@ -1,5 +1,11 @@
-import { ImageWithSkeleton } from '@/presentation/components/ui';
+<<<<<<< Updated upstream
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
+=======
+import { ImageWithSkeleton } from '@/presentation/components/ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarDays, Clock3 } from 'lucide-react';
+>>>>>>> Stashed changes
 import type {
   AdminClub,
   CatalogCategory,
@@ -12,6 +18,7 @@ import type { User } from '@/domain/user/user.types';
 import { useAdminEvents } from './use-admin-events';
 import { JudgeEventAssignmentBoard } from './judge-event-assignment-board';
 import { useAdminJudgeAssignments } from './use-admin-judge-assignments';
+import { formatEventDateRangeInLaPaz } from '@/core/utils/event-datetime';
 
 type AdminEventsSectionProps = {
   events: CatalogEvent[];
@@ -30,15 +37,6 @@ type AdminEventsSectionProps = {
   canManageJudgeAssignments: boolean;
 };
 
-const formatDate = (iso: string | null | undefined) => {
-  if (!iso) return '--';
-  return new Date(iso).toLocaleDateString('es-BO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
-
 export function AdminEventsSection({
   events,
   clubs,
@@ -55,6 +53,26 @@ export function AdminEventsSection({
   canReadJudgeAssignments,
   canManageJudgeAssignments,
 }: AdminEventsSectionProps) {
+  const startDateInputRef = useRef<HTMLInputElement | null>(null);
+  const startTimeInputRef = useRef<HTMLInputElement | null>(null);
+  const endDateInputRef = useRef<HTMLInputElement | null>(null);
+  const endTimeInputRef = useRef<HTMLInputElement | null>(null);
+
+  const openNativePicker = (input: HTMLInputElement | null) => {
+    if (!input) {
+      return;
+    }
+
+    const pickerInput = input as HTMLInputElement & { showPicker?: () => void };
+    if (typeof pickerInput.showPicker === 'function') {
+      pickerInput.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  };
+
   const {
     actionFeedback,
     filteredEvents,
@@ -232,7 +250,7 @@ export function AdminEventsSection({
                     </div>
                     <p className="mt-1 text-xs text-[#9C9C9C]">{item.place || 'Sin lugar definido'}</p>
                     <p className="mt-1 text-xs text-[#9C9C9C]">
-                      {formatDate(item.startDate)} - {formatDate(item.endDate)}
+                      {formatEventDateRangeInLaPaz(item.startDate, item.endDate)}
                     </p>
                   </div>
                 </div>
@@ -434,32 +452,106 @@ export function AdminEventsSection({
 
                 <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                   Fecha inicio
-                  <input
-                    type="date"
-                    value={eventForm.startDate}
-                    onChange={(event) =>
-                      setEventForm((prev) => ({
-                        ...prev,
-                        startDate: event.target.value,
-                      }))
-                    }
-                    className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      ref={startDateInputRef}
+                      type="date"
+                      value={eventForm.startDate}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          startDate: event.target.value,
+                        }))
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 pr-10 text-sm text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => openNativePicker(startDateInputRef.current)}
+                      className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
+                      aria-label="Abrir selector de fecha de inicio"
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                    </button>
+                  </div>
+                </label>
+
+                <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
+                  Hora inicio
+                  <div className="relative">
+                    <input
+                      ref={startTimeInputRef}
+                      type="time"
+                      value={eventForm.startTime}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          startTime: event.target.value,
+                        }))
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 pr-10 text-sm text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => openNativePicker(startTimeInputRef.current)}
+                      className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
+                      aria-label="Abrir selector de hora de inicio"
+                    >
+                      <Clock3 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </label>
 
                 <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                   Fecha fin
-                  <input
-                    type="date"
-                    value={eventForm.endDate}
-                    onChange={(event) =>
-                      setEventForm((prev) => ({
-                        ...prev,
-                        endDate: event.target.value,
-                      }))
-                    }
-                    className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      ref={endDateInputRef}
+                      type="date"
+                      value={eventForm.endDate}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          endDate: event.target.value,
+                        }))
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 pr-10 text-sm text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => openNativePicker(endDateInputRef.current)}
+                      className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
+                      aria-label="Abrir selector de fecha de fin"
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                    </button>
+                  </div>
+                </label>
+
+                <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
+                  Hora fin
+                  <div className="relative">
+                    <input
+                      ref={endTimeInputRef}
+                      type="time"
+                      value={eventForm.endTime}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          endTime: event.target.value,
+                        }))
+                      }
+                      className="h-10 w-full appearance-none rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 pr-10 text-sm text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => openNativePicker(endTimeInputRef.current)}
+                      className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
+                      aria-label="Abrir selector de hora de fin"
+                    >
+                      <Clock3 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </label>
 
                 <label className="flex flex-col gap-1 text-xs text-[#A8A8A8] md:col-span-2">
