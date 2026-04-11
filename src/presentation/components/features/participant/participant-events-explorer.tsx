@@ -7,12 +7,8 @@ import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
-<<<<<<< Updated upstream
-import { Skeleton } from "@/presentation/components/ui";
-=======
 import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
->>>>>>> Stashed changes
 
 const outfit = Outfit({
   subsets: ["latin"],

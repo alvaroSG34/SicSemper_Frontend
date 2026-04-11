@@ -7,6 +7,7 @@ export type AdminSectionId =
   | "categorias"
   | "admins"
   | "permisos"
+  | "landing"
   | "ajustes";
 
 type CrudPermissionSet = {
@@ -83,6 +84,7 @@ export const createAdminAccessMatrix = (
       categorias: moduleAccess.categories.read,
       admins: isSuperadmin && moduleAccess.adminPermissions.read,
       permisos: isSuperadmin && moduleAccess.adminPermissions.read,
+      landing: isSuperadmin,
       ajustes: true,
     },
     module: moduleAccess,
@@ -102,6 +104,7 @@ export const listAvailableAdminSections = (
     "categorias",
     "admins",
     "permisos",
+    "landing",
     "ajustes",
   ];
 
@@ -119,6 +122,7 @@ export const emptyAdminAccessMatrix = (): AdminAccessMatrix => ({
     categorias: false,
     admins: false,
     permisos: false,
+    landing: false,
     ajustes: true,
   },
   module: {

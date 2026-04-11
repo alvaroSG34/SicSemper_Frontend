@@ -1,6 +1,6 @@
 ﻿import Image from "next/image";
 import { Bus, Car, MapPin } from "lucide-react";
-import { locationCards, locationMapImage, locationMapUrl } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
 const iconByKey = {
   mapPin: MapPin,
@@ -8,7 +8,11 @@ const iconByKey = {
   parking: Car,
 } as const;
 
-export function LandingLocation() {
+type LandingLocationProps = {
+  content: LandingContent;
+};
+
+export function LandingLocation({ content }: LandingLocationProps) {
   return (
     <section
       id="ubicacion"
@@ -24,14 +28,14 @@ export function LandingLocation() {
       </div>
 
       <a
-        href={locationMapUrl}
+        href={content.locationMapUrl}
         target="_blank"
         rel="noreferrer"
         aria-label="Abrir ubicación del evento en Google Maps"
         className="group relative block h-[320px] w-full overflow-hidden rounded-[32px] border border-[color:var(--landing-border)] xl:h-[450px]"
       >
         <Image
-          src={locationMapImage}
+          src={content.locationMapImage}
           alt="Ubicación del evento"
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
@@ -44,7 +48,7 @@ export function LandingLocation() {
       </a>
 
       <div className="flex w-full flex-wrap justify-center gap-6">
-        {locationCards.map((card) => {
+        {content.locationCards.map((card) => {
           const Icon = iconByKey[card.icon as keyof typeof iconByKey] ?? MapPin;
           return (
             <article

@@ -1,7 +1,11 @@
 import Image from "next/image";
-import { featuredSpeakersGroup } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
-export function LandingFeaturedSpeakers() {
+type LandingFeaturedSpeakersProps = {
+  content: LandingContent;
+};
+
+export function LandingFeaturedSpeakers({ content }: LandingFeaturedSpeakersProps) {
   return (
     <section
       id="equipo"
@@ -13,7 +17,7 @@ export function LandingFeaturedSpeakers() {
 
       <div className="relative h-[320px] w-full max-w-[980px] overflow-hidden rounded-[32px] border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.35)] md:h-[420px]">
         <Image
-          src={featuredSpeakersGroup.image}
+          src={content.featuredSpeakersGroup.image}
           alt="Organizadores posando juntos"
           fill
           className="object-cover"

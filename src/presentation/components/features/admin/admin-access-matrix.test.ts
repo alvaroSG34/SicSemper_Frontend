@@ -83,6 +83,7 @@ describe('admin-access-matrix', () => {
       'categorias',
       'admins',
       'permisos',
+      'landing',
       'ajustes',
     ]);
     expect(matrix.module.events.delete).toBe(true);

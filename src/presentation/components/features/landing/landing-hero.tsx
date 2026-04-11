@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@/domain/user/user.types";
+import type { LandingContent } from "@/domain/landing/landing.types";
 import { useAuthStore } from "@/presentation/stores";
-import { heroDate, heroTitle } from "./landing-data";
 
 const dashboardRouteByRole: Record<UserRole, string> = {
   PARTICIPANTE: "/participante/inicio",
@@ -13,7 +13,11 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   SUPERADMIN: "/admin/inicio",
 };
 
-export function LandingHero() {
+type LandingHeroProps = {
+  content: LandingContent;
+};
+
+export function LandingHero({ content }: LandingHeroProps) {
   const router = useRouter();
   const initialized = useAuthStore((state) => state.initialized);
   const initializeSession = useAuthStore((state) => state.initializeSession);
@@ -63,10 +67,10 @@ export function LandingHero() {
       className="flex w-full flex-col items-center gap-8 px-6 py-16 text-center md:px-10 xl:gap-12 xl:px-[120px] xl:py-20"
     >
       <p className="text-[15px] font-normal tracking-[1px] text-[color:var(--landing-pink)]">
-        {heroDate}
+        {content.heroDate}
       </p>
       <h1 className="whitespace-pre-line text-4xl leading-[1.2] font-bold text-[color:var(--landing-text)] md:text-5xl xl:text-[56px]">
-        {heroTitle}
+        {content.heroTitle}
       </h1>
       <button
         type="button"

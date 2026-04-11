@@ -13,6 +13,7 @@ import {
   Crown,
   FolderTree,
   Home,
+  ImageIcon,
   KeyRound,
   LogOut,
   Settings,
@@ -33,6 +34,7 @@ import { AdminCategoriesSection } from "@/presentation/components/features/admin
 import { AdminAdminsSection } from "@/presentation/components/features/admin/admin-admins-section";
 import { AdminAdminPermissionsManager } from "@/presentation/components/features/admin/admin-admin-permissions-manager";
 import { AdminPermissionsSection } from "@/presentation/components/features/admin/admin-permissions-section";
+import { AdminLandingSection } from "@/presentation/components/features/admin/admin-landing-section";
 import { AdminNotificationsBell } from "@/presentation/components/features/admin/admin-notifications-bell";
 import {
   createAdminAccessMatrix,
@@ -75,6 +77,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "clubes", label: "Clubes", icon: Shield },
   { id: "admins", label: "Admins", icon: Crown },
   { id: "permisos", label: "Permisos", icon: KeyRound },
+  { id: "landing", label: "Landing", icon: ImageIcon },
   { id: "categorias", label: "Categorias", icon: FolderTree },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
@@ -161,7 +164,8 @@ export function AdminDashboardPage({
   );
   const availableSections = useMemo(() => listAvailableAdminSections(adminAccess), [adminAccess]);
   const firstAvailableSection = availableSections[0] ?? "inicio";
-  const sectionRequiresDashboardData = activeSection !== "inicio" && activeSection !== "ajustes";
+  const sectionRequiresDashboardData =
+    activeSection !== "inicio" && activeSection !== "ajustes" && activeSection !== "landing";
   const permissionsResolved = sectionRequiresDashboardData ? dashboard !== null : summary !== null || dashboard !== null;
 
   useEffect(() => {
@@ -562,6 +566,10 @@ export function AdminDashboardPage({
                 permissionSearch={permissionSearch}
                 onPermissionSearchChange={setPermissionSearch}
               />
+            ) : null}
+
+            {activeSection === "landing" && adminAccess.section.landing ? (
+              <AdminLandingSection headingClassName={outfit.className} />
             ) : null}
 
             {activeSection === "ajustes" ? (

@@ -25,6 +25,9 @@ const adminErrorMessages: Record<string, string> = {
   EVENT_IMAGE_FILE_REQUIRED: "Debes seleccionar una imagen para continuar.",
   EVENT_IMAGE_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG o WEBP.",
   EVENT_IMAGE_FILE_SIZE_INVALID: "La imagen del evento debe pesar maximo 2MB.",
+  LANDING_IMAGE_FILE_REQUIRED: "Debes seleccionar una imagen para la landing.",
+  LANDING_IMAGE_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG, WEBP o GIF.",
+  LANDING_IMAGE_FILE_SIZE_INVALID: "La imagen de la landing debe pesar maximo 5MB.",
   SUPERADMIN_IMMUTABLE: "No se puede modificar un usuario con rol SUPERADMIN.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
 };

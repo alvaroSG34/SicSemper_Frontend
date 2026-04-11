@@ -1,10 +1,14 @@
 import Image from "next/image";
-import { modelCards } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
-export function LandingModelCards() {
+type LandingModelCardsProps = {
+  content: LandingContent;
+};
+
+export function LandingModelCards({ content }: LandingModelCardsProps) {
   return (
     <section className="flex w-full flex-wrap justify-center gap-6 px-6 py-0 md:px-10 xl:flex-nowrap xl:px-[120px]">
-      {modelCards.map((model) => (
+      {content.modelCards.map((model) => (
         <article
           key={model.name}
           className="flex h-[340px] w-[280px] flex-col rounded-[12px] bg-[color:var(--landing-bg)] p-3"

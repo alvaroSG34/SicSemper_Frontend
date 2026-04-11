@@ -1,11 +1,6 @@
-<<<<<<< Updated upstream
-import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
-=======
 import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarDays, Clock3 } from 'lucide-react';
->>>>>>> Stashed changes
 import type {
   AdminClub,
   CatalogCategory,

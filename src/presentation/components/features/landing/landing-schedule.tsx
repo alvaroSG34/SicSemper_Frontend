@@ -1,6 +1,10 @@
-import { scheduleItems } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
-export function LandingSchedule() {
+type LandingScheduleProps = {
+  content: LandingContent;
+};
+
+export function LandingSchedule({ content }: LandingScheduleProps) {
   return (
     <section
       id="agenda"
@@ -32,7 +36,7 @@ export function LandingSchedule() {
         </div>
 
         <div className="flex flex-col gap-8">
-          {scheduleItems.map((item) => (
+          {content.scheduleItems.map((item) => (
             <article key={item.time} className="flex w-full flex-col gap-3 sm:flex-row sm:gap-6">
               <p className="min-w-[160px] text-[13px] text-[color:var(--landing-muted)]">
                 {item.time}

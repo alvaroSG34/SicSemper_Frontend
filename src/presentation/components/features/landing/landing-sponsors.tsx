@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { sponsors } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
 const AUTO_PLAY_MS = 3500;
 
@@ -18,7 +18,11 @@ const getItemsPerSlide = (width: number) => {
   return 1;
 };
 
-export function LandingSponsors() {
+type LandingSponsorsProps = {
+  content: LandingContent;
+};
+
+export function LandingSponsors({ content }: LandingSponsorsProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [itemsPerSlide, setItemsPerSlide] = useState(1);
@@ -39,12 +43,12 @@ export function LandingSponsors() {
   const slides = useMemo(() => {
     const grouped: string[][] = [];
 
-    for (let i = 0; i < sponsors.main.length; i += itemsPerSlide) {
-      grouped.push(sponsors.main.slice(i, i + itemsPerSlide));
+    for (let i = 0; i < content.sponsors.main.length; i += itemsPerSlide) {
+      grouped.push(content.sponsors.main.slice(i, i + itemsPerSlide));
     }
 
     return grouped;
-  }, [itemsPerSlide]);
+  }, [content.sponsors.main, itemsPerSlide]);
 
   const totalSlides = slides.length;
   const safeActiveIndex = totalSlides === 0 ? 0 : Math.min(activeIndex, totalSlides - 1);

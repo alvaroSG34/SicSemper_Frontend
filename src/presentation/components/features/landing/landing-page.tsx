@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import type { LandingContent } from "@/domain/landing/landing.types";
 import { LandingAmbientBackground } from "./landing-ambient-background";
 import { LandingFooter } from "./landing-footer";
 import { LandingHeader } from "./landing-header";
@@ -16,32 +17,36 @@ const LandingSchedule = dynamic(() => import("./landing-schedule").then((module)
 const LandingSponsors = dynamic(() => import("./landing-sponsors").then((module) => module.LandingSponsors));
 const LandingLocation = dynamic(() => import("./landing-location").then((module) => module.LandingLocation));
 
-export function LandingPageFeature() {
+type LandingPageFeatureProps = {
+  content: LandingContent;
+};
+
+export function LandingPageFeature({ content }: LandingPageFeatureProps) {
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-[color:var(--landing-bg)]">
       <LandingAmbientBackground />
       <div className="relative z-10 flex w-full flex-col">
         <LandingHeader />
         <LandingReveal>
-          <LandingHero />
+          <LandingHero content={content} />
         </LandingReveal>
         <LandingReveal delayMs={50}>
-          <LandingOrganizersCard />
+          <LandingOrganizersCard content={content} />
         </LandingReveal>
         <LandingReveal delayMs={80}>
-          <LandingEvents />
+          <LandingEvents content={content} />
         </LandingReveal>
         <LandingReveal delayMs={110}>
-          <LandingFeaturedSpeakers />
+          <LandingFeaturedSpeakers content={content} />
         </LandingReveal>
         <LandingReveal delayMs={140}>
-          <LandingSchedule />
+          <LandingSchedule content={content} />
         </LandingReveal>
         <LandingReveal delayMs={170}>
-          <LandingSponsors />
+          <LandingSponsors content={content} />
         </LandingReveal>
         <LandingReveal delayMs={200}>
-          <LandingLocation />
+          <LandingLocation content={content} />
         </LandingReveal>
         <LandingFooter />
       </div>

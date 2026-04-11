@@ -26,6 +26,7 @@ import type {
   UpdateEventPayload,
   UpdateSubcategoryPayload,
 } from "@/domain/admin/admin.types";
+import type { LandingAsset, LandingContent, LandingDraftState } from "@/domain/landing/landing.types";
 import type { User } from "@/domain/user/user.types";
 
 export type SyntheticCatalog = AdminDashboardData["catalog"];
@@ -35,6 +36,11 @@ export interface AdminService {
   getDashboardData(): Promise<AdminDashboardData>;
   uploadClubLogo(file: File): Promise<{ url: string }>;
   uploadEventImage(file: File): Promise<{ url: string }>;
+  uploadLandingAsset(file: File): Promise<LandingAsset>;
+  listLandingAssets(): Promise<LandingAsset[]>;
+  getLandingDraftState(): Promise<LandingDraftState>;
+  updateLandingDraft(payload: LandingContent): Promise<LandingDraftState>;
+  publishLandingDraft(): Promise<LandingDraftState>;
   listUsers(): Promise<User[]>;
   createClub(payload: CreateClubPayload): Promise<AdminClub>;
   updateClub(payload: UpdateClubPayload): Promise<AdminClub>;

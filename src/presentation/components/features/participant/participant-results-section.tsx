@@ -6,12 +6,8 @@ import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
-<<<<<<< Updated upstream
-import { Skeleton } from "@/presentation/components/ui";
-=======
 import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
 import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
->>>>>>> Stashed changes
 import { ParticipantUploadModelWizard } from "./participant-upload-model-wizard";
 import { useParticipantResults } from "./use-participant-results";
 

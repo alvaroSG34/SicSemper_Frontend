@@ -9,6 +9,7 @@ export const adminSectionRouteById: Record<AdminSectionId, string> = {
   categorias: "/admin/categorias",
   admins: "/admin/admins",
   permisos: "/admin/permisos",
+  landing: "/admin/landing",
   ajustes: "/admin/ajustes",
 };
 

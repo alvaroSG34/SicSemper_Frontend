@@ -1,7 +1,11 @@
 import Image from "next/image";
-import { eventsCopy } from "./landing-data";
+import type { LandingContent } from "@/domain/landing/landing.types";
 
-export function LandingEvents() {
+type LandingEventsProps = {
+  content: LandingContent;
+};
+
+export function LandingEvents({ content }: LandingEventsProps) {
   return (
     <section
       id="acerca"
@@ -9,21 +13,21 @@ export function LandingEvents() {
     >
       <div className="flex w-full max-w-[500px] flex-col gap-6">
         <h2 className="whitespace-pre-line text-4xl leading-[1.1] font-bold text-[color:var(--landing-text)] xl:text-5xl">
-          {eventsCopy.title}
+          {content.eventsCopy.title}
         </h2>
         <p className="text-base font-semibold text-[color:var(--landing-text)]">
-          {eventsCopy.subtitle}
+          {content.eventsCopy.subtitle}
         </p>
         <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[color:var(--landing-muted)]">
-          {eventsCopy.descriptionOne}
+          {content.eventsCopy.descriptionOne}
         </p>
         <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[color:var(--landing-muted)]">
-          {eventsCopy.descriptionTwo}
+          {content.eventsCopy.descriptionTwo}
         </p>
       </div>
 
       <Image
-        src={eventsCopy.image}
+        src={content.eventsCopy.image}
         alt="Eventos destacados"
         width={500}
         height={340}
