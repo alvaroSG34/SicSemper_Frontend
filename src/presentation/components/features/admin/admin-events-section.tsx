@@ -1,5 +1,5 @@
 import { ImageWithSkeleton } from '@/presentation/components/ui';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CalendarDays, Clock3 } from 'lucide-react';
 import type {
   AdminClub,
@@ -31,6 +31,28 @@ type AdminEventsSectionProps = {
   canReadJudgeAssignments: boolean;
   canManageJudgeAssignments: boolean;
 };
+
+const TriStateCheckbox = ({
+  checked,
+  indeterminate,
+  onChange,
+}: {
+  checked: boolean;
+  indeterminate: boolean;
+  onChange: () => void;
+}) => (
+  <input
+    type="checkbox"
+    checked={checked}
+    ref={(input) => {
+      if (input) {
+        input.indeterminate = indeterminate;
+      }
+    }}
+    onChange={onChange}
+    className="h-4 w-4 accent-[#5B68F1]"
+  />
+);
 
 export function AdminEventsSection({
   events,
@@ -71,18 +93,16 @@ export function AdminEventsSection({
   const {
     actionFeedback,
     filteredEvents,
-    eventSearch,
-    setEventSearch,
-    eventStatusFilter,
-    setEventStatusFilter,
     eventStatusOptions,
     openCreateEventModal,
     openEditEventModal,
     eventModalMode,
     eventModalStep,
     setEventModalStep,
-    eventModalSelectedCategoryIds,
+    eventModalSelectedLeafIds,
     toggleCategorySelection,
+    eventModalCategoryTree,
+    getCategoryNodeSelectionState,
     eventModalError,
     eventForm,
     setEventForm,
@@ -94,8 +114,6 @@ export function AdminEventsSection({
     eventModalCategoryRemovalImpact,
     handleFinalizeEventModal,
     closeEventModal,
-    categoryItems,
-    subcategoriesByCategoryId,
     pendingAction,
     eventDeleteImpactModal,
     openEventDeleteImpactModal,
@@ -115,10 +133,11 @@ export function AdminEventsSection({
     selectedEventId,
     setSelectedEventId,
     eligibleJudges,
-    selectedCategoryNodes,
+    selectedCategoryTree,
     assignedJudgeIds,
     judgeSubcategoryDraft,
-    setJudgeSubcategoryDraft,
+    toggleJudgeCategoryNode,
+    getJudgeNodeSelectionState,
     assignJudgeToEventDraft,
     unassignJudgeFromEventDraft,
     judgeValidationIssues,
@@ -136,6 +155,9 @@ export function AdminEventsSection({
   });
 
   const [managedEventId, setManagedEventId] = useState<string | null>(null);
+  const [expandedCategoryNodeIds, setExpandedCategoryNodeIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const managedEvent = useMemo(
     () => (managedEventId ? events.find((eventItem) => eventItem.id === managedEventId) ?? null : null),
@@ -159,6 +181,32 @@ export function AdminEventsSection({
   const handleCloseJudgeManager = () => {
     setManagedEventId(null);
   };
+
+  const toggleCategoryNodeExpanded = (nodeId: string) => {
+    setExpandedCategoryNodeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
+  const selectedLeafCount = useMemo(
+    () => eventModalSelectedLeafIds.size,
+    [eventModalSelectedLeafIds],
+  );
+  const totalLeafCount = useMemo(
+    () =>
+      eventModalCategoryTree.reduce(
+        (accumulator, rootNode) =>
+          accumulator + getCategoryNodeSelectionState(rootNode.id).totalLeaves,
+        0,
+      ),
+    [eventModalCategoryTree, getCategoryNodeSelectionState],
+  );
 
   const handleFinalizeWithGuard = async () => {
     if (eventModalMode === 'edit' && eventModalCategoryRemovalImpact.removedEventCategoryIds.length > 0) {
@@ -338,7 +386,7 @@ export function AdminEventsSection({
               <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
                 Preparando gestor de asignaciones...
               </p>
-            ) : selectedCategoryNodes.length === 0 ? (
+            ) : selectedCategoryTree.length === 0 ? (
               <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
                 Este evento no tiene categorias/subcategorias vinculadas para asignar jueces.
               </p>
@@ -347,12 +395,13 @@ export function AdminEventsSection({
                 judges={eligibleJudges}
                 assignedJudgeIds={assignedJudgeIds}
                 selectionsByJudge={judgeSubcategoryDraft}
-                categories={selectedCategoryNodes}
+                categoryTree={selectedCategoryTree}
                 pending={Boolean(pendingAssignmentAction)}
                 canManage={canManageJudgeAssignments}
                 onAssignJudge={assignJudgeToEventDraft}
                 onUnassignJudge={unassignJudgeFromEventDraft}
-                onSetJudgeSelections={setJudgeSubcategoryDraft}
+                onToggleJudgeNode={toggleJudgeCategoryNode}
+                getJudgeNodeSelectionState={getJudgeNodeSelectionState}
                 validationIssues={judgeValidationIssues}
                 leftTitle="Lista de jueces no asignados"
                 rightTitle="Lista de jueces asignados"
@@ -657,52 +706,68 @@ export function AdminEventsSection({
             {eventModalStep === 2 ? (
               <div>
                 <p className="mb-4 text-sm text-[#AAAAAA]">
-                  Selecciona las categorias disponibles en este evento. Las subcategorias se incluyen automaticamente.
+                  Selecciona exactamente las categorias disponibles. Puedes marcar padres para seleccionar o desmarcar todo su descendiente.
                 </p>
-                {categoryItems.length === 0 ? (
+                <p className="mb-3 text-xs text-[#9C9C9C]">
+                  Seleccionadas: {selectedLeafCount} de {totalLeafCount} categorias.
+                </p>
+                {eventModalCategoryTree.length === 0 ? (
                   <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
                     No hay categorias creadas aun. Puedes vincularlas despues en la seccion Categorias.
                   </p>
                 ) : (
                   <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                    {categoryItems.map((category) => {
-                      const isSelected = eventModalSelectedCategoryIds.has(category.id);
-                      const subs = subcategoriesByCategoryId.get(category.id) ?? [];
-                      return (
-                        <label
-                          key={category.id}
-                          className={`block cursor-pointer rounded-xl border px-4 py-3 transition-colors ${
-                            isSelected
-                              ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.12)]'
-                              : 'border-[#2D2D2D] bg-[#121212]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleCategorySelection(category.id)}
-                              className="h-4 w-4 accent-[#5B68F1]"
-                            />
-                            <span className="text-sm font-semibold text-white">{category.name}</span>
-                            {subs.length > 0 ? (
-                              <span className="text-xs text-[#9C9C9C]">{subs.length} subcategoria(s)</span>
+                    {eventModalCategoryTree.map((rootNode) => {
+                      const renderNode = (
+                        node: (typeof eventModalCategoryTree)[number],
+                      ): ReactNode => {
+                        const hasChildren = node.children.length > 0;
+                        const selectionState = getCategoryNodeSelectionState(node.id);
+                        const isExpanded = hasChildren && expandedCategoryNodeIds.has(node.id);
+
+                        return (
+                          <div
+                            key={node.id}
+                            className={`rounded-xl border px-3 py-2 ${
+                              selectionState.checked
+                                ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.12)]'
+                                : selectionState.indeterminate
+                                  ? 'border-[#3f478f] bg-[rgba(63,71,143,0.15)]'
+                                  : 'border-[#2D2D2D] bg-[#121212]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <TriStateCheckbox
+                                checked={selectionState.checked}
+                                indeterminate={selectionState.indeterminate}
+                                onChange={() => toggleCategorySelection(node.id)}
+                              />
+                              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
+                                {node.name}
+                              </span>
+                              <span className="text-[11px] text-[#A8A8A8]">
+                                {selectionState.selectedLeaves}/{selectionState.totalLeaves}
+                              </span>
+                              {hasChildren ? (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleCategoryNodeExpanded(node.id)}
+                                  className="rounded-md border border-[#2D2D2D] px-2 py-1 text-[11px] text-white"
+                                >
+                                  {isExpanded ? 'Ocultar' : 'Ver'}
+                                </button>
+                              ) : null}
+                            </div>
+                            {hasChildren && isExpanded ? (
+                              <div className="mt-2 space-y-2 border-l border-[#2D2D2D] pl-3">
+                                {node.children.map((childNode) => renderNode(childNode))}
+                              </div>
                             ) : null}
                           </div>
-                          {isSelected && subs.length > 0 ? (
-                            <div className="mt-2 flex flex-wrap gap-1.5 pl-7">
-                              {subs.map((subcategory) => (
-                                <span
-                                  key={subcategory.id}
-                                  className="rounded-full border border-[#5B68F1]/40 bg-[rgba(91,104,241,0.15)] px-2 py-0.5 text-[11px] text-[#A8AFFF]"
-                                >
-                                  {subcategory.name}
-                                </span>
-                              ))}
-                            </div>
-                          ) : null}
-                        </label>
-                      );
+                        );
+                      };
+
+                      return renderNode(rootNode);
                     })}
                   </div>
                 )}

@@ -57,5 +57,7 @@ describe("JudgeEventosSection", () => {
     expect(screen.getByText("General (toda la categoría)")).toBeTruthy();
     expect(screen.getByText("Helicopteros")).toBeTruthy();
     expect(screen.getByText("Jets")).toBeTruthy();
+    const actionLink = screen.getByRole("link", { name: /Calificar maquetas/i });
+    expect(actionLink.getAttribute("href")).toBe("/juez/calificar/event-1/nivel-1");
   });
 });

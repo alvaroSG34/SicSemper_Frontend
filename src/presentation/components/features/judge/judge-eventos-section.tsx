@@ -88,7 +88,7 @@ export function JudgeEventosSection() {
                   </div>
 
                   <Link
-                    href={`/juez/calificar?eventId=${encodeURIComponent(event.id)}`}
+                    href={`/juez/calificar/${encodeURIComponent(event.id)}/nivel-1`}
                     className="mt-4 inline-flex h-9 items-center justify-center gap-1 rounded-[18px] border border-[#10B981]/60 bg-[#17261E] px-4 text-xs font-semibold text-white"
                   >
                     Calificar maquetas

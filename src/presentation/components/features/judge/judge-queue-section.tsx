@@ -12,6 +12,10 @@ import { useJudgeQueue } from "./use-judge-queue";
 type JudgeQueueSectionProps = {
   headingClassName: string;
   lockedEventId?: string;
+  lockedCategoryId?: string;
+  tableView?: boolean;
+  hideFilters?: boolean;
+  showLockedEventSummary?: boolean;
 };
 
 const criteriaFields: Array<{ key: keyof Required<JudgeReviewCriteria>; label: string }> = [
@@ -58,7 +62,14 @@ const normalizeRubricScore = (rawValue: string): number | undefined => {
   return Math.min(10, Math.max(0, integerValue));
 };
 
-export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueueSectionProps) {
+export function JudgeQueueSection({
+  headingClassName,
+  lockedEventId,
+  lockedCategoryId,
+  tableView = false,
+  hideFilters = false,
+  showLockedEventSummary = true,
+}: JudgeQueueSectionProps) {
   const {
     loading,
     modelFilters,
@@ -75,7 +86,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
     startReview,
     saveDraft,
     submitReview,
-  } = useJudgeQueue({ eventId: lockedEventId });
+  } = useJudgeQueue({ eventId: lockedEventId, categoryId: lockedCategoryId });
   const assignedEvents = useJudgeStore((state) => state.dashboard?.assignedEvents ?? []);
 
   const [searchText, setSearchText] = useState(modelFilters.search ?? "");
@@ -159,33 +170,6 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
     return groupJudgeAssignedScopes(lockedEvent?.assignedScopes ?? []);
   }, [assignedEvents, lockedEventId]);
 
-  useEffect(() => {
-    if (!lockedEventId) {
-      return;
-    }
-
-    if (modelFilters.eventId === lockedEventId) {
-      return;
-    }
-
-    void loadModels({
-      page: 1,
-      pageSize: modelFilters.pageSize,
-      status: modelFilters.status,
-      priority: modelFilters.priority,
-      search: modelFilters.search,
-      eventId: lockedEventId,
-    });
-  }, [
-    lockedEventId,
-    modelFilters.eventId,
-    modelFilters.pageSize,
-    modelFilters.priority,
-    modelFilters.search,
-    modelFilters.status,
-    loadModels,
-  ]);
-
   const handleChangeFilter = async (
     partial: Partial<{
       status: "ENVIADA" | "EN_REVISION" | "CALIFICADA" | "";
@@ -206,6 +190,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
       search: modelFilters.search,
       pageSize: modelFilters.pageSize,
       eventId: lockedEventId ?? modelFilters.eventId,
+      categoryId: lockedCategoryId ?? modelFilters.categoryId,
     });
   };
 
@@ -217,6 +202,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
       status: modelFilters.status,
       priority: modelFilters.priority,
       eventId: lockedEventId ?? modelFilters.eventId,
+      categoryId: lockedCategoryId ?? modelFilters.categoryId,
     });
   };
 
@@ -290,7 +276,7 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
         <p className="text-sm text-[#AAAAAA] sm:text-base">
           Evalúa tus maquetas asignadas con borrador, envío final y cierre por cobertura.
         </p>
-        {lockedEventId ? (
+        {lockedEventId && showLockedEventSummary ? (
           <div className="mt-2 space-y-3">
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-[#8BA3FF]">
@@ -338,103 +324,168 @@ export function JudgeQueueSection({ headingClassName, lockedEventId }: JudgeQueu
         ) : null}
       </div>
 
-      <div className="grid gap-4 rounded-2xl border border-[#2B2B2B] bg-[#171717] p-4 md:grid-cols-[1fr_auto_auto_auto]">
-        <input
-          type="text"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-          placeholder="Buscar por modelo, código o participante"
-          className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white outline-none focus:border-[#5B68F1]"
-        />
-        <select
-          value={modelFilters.status ?? ""}
-          onChange={(event) => void handleChangeFilter({ status: event.target.value as "ENVIADA" | "EN_REVISION" | "CALIFICADA" | "" })}
-          className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white"
-        >
-          <option value="">Todos los estados</option>
-          <option value="ENVIADA">ENVIADA</option>
-          <option value="EN_REVISION">EN_REVISION</option>
-          <option value="CALIFICADA">CALIFICADA</option>
-        </select>
-        <select
-          value={modelFilters.priority ?? ""}
-          onChange={(event) => void handleChangeFilter({ priority: event.target.value as "Alta" | "Media" | "Baja" | "" })}
-          className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white"
-        >
-          <option value="">Todas las prioridades</option>
-          <option value="Alta">Alta</option>
-          <option value="Media">Media</option>
-          <option value="Baja">Baja</option>
-        </select>
-        <button
-          type="button"
-          onClick={() => void handleSearch()}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-[#5B68F1]/60 bg-[#252B4A] px-4 text-xs font-semibold text-white"
-        >
-          Buscar
-        </button>
-      </div>
+      {!hideFilters ? (
+        <div className="grid gap-4 rounded-2xl border border-[#2B2B2B] bg-[#171717] p-4 md:grid-cols-[1fr_auto_auto_auto]">
+          <input
+            type="text"
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="Buscar por modelo, código o participante"
+            className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white outline-none focus:border-[#5B68F1]"
+          />
+          <select
+            value={modelFilters.status ?? ""}
+            onChange={(event) => void handleChangeFilter({ status: event.target.value as "ENVIADA" | "EN_REVISION" | "CALIFICADA" | "" })}
+            className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white"
+          >
+            <option value="">Todos los estados</option>
+            <option value="ENVIADA">ENVIADA</option>
+            <option value="EN_REVISION">EN_REVISION</option>
+            <option value="CALIFICADA">CALIFICADA</option>
+          </select>
+          <select
+            value={modelFilters.priority ?? ""}
+            onChange={(event) => void handleChangeFilter({ priority: event.target.value as "Alta" | "Media" | "Baja" | "" })}
+            className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white"
+          >
+            <option value="">Todas las prioridades</option>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => void handleSearch()}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[#5B68F1]/60 bg-[#252B4A] px-4 text-xs font-semibold text-white"
+          >
+            Buscar
+          </button>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
-          {models?.items.map((item) => (
-            <article
-              key={item.id}
-              className={`grid gap-3 rounded-xl border p-4 transition md:grid-cols-[1fr_auto] ${
-                selectedModelId === item.id
-                  ? "border-[#5B68F1] bg-[#1D223A]"
-                  : "border-[#2B2B2B] bg-[#191919]"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => void selectModel(item.id)}
-                className="flex flex-col items-start gap-1 text-left"
-              >
-                <p className="text-sm font-semibold text-white">{item.project}</p>
-                <p className="text-xs text-[#999999]">
-                  {item.code} · {item.category} · {item.participantName}
-                </p>
-                <p className="text-xs text-[#777777]">{item.eventName}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="rounded-full border border-[#3A2A2A] bg-[#2A171D] px-2 py-1 text-[#F15BB5]">
-                    Prioridad {item.priority}
-                  </span>
-                  <span className="rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-[#8BA3FF]">
-                    {item.dueLabel}
-                  </span>
-                  <span className="rounded-full border border-[#2A3A30] bg-[#17261E] px-2 py-1 text-[#34D399]">
-                    {item.reviewStatus}
-                  </span>
-                </div>
-              </button>
-
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {item.status === "ENVIADA" ? (
-                  <button
-                    type="button"
-                    disabled={loading || modelsLoading}
-                    onClick={() => void startReview(item.id)}
-                    className="inline-flex h-9 items-center justify-center gap-1 rounded-[18px] border border-[#5B68F1]/60 bg-[#252B4A] px-4 text-xs font-semibold text-white"
-                  >
-                    Iniciar
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
-                {item.reviewStatus !== "SUBMITTED" ? (
-                  <button
-                    type="button"
-                    disabled={loading || modelsLoading}
-                    onClick={() => void handleOpenScoreModal(item.id)}
-                    className="inline-flex h-9 items-center justify-center gap-1 rounded-[18px] border border-[#10B981]/60 bg-[#17261E] px-4 text-xs font-semibold text-white disabled:opacity-50"
-                  >
-                    Calificar
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  </button>
-                ) : null}
+          {tableView ? (
+            <div className="overflow-hidden rounded-xl border border-[#2B2B2B] bg-[#151515]">
+              <div className="grid grid-cols-[52px_2fr_1.1fr_1.1fr_160px] gap-2 border-b border-[#262626] bg-[#1A1A1A] px-4 py-3 text-[11px] font-semibold tracking-[0.4px] text-[#9C9C9C] uppercase">
+                <span>#</span>
+                <span>Nombre / Equipo</span>
+                <span>Estado</span>
+                <span>Calificacion</span>
+                <span>Accion</span>
               </div>
-            </article>
-          ))}
+              {models?.items.map((item, index) => {
+                const rowNumber = (currentPage - 1) * (models?.pageSize ?? 12) + index + 1;
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`grid grid-cols-[52px_2fr_1.1fr_1.1fr_160px] items-center gap-2 border-b border-[#232323] px-4 py-3 text-sm last:border-b-0 ${
+                      selectedModelId === item.id ? "bg-[#1D223A]" : "bg-[#161616]"
+                    }`}
+                  >
+                    <span className="text-xs text-[#8C8C8C]">{String(rowNumber).padStart(2, "0")}</span>
+                    <button
+                      type="button"
+                      onClick={() => void selectModel(item.id)}
+                      className="min-w-0 text-left"
+                    >
+                      <p className="truncate font-semibold text-white">{item.project}</p>
+                      <p className="truncate text-xs text-[#9A9A9A]">{item.participantName}</p>
+                    </button>
+                    <span className="inline-flex w-fit rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-xs text-[#8BA3FF]">
+                      {item.status}
+                    </span>
+                    <span className="text-xs text-[#CFCFCF]">
+                      {item.reviewStatus === "SUBMITTED" ? item.myScore?.toFixed(2) ?? "--" : "Pendiente"}
+                    </span>
+                    <div className="flex justify-start">
+                      {item.reviewStatus !== "SUBMITTED" ? (
+                        <button
+                          type="button"
+                          disabled={loading || modelsLoading}
+                          onClick={() => void handleOpenScoreModal(item.id)}
+                          className="inline-flex h-8 items-center justify-center rounded-[14px] border border-[#5B68F1]/70 bg-[#4D58DD] px-4 text-xs font-semibold text-white disabled:opacity-50"
+                        >
+                          Calificar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={loading || modelsLoading}
+                          onClick={() => void handleOpenScoreModal(item.id)}
+                          className="inline-flex h-8 items-center justify-center rounded-[14px] border border-[#303030] bg-[#191919] px-4 text-xs font-semibold text-[#E7E7E7] disabled:opacity-50"
+                        >
+                          Ver detalle
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <>
+              {models?.items.map((item) => (
+                <article
+                  key={item.id}
+                  className={`grid gap-3 rounded-xl border p-4 transition md:grid-cols-[1fr_auto] ${
+                    selectedModelId === item.id
+                      ? "border-[#5B68F1] bg-[#1D223A]"
+                      : "border-[#2B2B2B] bg-[#191919]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => void selectModel(item.id)}
+                    className="flex flex-col items-start gap-1 text-left"
+                  >
+                    <p className="text-sm font-semibold text-white">{item.project}</p>
+                    <p className="text-xs text-[#999999]">
+                      {item.code} · {item.category} · {item.participantName}
+                    </p>
+                    <p className="text-xs text-[#777777]">{item.eventName}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-full border border-[#3A2A2A] bg-[#2A171D] px-2 py-1 text-[#F15BB5]">
+                        Prioridad {item.priority}
+                      </span>
+                      <span className="rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-[#8BA3FF]">
+                        {item.dueLabel}
+                      </span>
+                      <span className="rounded-full border border-[#2A3A30] bg-[#17261E] px-2 py-1 text-[#34D399]">
+                        {item.reviewStatus}
+                      </span>
+                    </div>
+                  </button>
+
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    {item.status === "ENVIADA" ? (
+                      <button
+                        type="button"
+                        disabled={loading || modelsLoading}
+                        onClick={() => void startReview(item.id)}
+                        className="inline-flex h-9 items-center justify-center gap-1 rounded-[18px] border border-[#5B68F1]/60 bg-[#252B4A] px-4 text-xs font-semibold text-white"
+                      >
+                        Iniciar
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                    {item.reviewStatus !== "SUBMITTED" ? (
+                      <button
+                        type="button"
+                        disabled={loading || modelsLoading}
+                        onClick={() => void handleOpenScoreModal(item.id)}
+                        className="inline-flex h-9 items-center justify-center gap-1 rounded-[18px] border border-[#10B981]/60 bg-[#17261E] px-4 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        Calificar
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </>
+          )}
 
           {!modelsLoading && (models?.items.length ?? 0) === 0 ? (
             <p className="rounded-xl border border-[#2D2D2D] bg-[#161616] px-4 py-3 text-sm text-[#9C9C9C]">

@@ -66,6 +66,62 @@ const getErrorMessage = (error: unknown): string => {
   return "Ocurrio un error inesperado al cargar el dashboard de participante.";
 };
 
+const loadSubcategoriesByCategory = async (
+  eventId: string,
+  rootCategories: ParticipantCategoryOption[],
+) => {
+  const map: Record<string, ParticipantSubcategoryOption[]> = {};
+  const visited = new Set<string>();
+  const queue = rootCategories.map((category) => category.id);
+
+  while (queue.length > 0) {
+    const parentId = queue.shift();
+    if (!parentId || visited.has(parentId)) {
+      continue;
+    }
+
+    visited.add(parentId);
+    const children = await participantService.getSubcategoriesForCategory(
+      parentId,
+      eventId,
+    );
+    map[parentId] = children;
+
+    for (const child of children) {
+      if (!visited.has(child.id)) {
+        queue.push(child.id);
+      }
+    }
+  }
+
+  return map;
+};
+
+const collectLeafDescendants = (
+  rootCategoryId: string,
+  subcategoriesByCategory: Record<string, ParticipantSubcategoryOption[]>,
+): ParticipantSubcategoryOption[] => {
+  const leaves: ParticipantSubcategoryOption[] = [];
+  const queue = [...(subcategoriesByCategory[rootCategoryId] ?? [])];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current) {
+      continue;
+    }
+
+    const children = subcategoriesByCategory[current.id] ?? [];
+    if (children.length === 0) {
+      leaves.push(current);
+      continue;
+    }
+
+    queue.push(...children);
+  }
+
+  return leaves;
+};
+
 export const useParticipantStore = create<ParticipantStoreState>((set, get) => ({
   dashboard: null,
   loading: false,
@@ -167,17 +223,15 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       }
 
       const categories = await participantService.getCategoriesForEvent(event.id);
-      const subcategoriesByCategoryEntries = await Promise.all(
-        categories.map(async (category) => [
-          category.id,
-          await participantService.getSubcategoriesForCategory(category.id, event.id),
-        ] as const),
+      const subcategoriesByCategory = await loadSubcategoriesByCategory(
+        event.id,
+        categories,
       );
 
       set({
         selectedEvent: event,
         eventCategories: categories,
-        subcategoriesByCategory: Object.fromEntries(subcategoriesByCategoryEntries),
+        subcategoriesByCategory,
         flowLoading: false,
         flowError: null,
       });
@@ -208,12 +262,17 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       existingRequest ??
       (async () => {
         const categories = await participantService.getCategoriesForEvent(normalizedEventId);
-        const grouped = await Promise.all(
-          categories.map(async (category) => ({
-            category,
-            subcategories: await participantService.getSubcategoriesForCategory(category.id, normalizedEventId),
-          })),
+        const subcategoriesByCategory = await loadSubcategoriesByCategory(
+          normalizedEventId,
+          categories,
         );
+        const grouped = categories.map((category) => ({
+          category,
+          subcategories: collectLeafDescendants(
+            category.id,
+            subcategoriesByCategory,
+          ),
+        }));
         return grouped;
       })();
 

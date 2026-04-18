@@ -41,7 +41,6 @@ export const useAdminCategories = ({
     removeCategory,
     createSubcategory,
     updateSubcategory,
-    removeSubcategory,
   } = useAdminOperations();
   const clearError = useAdminStore((state) => state.clearError);
 
@@ -52,8 +51,8 @@ export const useAdminCategories = ({
   >(null);
   const [categoryForm, setCategoryForm] =
     useState<CategoryFormState>(emptyCategoryForm);
-  const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(
-    null,
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
+    new Set(),
   );
   const [subcategoryModalMode, setSubcategoryModalMode] =
     useState<SubcategoryModalMode | null>(null);
@@ -65,11 +64,6 @@ export const useAdminCategories = ({
   >(null);
   const [subcategoryForm, setSubcategoryForm] =
     useState<SubcategoryFormState>(emptySubcategoryForm);
-  const [subcategoryDeleteModal, setSubcategoryDeleteModal] = useState<{
-    subcategoryId: string;
-    subcategoryName: string;
-    categoryId: string;
-  } | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<{
     type: 'success' | 'error';
@@ -85,13 +79,21 @@ export const useAdminCategories = ({
   const [categoryDeleteConfirmText, setCategoryDeleteConfirmText] =
     useState('');
 
-  const subcategoriesByCategoryId = useMemo(() => {
+  const subcategoriesByParentId = useMemo(() => {
     const map = new Map<string, CatalogSubcategory[]>();
     subcategories.forEach((subcategory) => {
       const current = map.get(subcategory.categoryId) ?? [];
       current.push(subcategory);
       map.set(subcategory.categoryId, current);
     });
+
+    for (const [parentId, children] of map.entries()) {
+      map.set(
+        parentId,
+        [...children].sort((left, right) => left.name.localeCompare(right.name)),
+      );
+    }
+
     return map;
   }, [subcategories]);
 
@@ -126,6 +128,18 @@ export const useAdminCategories = ({
     } finally {
       setPendingAction((current) => (current === actionKey ? null : current));
     }
+  };
+
+  const toggleNodeExpanded = (nodeId: string) => {
+    setExpandedNodeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
   };
 
   const openCreateCategoryModal = () => {
@@ -245,7 +259,7 @@ export const useAdminCategories = ({
     if (!subcategoryForm.name.trim()) {
       setActionFeedback({
         type: 'error',
-        message: 'Completa el nombre de la subcategoria.',
+        message: 'Completa el nombre de la categoria hija.',
       });
       return;
     }
@@ -253,14 +267,21 @@ export const useAdminCategories = ({
     if (subcategoryModalMode === 'create' && subcategoryModalCategoryId) {
       const success = await executeAction(
         'subcategory:create',
-        'Subcategoria creada correctamente.',
+        'Categoria hija creada correctamente.',
         () =>
           createSubcategory({
             categoryId: subcategoryModalCategoryId,
             name: subcategoryForm.name,
           }),
       );
-      if (success) closeSubcategoryModal();
+      if (success) {
+        setExpandedNodeIds((prev) => {
+          const next = new Set(prev);
+          next.add(subcategoryModalCategoryId);
+          return next;
+        });
+        closeSubcategoryModal();
+      }
       return;
     }
 
@@ -271,7 +292,7 @@ export const useAdminCategories = ({
     ) {
       const success = await executeAction(
         `subcategory:update:${subcategoryModalTargetId}`,
-        'Subcategoria actualizada correctamente.',
+        'Categoria hija actualizada correctamente.',
         () =>
           updateSubcategory({
             id: subcategoryModalTargetId,
@@ -281,37 +302,6 @@ export const useAdminCategories = ({
       );
       if (success) closeSubcategoryModal();
     }
-  };
-
-  const openSubcategoryDeleteModal = (
-    subcategoryId: string,
-    subcategoryName: string,
-    categoryId: string,
-  ) => {
-    setActionFeedback(null);
-    clearError();
-    setSubcategoryDeleteModal({ subcategoryId, subcategoryName, categoryId });
-  };
-
-  const closeSubcategoryDeleteModal = () => {
-    if (
-      subcategoryDeleteModal &&
-      pendingAction === `subcategory:delete:${subcategoryDeleteModal.subcategoryId}`
-    ) {
-      return;
-    }
-    setSubcategoryDeleteModal(null);
-  };
-
-  const confirmDeleteSubcategory = async () => {
-    if (!subcategoryDeleteModal) return;
-    const { subcategoryId } = subcategoryDeleteModal;
-    const success = await executeAction(
-      `subcategory:delete:${subcategoryId}`,
-      'Subcategoria eliminada correctamente.',
-      () => removeSubcategory(subcategoryId),
-    );
-    if (success) setSubcategoryDeleteModal(null);
   };
 
   const openCategoryDeleteImpactModal = async (
@@ -384,9 +374,17 @@ export const useAdminCategories = ({
       if (categoryModalMode === 'edit' && categoryModalTargetId === categoryId) {
         closeCategoryModal();
       }
-      if (expandedCategoryId === categoryId) {
-        setExpandedCategoryId(null);
-      }
+
+      setExpandedNodeIds((prev) => {
+        if (!prev.has(categoryId)) {
+          return prev;
+        }
+
+        const next = new Set(prev);
+        next.delete(categoryId);
+        return next;
+      });
+
       setCategoryDeleteImpactModal(null);
       setCategoryDeleteConfirmText('');
     }
@@ -394,16 +392,15 @@ export const useAdminCategories = ({
 
   return {
     actionFeedback,
-    categoryItems: categories,
-    subcategoriesByCategoryId,
-    expandedCategoryId,
-    setExpandedCategoryId,
+    categoryItems: [...categories].sort((left, right) => left.name.localeCompare(right.name)),
+    subcategoriesByParentId,
+    expandedNodeIds,
+    toggleNodeExpanded,
     openCreateCategoryModal,
     openEditCategoryModal,
     openCategoryDeleteImpactModal,
     openCreateSubcategoryModal,
     openEditSubcategoryModal,
-    openSubcategoryDeleteModal,
     categoryModalMode,
     closeCategoryModal,
     categoryForm,
@@ -414,9 +411,6 @@ export const useAdminCategories = ({
     subcategoryForm,
     setSubcategoryForm,
     handleSubmitSubcategoryModal,
-    subcategoryDeleteModal,
-    closeSubcategoryDeleteModal,
-    confirmDeleteSubcategory,
     categoryDeleteImpactModal,
     closeCategoryDeleteImpactModal,
     categoryDeleteConfirmText,
@@ -425,4 +419,3 @@ export const useAdminCategories = ({
     pendingAction,
   };
 };
-

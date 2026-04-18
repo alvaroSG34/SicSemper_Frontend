@@ -10,6 +10,7 @@ import type {
   CategoryDeleteImpact,
   CatalogCategory,
   CatalogEvent,
+  EventCategoryOption,
   CatalogSubcategory,
   ClubDeleteImpact,
   CreateAdminPayload,
@@ -54,11 +55,14 @@ export interface AdminService {
   demoteAdmin(userId: string): Promise<User>;
   banParticipant(userId: string): Promise<User>;
   unbanParticipant(userId: string): Promise<User>;
+  setParticipantVerified(userId: string, verified: boolean): Promise<User>;
   listCatalog(): Promise<SyntheticCatalog>;
   createEvent(payload: CreateEventPayload): Promise<CatalogEvent>;
   createEventAndLinkCategories(payload: CreateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
   updateEvent(payload: UpdateEventPayload): Promise<CatalogEvent>;
   updateEventAndLinkCategories(payload: UpdateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
+  createEventCategoryLink(payload: { eventId: string; categoryId: string }): Promise<EventCategoryOption>;
+  removeEventCategoryLink(eventCategoryId: string): Promise<void>;
   getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
   removeEvent(eventId: string): Promise<void>;
   createCategory(payload: CreateCategoryPayload): Promise<CatalogCategory>;

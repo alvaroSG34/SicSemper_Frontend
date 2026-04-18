@@ -468,6 +468,22 @@ export interface paths {
         patch: operations["adminUnbanUser"];
         trace?: never;
     };
+    "/api/v1/admin/users/{id}/verified": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminSetUserVerified"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -779,6 +795,9 @@ export interface components {
             email: string;
             clubId?: string;
             password: string;
+        };
+        SetUserVerifiedRequest: {
+            verified: boolean;
         };
         AdminUserClub: {
             id: string;
@@ -1648,6 +1667,32 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Updated user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+        };
+    };
+    adminSetUserVerified: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetUserVerifiedRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated user verification */
             200: {
                 headers: {
                     [name: string]: unknown;

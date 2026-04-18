@@ -1,6 +1,6 @@
 "use client";
 
-import { UploadCloud } from "lucide-react";
+import { CheckCircle2, ChevronRight, Circle, UploadCloud } from "lucide-react";
 import { Outfit } from "next/font/google";
 import type {
   ParticipantCategoryOption,
@@ -57,6 +57,8 @@ export function ParticipantUploadModelWizard({
     scales,
     onSubmitModel,
   });
+  const level2SelectionReady = Boolean(flow.selectedLevel2Id);
+  const finalSelectionReady = Boolean(flow.selectedSubcategoryId);
 
   return (
     <article className="rounded-3xl border border-[#2D2D2D] bg-[#121212] p-6 xl:p-8">
@@ -69,50 +71,177 @@ export function ParticipantUploadModelWizard({
       ) : null}
 
       {flow.step === "category" ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            Categoria
-            <select
-              value={flow.selectedCategoryId}
-              onChange={(event) => flow.handleSelectCategory(event.target.value)}
-              className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-            >
-              <option value="">Selecciona categoria</option>
-              {flow.categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="mt-5 space-y-4">
+          <div className="rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-4">
+            <div className="flex flex-wrap gap-2">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+                  flow.selectedCategoryId
+                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#D7DCFF]"
+                    : "border-[#2D2D2D] bg-[#121212] text-[#AFAFAF]"
+                }`}
+              >
+                {flow.selectedCategoryId ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+                1. Categoria
+              </span>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+                  level2SelectionReady
+                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#D7DCFF]"
+                    : "border-[#2D2D2D] bg-[#121212] text-[#AFAFAF]"
+                }`}
+              >
+                {level2SelectionReady ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+                2. Subcategoria
+              </span>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+                  finalSelectionReady
+                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#D7DCFF]"
+                    : "border-[#2D2D2D] bg-[#121212] text-[#AFAFAF]"
+                }`}
+              >
+                {finalSelectionReady ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
+                3. Seleccion final
+              </span>
+            </div>
 
-          <label className="flex flex-col gap-2 text-sm text-[#D0D0D0]">
-            Subcategoria
-            <select
-              value={flow.selectedSubcategoryId}
-              onChange={(event) => flow.handleSelectSubcategory(event.target.value)}
-              className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-            >
-              <option value="">Selecciona subcategoria</option>
-              {flow.subcategoryOptions.map((subcategory) => (
-                <option key={subcategory.id} value={subcategory.id}>
-                  {subcategory.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <p className="mt-3 text-xs text-[#9C9C9C]">Ruta elegida</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-white">
+              <span className="rounded-full border border-[#2D2D2D] bg-[#121212] px-3 py-1 text-xs">
+                {flow.selectedCategory?.name ?? "Categoria"}
+              </span>
+              <ChevronRight className="h-4 w-4 text-[#7C7C7C]" />
+              <span className="rounded-full border border-[#2D2D2D] bg-[#121212] px-3 py-1 text-xs">
+                {flow.selectedLevel2?.name ?? "Subcategoria"}
+              </span>
+              <ChevronRight className="h-4 w-4 text-[#7C7C7C]" />
+              <span className="rounded-full border border-[#2D2D2D] bg-[#121212] px-3 py-1 text-xs">
+                {flow.selectedFinalSubcategory?.name ?? "Seleccion final"}
+              </span>
+            </div>
+            {flow.autoSelectedLeafAtLevel2 ? (
+              <p className="mt-2 text-xs text-[#A9B2FF]">
+                La subcategoria del Nivel 2 es hoja y se tomo automaticamente como seleccion final.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-[#8F8F8F]">
+                Selecciona una opcion en cada nivel para habilitar el formulario.
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <section className="rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-4">
+              <h4 className="text-sm font-semibold text-white">Nivel 1</h4>
+              <p className="mt-1 text-xs text-[#9C9C9C]">Categoria principal</p>
+
+              <div className="mt-3 space-y-2">
+                {flow.categories.map((category) => {
+                  const isSelected = flow.selectedCategoryId === category.id;
+
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => flow.handleSelectCategory(category.id)}
+                      className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                        isSelected
+                          ? "border-[#5B68F1] bg-[rgba(91,104,241,0.14)] text-white"
+                          : "border-[#2D2D2D] bg-[#121212] text-[#D0D0D0] hover:border-[#3A3A3A]"
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-4">
+              <h4 className="text-sm font-semibold text-white">Nivel 2</h4>
+              <p className="mt-1 text-xs text-[#9C9C9C]">Subcategoria intermedia</p>
+
+              {!flow.selectedCategoryId ? (
+                <p className="mt-3 text-xs text-[#8F8F8F]">Primero elige una categoria del Nivel 1.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {flow.level2Options.map((subcategory) => {
+                    const children = subcategoriesByCategory[subcategory.id] ?? [];
+                    const isLeaf = children.length === 0;
+                    const isSelected = flow.selectedLevel2Id === subcategory.id;
+
+                    return (
+                      <button
+                        key={subcategory.id}
+                        type="button"
+                        onClick={() => flow.handleSelectLevel2(subcategory.id)}
+                        className={`w-full rounded-xl border px-3 py-2 text-left transition ${
+                          isSelected
+                            ? "border-[#5B68F1] bg-[rgba(91,104,241,0.14)]"
+                            : "border-[#2D2D2D] bg-[#121212] hover:border-[#3A3A3A]"
+                        }`}
+                      >
+                        <p className={`text-sm ${isSelected ? "text-white" : "text-[#D0D0D0]"}`}>
+                          {subcategory.name}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                          {isLeaf ? "Seleccion final disponible" : "Tiene opciones de Nivel 3"}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-4">
+              <h4 className="text-sm font-semibold text-white">Nivel 3</h4>
+              <p className="mt-1 text-xs text-[#9C9C9C]">Seleccion final para competir</p>
+
+              {!flow.selectedLevel2Id ? (
+                <p className="mt-3 text-xs text-[#8F8F8F]">Selecciona primero una opcion de Nivel 2.</p>
+              ) : flow.level3Options.length === 0 ? (
+                <div className="mt-3 rounded-xl border border-[#5B68F1] bg-[rgba(91,104,241,0.14)] p-3">
+                  <p className="text-sm font-semibold text-white">{flow.selectedLevel2?.name ?? "Seleccion final"}</p>
+                  <p className="mt-1 text-[11px] text-[#C8CEFF]">Seleccion final tomada automaticamente.</p>
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {flow.level3Options.map((subcategory) => {
+                    const isSelected = flow.selectedSubcategoryId === subcategory.id;
+
+                    return (
+                      <button
+                        key={subcategory.id}
+                        type="button"
+                        onClick={() => flow.handleSelectSubcategory(subcategory.id)}
+                        className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                          isSelected
+                            ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#D7DCFF]"
+                            : "border-[#2D2D2D] bg-[#121212] text-[#D0D0D0] hover:border-[#3A3A3A]"
+                        }`}
+                      >
+                        {subcategory.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
 
           {flow.categoryWithoutSubcategories ? (
-            <p className="text-xs text-[#fca5a5] md:col-span-2">
-              Esta categoria no tiene subcategorias disponibles para este evento.
-            </p>
+            <div className="rounded-xl border border-[#7f1d1d] bg-[#7f1d1d]/20 px-4 py-3 text-xs text-[#fca5a5]">
+              Esta categoria no tiene niveles descendientes disponibles para este evento. Selecciona otra categoria principal.
+            </div>
           ) : null}
 
           <button
             type="button"
             onClick={flow.handleGoToForm}
             disabled={!flow.canContinueToForm}
-            className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 md:col-span-2"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             Continuar al formulario
           </button>

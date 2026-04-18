@@ -22,42 +22,74 @@ type DashboardSnapshot = ApiAdminDashboardResponse;
 type BackendCategory = ApiAdminCategory;
 type BackendEventCategory = ApiEventCategoryLink;
 
-const syncRootCategoryEventLinks = async (
-  categoryId: string,
-  targetEventId: string,
-  snapshot?: DashboardSnapshot,
-) => {
-  const dashboard = snapshot ?? (await getDashboardSnapshot());
-  const currentRootLinks = dashboard.catalog.eventCategories.filter(
-    (entry) => entry.categoryId === categoryId && entry.categoryParentId === null,
-  );
-
-  if (!currentRootLinks.some((entry) => entry.eventId === targetEventId)) {
-    await apiRequest<BackendEventCategory>("/admin/event-categories", {
-      method: "POST",
-      body: mapEventCategoryLinkToApiRequest(targetEventId, categoryId),
-    });
-  }
-
-  await Promise.all(
-    currentRootLinks
-      .filter((entry) => entry.eventId !== targetEventId)
-      .map((entry) =>
-        apiRequest<ApiDeleteResponse>(`/admin/event-categories/${entry.id}`, {
-          method: "DELETE",
-        }),
-      ),
-  );
+type CategoryTreeIndex = {
+  categoryById: Map<string, { id: string; parentId: string | null }>;
+  childrenByParent: Map<string, string[]>;
 };
 
-const clearRootCategoryEventLinks = async (categoryId: string, snapshot?: DashboardSnapshot) => {
-  const dashboard = snapshot ?? (await getDashboardSnapshot());
-  const currentRootLinks = dashboard.catalog.eventCategories.filter(
-    (entry) => entry.categoryId === categoryId && entry.categoryParentId === null,
+const buildCategoryTreeIndex = (snapshot: DashboardSnapshot): CategoryTreeIndex => {
+  const categoryById = new Map(
+    snapshot.catalog.categories.map((category) => [
+      category.id,
+      {
+        id: category.id,
+        parentId: category.parentId,
+      },
+    ]),
   );
+  const childrenByParent = new Map<string, string[]>();
 
+  for (const category of snapshot.catalog.categories) {
+    if (!category.parentId) {
+      continue;
+    }
+
+    const siblings = childrenByParent.get(category.parentId) ?? [];
+    siblings.push(category.id);
+    childrenByParent.set(category.parentId, siblings);
+  }
+
+  return { categoryById, childrenByParent };
+};
+
+const collectSubtreeCategoryIds = (
+  rootCategoryId: string,
+  index: CategoryTreeIndex,
+): string[] => {
+  const ids: string[] = [];
+  const visited = new Set<string>();
+  const queue = [rootCategoryId];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (!currentId || visited.has(currentId)) {
+      continue;
+    }
+
+    visited.add(currentId);
+    ids.push(currentId);
+
+    const children = index.childrenByParent.get(currentId) ?? [];
+    queue.push(...children);
+  }
+
+  return ids;
+};
+
+const collectLeafCategoryIds = (
+  rootCategoryId: string,
+  index: CategoryTreeIndex,
+): string[] => {
+  const subtreeIds = collectSubtreeCategoryIds(rootCategoryId, index);
+  return subtreeIds.filter((categoryId) => {
+    const children = index.childrenByParent.get(categoryId) ?? [];
+    return children.length === 0;
+  });
+};
+
+const deleteEventCategoryLinks = async (links: BackendEventCategory[]) => {
   await Promise.all(
-    currentRootLinks.map((entry) =>
+    links.map((entry) =>
       apiRequest<ApiDeleteResponse>(`/admin/event-categories/${entry.id}`, {
         method: "DELETE",
       }),
@@ -65,41 +97,118 @@ const clearRootCategoryEventLinks = async (categoryId: string, snapshot?: Dashbo
   );
 };
 
+const ensureEventLinksForLeafCategories = async (
+  leafCategoryIds: string[],
+  targetEventId: string,
+  snapshot: DashboardSnapshot,
+) => {
+  const currentLinks = snapshot.catalog.eventCategories.filter((entry) =>
+    leafCategoryIds.includes(entry.categoryId),
+  );
+
+  const currentByLeafAndEvent = new Set(
+    currentLinks.map((entry) => `${entry.categoryId}::${entry.eventId}`),
+  );
+
+  await Promise.all(
+    leafCategoryIds
+      .filter((categoryId) => !currentByLeafAndEvent.has(`${categoryId}::${targetEventId}`))
+      .map((categoryId) =>
+        apiRequest<BackendEventCategory>("/admin/event-categories", {
+          method: "POST",
+          body: mapEventCategoryLinkToApiRequest(targetEventId, categoryId),
+        }),
+      ),
+  );
+
+  await deleteEventCategoryLinks(
+    currentLinks.filter((entry) => entry.eventId !== targetEventId),
+  );
+};
+
+const clearLinksForSubtree = async (
+  rootCategoryId: string,
+  snapshot: DashboardSnapshot,
+) => {
+  const index = buildCategoryTreeIndex(snapshot);
+  const subtreeIds = new Set(collectSubtreeCategoryIds(rootCategoryId, index));
+
+  const links = snapshot.catalog.eventCategories.filter((entry) =>
+    subtreeIds.has(entry.categoryId),
+  );
+
+  await deleteEventCategoryLinks(links);
+};
+
+const syncRootCategoryEventLinks = async (
+  categoryId: string,
+  targetEventId: string,
+  snapshot?: DashboardSnapshot,
+) => {
+  const dashboard = snapshot ?? (await getDashboardSnapshot());
+  const index = buildCategoryTreeIndex(dashboard);
+  const leafCategoryIds = collectLeafCategoryIds(categoryId, index);
+
+  await ensureEventLinksForLeafCategories(leafCategoryIds, targetEventId, dashboard);
+
+  const nonLeafIds = new Set(
+    collectSubtreeCategoryIds(categoryId, index).filter(
+      (entryId) => (index.childrenByParent.get(entryId) ?? []).length > 0,
+    ),
+  );
+
+  await deleteEventCategoryLinks(
+    dashboard.catalog.eventCategories.filter((entry) => nonLeafIds.has(entry.categoryId)),
+  );
+};
+
+const clearRootCategoryEventLinks = async (
+  categoryId: string,
+  snapshot?: DashboardSnapshot,
+) => {
+  const dashboard = snapshot ?? (await getDashboardSnapshot());
+  await clearLinksForSubtree(categoryId, dashboard);
+};
+
 const syncChildCategoryEventLinks = async (
-  subcategoryId: string,
+  childCategoryId: string,
   parentCategoryId: string,
   snapshot?: DashboardSnapshot,
 ) => {
   const dashboard = snapshot ?? (await getDashboardSnapshot());
-  const currentChildLinks = dashboard.catalog.eventCategories.filter(
-    (entry) => entry.categoryId === subcategoryId,
+
+  const parentLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === parentCategoryId,
   );
-  const targetParentLinks = dashboard.catalog.eventCategories.filter(
-    (entry) => entry.categoryId === parentCategoryId && entry.categoryParentId === null,
+  const childLinks = dashboard.catalog.eventCategories.filter(
+    (entry) => entry.categoryId === childCategoryId,
   );
-  const currentEventIds = new Set(currentChildLinks.map((entry) => entry.eventId));
-  const targetEventIds = new Set(targetParentLinks.map((entry) => entry.eventId));
+
+  const parentEventIds = new Set(parentLinks.map((entry) => entry.eventId));
+  const childEventIds = new Set(childLinks.map((entry) => entry.eventId));
 
   await Promise.all(
-    targetParentLinks
-      .filter((entry) => !currentEventIds.has(entry.eventId))
-      .map((entry) =>
+    [...parentEventIds]
+      .filter((eventId) => !childEventIds.has(eventId))
+      .map((eventId) =>
         apiRequest<BackendEventCategory>("/admin/event-categories", {
           method: "POST",
-          body: mapEventCategoryLinkToApiRequest(entry.eventId, subcategoryId),
+          body: mapEventCategoryLinkToApiRequest(eventId, childCategoryId),
         }),
       ),
   );
 
-  await Promise.all(
-    currentChildLinks
-      .filter((entry) => !targetEventIds.has(entry.eventId))
-      .map((entry) =>
-        apiRequest<ApiDeleteResponse>(`/admin/event-categories/${entry.id}`, {
-          method: "DELETE",
-        }),
-      ),
+  await deleteEventCategoryLinks(
+    childLinks.filter((entry) => !parentEventIds.has(entry.eventId)),
   );
+
+  const parentHasChildren = dashboard.catalog.categories.some(
+    (entry) => entry.parentId === parentCategoryId,
+  );
+
+  if (parentHasChildren) {
+    await deleteEventCategoryLinks(parentLinks);
+  }
 };
 
 export const adminCategoriesService: Pick<
@@ -133,21 +242,27 @@ export const adminCategoriesService: Pick<
   },
   async updateCategory(payload) {
     try {
-      const [category, snapshot] = await Promise.all([
-        apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
-          method: "PUT",
-          body: mapUpdateCategoryPayloadToApiRequest(payload),
-        }),
-        getDashboardSnapshot(),
-      ]);
+      const category = await apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
+        method: "PUT",
+        body: mapUpdateCategoryPayloadToApiRequest(payload),
+      });
 
-      if (payload.eventId) {
-        await syncRootCategoryEventLinks(payload.id, payload.eventId, snapshot);
-      } else {
-        await clearRootCategoryEventLinks(payload.id, snapshot);
+      const hasEventIdInPayload = Object.prototype.hasOwnProperty.call(
+        payload,
+        "eventId",
+      );
+
+      if (hasEventIdInPayload) {
+        const snapshot = await getDashboardSnapshot();
+        if (payload.eventId) {
+          await syncRootCategoryEventLinks(payload.id, payload.eventId, snapshot);
+        } else {
+          await clearRootCategoryEventLinks(payload.id, snapshot);
+        }
       }
 
-      return mapApiCategoryToCatalogCategory(category, payload.eventId ?? null);
+      const mappedEventId = hasEventIdInPayload ? payload.eventId ?? null : undefined;
+      return mapApiCategoryToCatalogCategory(category, mappedEventId);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo actualizar la categoria."));
     }
@@ -159,7 +274,12 @@ export const adminCategoriesService: Pick<
       );
       return mapApiCategoryDeleteImpact(impact);
     } catch (error) {
-      throw new Error(toErrorMessage(error, "No se pudo calcular el impacto de eliminacion de la categoria."));
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudo calcular el impacto de eliminacion de la categoria.",
+        ),
+      );
     }
   },
   async removeCategory(categoryId) {
@@ -173,14 +293,12 @@ export const adminCategoriesService: Pick<
   },
   async createSubcategory(payload) {
     try {
-      const [category, snapshot] = await Promise.all([
-        apiRequest<BackendCategory>("/admin/categories", {
-          method: "POST",
-          body: mapCreateSubcategoryPayloadToApiRequest(payload),
-        }),
-        getDashboardSnapshot(),
-      ]);
+      const category = await apiRequest<BackendCategory>("/admin/categories", {
+        method: "POST",
+        body: mapCreateSubcategoryPayloadToApiRequest(payload),
+      });
 
+      const snapshot = await getDashboardSnapshot();
       await syncChildCategoryEventLinks(category.id, payload.categoryId, snapshot);
 
       return {
@@ -194,14 +312,12 @@ export const adminCategoriesService: Pick<
   },
   async updateSubcategory(payload) {
     try {
-      const [category, snapshot] = await Promise.all([
-        apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
-          method: "PUT",
-          body: mapUpdateSubcategoryPayloadToApiRequest(payload),
-        }),
-        getDashboardSnapshot(),
-      ]);
+      const category = await apiRequest<BackendCategory>(`/admin/categories/${payload.id}`, {
+        method: "PUT",
+        body: mapUpdateSubcategoryPayloadToApiRequest(payload),
+      });
 
+      const snapshot = await getDashboardSnapshot();
       await syncChildCategoryEventLinks(payload.id, payload.categoryId, snapshot);
 
       return {

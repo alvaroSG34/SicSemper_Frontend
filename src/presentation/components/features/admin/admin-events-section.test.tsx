@@ -14,7 +14,7 @@ const mockUseAdminEvents = vi.fn();
 const mockUseAdminJudgeAssignments = vi.fn();
 
 vi.mock('next/image', () => ({
-  default: ({ alt }: { alt: string }) => <img alt={alt} />,
+  default: ({ alt }: { alt: string }) => <span>{alt}</span>,
 }));
 
 vi.mock('./use-admin-events', () => ({
@@ -71,8 +71,15 @@ const buildAdminEventsHookReturn = () => ({
   eventModalMode: null,
   eventModalStep: 1 as const,
   setEventModalStep: vi.fn(),
-  eventModalSelectedCategoryIds: new Set<string>(),
+  eventModalSelectedLeafIds: new Set<string>(),
   toggleCategorySelection: vi.fn(),
+  eventModalCategoryTree: [],
+  getCategoryNodeSelectionState: vi.fn().mockReturnValue({
+    checked: false,
+    indeterminate: false,
+    selectedLeaves: 0,
+    totalLeaves: 0,
+  }),
   eventModalError: null,
   eventForm: {
     organizerClubId: 'club-1',
@@ -98,8 +105,6 @@ const buildAdminEventsHookReturn = () => ({
   },
   handleFinalizeEventModal: vi.fn(),
   closeEventModal: vi.fn(),
-  categoryItems: [],
-  subcategoriesByCategoryId: new Map<string, CatalogSubcategory[]>(),
   pendingAction: null,
   eventDeleteImpactModal: null,
   openEventDeleteImpactModal: vi.fn(),
@@ -107,14 +112,20 @@ const buildAdminEventsHookReturn = () => ({
   confirmDeleteEvent: vi.fn(),
 });
 
-const buildAdminJudgeAssignmentsHookReturn = () => ({
+  const buildAdminJudgeAssignmentsHookReturn = () => ({
   selectedEventId: 'event-1',
   setSelectedEventId: vi.fn(),
   eligibleJudges: [],
-  selectedCategoryNodes: [],
+  selectedCategoryTree: [],
   assignedJudgeIds: new Set<string>(),
   judgeSubcategoryDraft: {},
-  setJudgeSubcategoryDraft: vi.fn(),
+  toggleJudgeCategoryNode: vi.fn(),
+  getJudgeNodeSelectionState: vi.fn().mockReturnValue({
+    checked: false,
+    indeterminate: false,
+    selectedLeaves: 0,
+    totalLeaves: 0,
+  }),
   assignJudgeToEventDraft: vi.fn(),
   unassignJudgeFromEventDraft: vi.fn(),
   judgeValidationIssues: [],

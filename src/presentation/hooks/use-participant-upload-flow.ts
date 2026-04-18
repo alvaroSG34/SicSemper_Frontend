@@ -64,6 +64,7 @@ export const useParticipantUploadFlow = ({
 }: UseParticipantUploadFlowParams) => {
   const [step, setStep] = useState<UploadFlowStep>("category");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedLevel2Id, setSelectedLevel2Id] = useState<string>("");
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -76,13 +77,51 @@ export const useParticipantUploadFlow = ({
     },
   });
 
-  const subcategoryOptions = useMemo(
+  const level2Options = useMemo(
     () => subcategoriesByCategory[selectedCategoryId] ?? [],
     [selectedCategoryId, subcategoriesByCategory],
   );
+  const level3Options = useMemo(
+    () => subcategoriesByCategory[selectedLevel2Id] ?? [],
+    [selectedLevel2Id, subcategoriesByCategory],
+  );
 
-  const categoryWithoutSubcategories = Boolean(selectedCategoryId) && subcategoryOptions.length === 0;
-  const canContinueToForm = Boolean(selectedCategoryId && selectedSubcategoryId);
+  const categoryWithoutSubcategories =
+    Boolean(selectedCategoryId) && level2Options.length === 0;
+  const selectedCategory = useMemo(
+    () => categories.find((category) => category.id === selectedCategoryId) ?? null,
+    [categories, selectedCategoryId],
+  );
+  const selectedLevel2 = useMemo(
+    () => level2Options.find((subcategory) => subcategory.id === selectedLevel2Id) ?? null,
+    [level2Options, selectedLevel2Id],
+  );
+  const selectedFinalSubcategory = useMemo(() => {
+    if (!selectedSubcategoryId) {
+      return null;
+    }
+
+    const explicitLevel3 = level3Options.find(
+      (subcategory) => subcategory.id === selectedSubcategoryId,
+    );
+    if (explicitLevel3) {
+      return explicitLevel3;
+    }
+
+    if (selectedLevel2?.id === selectedSubcategoryId) {
+      return selectedLevel2;
+    }
+
+    return null;
+  }, [level3Options, selectedLevel2, selectedSubcategoryId]);
+  const autoSelectedLeafAtLevel2 = Boolean(
+    selectedLevel2 &&
+      selectedSubcategoryId === selectedLevel2.id &&
+      level3Options.length === 0,
+  );
+  const canContinueToForm = Boolean(
+    selectedCategoryId && selectedLevel2Id && selectedSubcategoryId,
+  );
 
   const resetFiles = () => {
     setSelectedFiles([]);
@@ -92,6 +131,7 @@ export const useParticipantUploadFlow = ({
   const resetForAnother = () => {
     setStep("category");
     setSelectedCategoryId("");
+    setSelectedLevel2Id("");
     setSelectedSubcategoryId("");
     resetFiles();
     form.reset({
@@ -102,7 +142,14 @@ export const useParticipantUploadFlow = ({
 
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
+    setSelectedLevel2Id("");
     setSelectedSubcategoryId("");
+  };
+
+  const handleSelectLevel2 = (subcategoryId: string) => {
+    setSelectedLevel2Id(subcategoryId);
+    const children = subcategoriesByCategory[subcategoryId] ?? [];
+    setSelectedSubcategoryId(children.length === 0 ? subcategoryId : "");
   };
 
   const handleSelectSubcategory = (subcategoryId: string) => {
@@ -205,16 +252,23 @@ export const useParticipantUploadFlow = ({
   return {
     step,
     categories,
-    subcategoryOptions,
+    level2Options,
+    level3Options,
     scales,
     selectedCategoryId,
+    selectedLevel2Id,
     selectedSubcategoryId,
     selectedFiles,
     fileError,
     form,
     categoryWithoutSubcategories,
+    selectedCategory,
+    selectedLevel2,
+    selectedFinalSubcategory,
+    autoSelectedLeafAtLevel2,
     canContinueToForm,
     handleSelectCategory,
+    handleSelectLevel2,
     handleSelectSubcategory,
     handleFilesChange,
     handleGoToForm,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UserRole } from '@/domain/user/user.types';
 import type { User } from '@/domain/user/user.types';
 import { useAdminOperations } from './use-admin-operations';
@@ -25,7 +25,7 @@ const isParticipantOnlyUser = (user: User) =>
 type ParticipantRoleFilter = 'TODOS' | 'SOLO_PARTICIPANTES';
 
 export const useAdminParticipants = (users: User[]) => {
-  const { banParticipant, unbanParticipant } = useAdminOperations();
+  const { banParticipant, unbanParticipant, setParticipantVerified } = useAdminOperations();
   const [participantSearch, setParticipantSearch] = useState('');
   const [participantRoleFilter, setParticipantRoleFilter] =
     useState<ParticipantRoleFilter>('SOLO_PARTICIPANTES');
@@ -35,6 +35,22 @@ export const useAdminParticipants = (users: User[]) => {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (!participantDetailModal) {
+      return;
+    }
+
+    const refreshedUser = users.find((candidate) => candidate.id === participantDetailModal.id);
+    if (!refreshedUser) {
+      setParticipantDetailModal(null);
+      return;
+    }
+
+    if (refreshedUser !== participantDetailModal) {
+      setParticipantDetailModal(refreshedUser);
+    }
+  }, [participantDetailModal, users]);
 
   const participantPool = useMemo(() => {
     if (participantRoleFilter === 'TODOS') {
@@ -105,6 +121,27 @@ export const useAdminParticipants = (users: User[]) => {
     }
   };
 
+  const canEditParticipantVerification = (user: User) => isParticipantOnlyUser(user);
+
+  const handleSetParticipantVerified = async (userId: string, currentVerified: boolean) => {
+    const nextVerified = !currentVerified;
+    const confirmationMessage = nextVerified
+      ? '¿Confirmas marcar esta cuenta como verificada?'
+      : '¿Confirmas revocar la verificacion de esta cuenta?';
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    await executeAction(
+      `user:verified:${userId}`,
+      nextVerified
+        ? 'Cuenta marcada como verificada.'
+        : 'Verificacion de cuenta revocada.',
+      () => setParticipantVerified(userId, nextVerified),
+    );
+  };
+
   return {
     roleLabel,
     participantStatusConfig,
@@ -119,6 +156,8 @@ export const useAdminParticipants = (users: User[]) => {
     pendingAction,
     actionFeedback,
     handleBanParticipant,
+    canEditParticipantVerification,
+    handleSetParticipantVerified,
   };
 };
 

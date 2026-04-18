@@ -56,6 +56,8 @@ export function AdminParticipantsSection({
     pendingAction,
     actionFeedback,
     handleBanParticipant,
+    canEditParticipantVerification,
+    handleSetParticipantVerified,
   } = useAdminParticipants(users);
 
   return (
@@ -216,6 +218,50 @@ export function AdminParticipantsSection({
                     {roleLabel[role as keyof typeof roleLabel] ?? role}
                   </span>
                 ))}
+              </div>
+
+              <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Estado de verificacion</p>
+                    <p className="text-[11px] text-[#9C9C9C]">
+                      {participantDetailModal.verified
+                        ? 'La cuenta esta verificada.'
+                        : 'La cuenta no esta verificada.'}
+                    </p>
+                  </div>
+                  <label className="relative inline-flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      aria-label="Cambiar estado de verificacion"
+                      checked={participantDetailModal.verified}
+                      disabled={
+                        pendingAction === `user:verified:${participantDetailModal.id}` ||
+                        !canUpdateUsers ||
+                        !canEditParticipantVerification(participantDetailModal)
+                      }
+                      onChange={() =>
+                        void handleSetParticipantVerified(
+                          participantDetailModal.id,
+                          participantDetailModal.verified,
+                        )
+                      }
+                      className="peer sr-only"
+                    />
+                    <span className="h-6 w-11 rounded-full bg-[#2D2D2D] transition peer-checked:bg-[#5B68F1] peer-focus:outline-none peer-disabled:cursor-not-allowed peer-disabled:opacity-60 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full" />
+                  </label>
+                </div>
+                {!canUpdateUsers ? (
+                  <p className="mt-2 text-[11px] text-[#9C9C9C]">
+                    Solo lectura: no tienes permiso para actualizar usuarios.
+                  </p>
+                ) : null}
+                {canUpdateUsers && !canEditParticipantVerification(participantDetailModal) ? (
+                  <p className="mt-2 text-[11px] text-[#9C9C9C]">
+                    Solo participantes pueden cambiar el estado de verificacion.
+                  </p>
+                ) : null}
               </div>
 
               <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">

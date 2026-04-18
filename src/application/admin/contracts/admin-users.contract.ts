@@ -7,3 +7,7 @@ export type ApiBanParticipantResponse =
   operations['adminBanUser']['responses']['200']['content']['application/json'];
 export type ApiUnbanParticipantResponse =
   operations['adminUnbanUser']['responses']['200']['content']['application/json'];
+export type ApiSetParticipantVerifiedRequest =
+  operations['adminSetUserVerified']['requestBody']['content']['application/json'];
+export type ApiSetParticipantVerifiedResponse =
+  operations['adminSetUserVerified']['responses']['200']['content']['application/json'];

@@ -1,4 +1,5 @@
 import type {
+  JudgeCategoryNavigationItem,
   JudgeDashboardData,
   JudgeModelDetail,
   JudgeModelListResponse,
@@ -43,11 +44,17 @@ export interface JudgeService {
   listModels(input: {
     status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
     eventId?: string;
+    categoryId?: string;
     priority?: "Alta" | "Media" | "Baja";
     search?: string;
     page?: number;
     pageSize?: number;
   }): Promise<JudgeModelListResponse>;
+  listEventRootCategories(eventId: string): Promise<JudgeCategoryNavigationItem[]>;
+  listEventCategoryChildren(
+    eventId: string,
+    categoryId: string,
+  ): Promise<JudgeCategoryNavigationItem[]>;
   getModelDetail(modelId: string): Promise<JudgeModelDetail>;
   startReview(modelId: string): Promise<JudgeQueueItem>;
   saveDraft(modelId: string, payload: JudgeSaveDraftPayload): Promise<JudgeReviewMutationResult>;
@@ -76,6 +83,9 @@ export const judgeService: JudgeService = {
       if (input.eventId) {
         searchParams.set("eventId", input.eventId);
       }
+      if (input.categoryId) {
+        searchParams.set("categoryId", input.categoryId);
+      }
       if (input.priority) {
         searchParams.set("priority", input.priority);
       }
@@ -88,6 +98,24 @@ export const judgeService: JudgeService = {
       return await apiRequest<JudgeModelListResponse>(`/judge/models?${searchParams.toString()}`);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar la lista de maquetas asignadas."));
+    }
+  },
+  async listEventRootCategories(eventId) {
+    try {
+      return await apiRequest<JudgeCategoryNavigationItem[]>(
+        `/judge/events/${encodeURIComponent(eventId)}/categories/root`,
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias de nivel 1."));
+    }
+  },
+  async listEventCategoryChildren(eventId, categoryId) {
+    try {
+      return await apiRequest<JudgeCategoryNavigationItem[]>(
+        `/judge/events/${encodeURIComponent(eventId)}/categories/${encodeURIComponent(categoryId)}/children`,
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias hijas."));
     }
   },
   async getModelDetail(modelId) {

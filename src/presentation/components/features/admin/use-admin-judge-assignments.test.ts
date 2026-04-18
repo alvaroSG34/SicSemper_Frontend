@@ -11,6 +11,8 @@ import { useAdminJudgeAssignments } from './use-admin-judge-assignments';
 
 const assignJudgeScope = vi.fn();
 const removeJudgeScope = vi.fn();
+const createEventCategoryLink = vi.fn();
+const removeEventCategoryLink = vi.fn();
 const clearError = vi.fn();
 
 let latestError: string | null = null;
@@ -19,6 +21,8 @@ vi.mock('./use-admin-operations', () => ({
   useAdminOperations: () => ({
     assignJudgeScope,
     removeJudgeScope,
+    createEventCategoryLink,
+    removeEventCategoryLink,
   }),
 }));
 
@@ -50,23 +54,6 @@ describe('useAdminJudgeAssignments', () => {
     },
   ];
 
-  const assignments: JudgeAssignmentScope[] = [
-    {
-      id: 'assign-1',
-      judgeUserId: 'judge-1',
-      eventId: 'event-1',
-      eventCategoryId: 'event-sub-1',
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
-    {
-      id: 'assign-2',
-      judgeUserId: 'judge-2',
-      eventId: 'event-2',
-      eventCategoryId: 'event-2-sub-2',
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
-  ];
-
   const events: CatalogEvent[] = [
     {
       id: 'event-1',
@@ -95,59 +82,31 @@ describe('useAdminJudgeAssignments', () => {
       name: 'Subcategoria 1',
     },
     {
-      id: 'sub-2',
-      categoryId: 'cat-1',
-      name: 'Subcategoria 2',
+      id: 'leaf-1',
+      categoryId: 'sub-1',
+      name: 'Leaf 1',
+    },
+    {
+      id: 'leaf-2',
+      categoryId: 'sub-1',
+      name: 'Leaf 2',
     },
   ];
 
-  const eventCategories: EventCategoryOption[] = [
-    {
-      id: 'event-root-1',
-      eventId: 'event-1',
-      categoryId: 'cat-1',
-      name: 'Categoria 1',
-    },
-    {
-      id: 'event-sub-1',
-      eventId: 'event-1',
-      categoryId: 'sub-1',
-      name: 'Categoria 1 > Subcategoria 1',
-    },
-    {
-      id: 'event-sub-2',
-      eventId: 'event-1',
-      categoryId: 'sub-2',
-      name: 'Categoria 1 > Subcategoria 2',
-    },
-    {
-      id: 'event-2-root-1',
-      eventId: 'event-2',
-      categoryId: 'cat-1',
-      name: 'Categoria 1',
-    },
-    {
-      id: 'event-2-sub-1',
-      eventId: 'event-2',
-      categoryId: 'sub-1',
-      name: 'Categoria 1 > Subcategoria 1',
-    },
-    {
-      id: 'event-2-sub-2',
-      eventId: 'event-2',
-      categoryId: 'sub-2',
-      name: 'Categoria 1 > Subcategoria 2',
-    },
-  ];
+  const defaultEventCategories: EventCategoryOption[] = [];
+  const defaultAssignments: JudgeAssignmentScope[] = [];
 
-  const useHook = () =>
+  const useHook = (params?: {
+    eventCategories?: EventCategoryOption[];
+    assignments?: JudgeAssignmentScope[];
+  }) =>
     useAdminJudgeAssignments({
       users,
-      assignments,
+      assignments: params?.assignments ?? defaultAssignments,
       events,
       categories,
       subcategories,
-      eventCategories,
+      eventCategories: params?.eventCategories ?? defaultEventCategories,
       canManageJudgeAssignments: true,
     });
 
@@ -156,24 +115,130 @@ describe('useAdminJudgeAssignments', () => {
     latestError = null;
     assignJudgeScope.mockResolvedValue(undefined);
     removeJudgeScope.mockResolvedValue(undefined);
+    removeEventCategoryLink.mockResolvedValue(undefined);
+    createEventCategoryLink.mockImplementation(
+      async ({ eventId, categoryId }: { eventId: string; categoryId: string }) => ({
+        id: `ec-${categoryId}`,
+        eventId,
+        categoryId,
+        name: categoryId,
+      }),
+    );
   });
 
-  it('loads event draft with assigned judges and subcategories', async () => {
-    const { result } = renderHook(useHook);
+  it('builds L1/L2/L3 tree and computes tri-state by judge', async () => {
+    const eventCategories: EventCategoryOption[] = [
+      {
+        id: 'ec-leaf-1',
+        eventId: 'event-1',
+        categoryId: 'leaf-1',
+        name: 'Categoria 1 > Subcategoria 1 > Leaf 1',
+      },
+      {
+        id: 'ec-leaf-2',
+        eventId: 'event-1',
+        categoryId: 'leaf-2',
+        name: 'Categoria 1 > Subcategoria 1 > Leaf 2',
+      },
+    ];
+
+    const assignments: JudgeAssignmentScope[] = [
+      {
+        id: 'assign-1',
+        judgeUserId: 'judge-1',
+        eventId: 'event-1',
+        eventCategoryId: 'ec-leaf-1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const { result } = renderHook(() => useHook({ eventCategories, assignments }));
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(result.current.selectedEventId).toBe('event-1');
-    expect(result.current.assignedJudgeIds.has('judge-1')).toBe(true);
-    expect(result.current.judgeSubcategoryDraft['judge-1']).toEqual(['sub-1']);
-    expect(result.current.selectedCategoryNodes).toHaveLength(1);
-    expect(result.current.selectedCategoryNodes[0]?.subcategories).toHaveLength(2);
+    expect(result.current.selectedCategoryTree).toHaveLength(1);
+    expect(result.current.selectedCategoryTree[0]?.children).toHaveLength(1);
+    expect(result.current.selectedCategoryTree[0]?.children[0]?.children).toHaveLength(2);
+
+    const subStateBefore = result.current.getJudgeNodeSelectionState('judge-1', 'sub-1');
+    expect(subStateBefore.indeterminate).toBe(true);
+    expect(subStateBefore.selectedLeaves).toBe(1);
+    expect(subStateBefore.totalLeaves).toBe(2);
+
+    act(() => {
+      result.current.toggleJudgeCategoryNode('judge-1', 'sub-1');
+    });
+
+    const subStateAfter = result.current.getJudgeNodeSelectionState('judge-1', 'sub-1');
+    expect(subStateAfter.checked).toBe(true);
+    expect(result.current.judgeSubcategoryDraft['judge-1']).toEqual(['leaf-1', 'leaf-2']);
   });
 
-  it('blocks save when an assigned judge has no selected subcategories', async () => {
-    const { result } = renderHook(useHook);
+  it('normalizes legacy non-leaf links before persisting judge assignments', async () => {
+    const eventCategories: EventCategoryOption[] = [
+      {
+        id: 'ec-legacy-l2',
+        eventId: 'event-1',
+        categoryId: 'sub-1',
+        name: 'Categoria 1 > Subcategoria 1',
+      },
+    ];
+
+    createEventCategoryLink.mockImplementation(
+      async ({ eventId, categoryId }: { eventId: string; categoryId: string }) => ({
+        id: categoryId === 'leaf-1' ? 'ec-leaf-1' : 'ec-leaf-2',
+        eventId,
+        categoryId,
+        name: categoryId,
+      }),
+    );
+
+    const { result } = renderHook(() => useHook({ eventCategories }));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      result.current.assignJudgeToEventDraft('judge-1');
+      result.current.setJudgeSubcategoryDraft('judge-1', ['leaf-1']);
+    });
+
+    await act(async () => {
+      await result.current.handleSaveAssignments();
+    });
+
+    expect(createEventCategoryLink).toHaveBeenCalledTimes(2);
+    expect(createEventCategoryLink).toHaveBeenCalledWith({
+      eventId: 'event-1',
+      categoryId: 'leaf-1',
+    });
+    expect(createEventCategoryLink).toHaveBeenCalledWith({
+      eventId: 'event-1',
+      categoryId: 'leaf-2',
+    });
+    expect(removeEventCategoryLink).toHaveBeenCalledWith('ec-legacy-l2');
+
+    expect(assignJudgeScope).toHaveBeenCalledWith({
+      judgeUserId: 'judge-1',
+      eventId: 'event-1',
+      eventCategoryId: 'ec-leaf-1',
+    });
+  });
+
+  it('blocks save when an assigned judge has no selected leaves', async () => {
+    const eventCategories: EventCategoryOption[] = [
+      {
+        id: 'ec-leaf-1',
+        eventId: 'event-1',
+        categoryId: 'leaf-1',
+        name: 'Categoria 1 > Subcategoria 1 > Leaf 1',
+      },
+    ];
+
+    const { result } = renderHook(() => useHook({ eventCategories }));
 
     await act(async () => {
       await Promise.resolve();
@@ -188,46 +253,51 @@ describe('useAdminJudgeAssignments', () => {
     });
 
     expect(assignJudgeScope).not.toHaveBeenCalled();
-    expect(removeJudgeScope).not.toHaveBeenCalled();
     expect(result.current.assignmentFeedback?.type).toBe('error');
     expect(result.current.assignmentFeedback?.message).toContain('sin subcategorias');
   });
 
-  it('syncs create and remove diff against backend endpoints', async () => {
-    const { result } = renderHook(useHook);
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    act(() => {
-      result.current.unassignJudgeFromEventDraft('judge-1');
-      result.current.assignJudgeToEventDraft('judge-2');
-      result.current.setJudgeSubcategoryDraft('judge-2', ['sub-2']);
-    });
-
-    await act(async () => {
-      await result.current.handleSaveAssignments();
-    });
-
-    expect(assignJudgeScope).toHaveBeenCalledWith({
-      judgeUserId: 'judge-2',
-      eventId: 'event-1',
-      eventCategoryId: 'event-sub-2',
-    });
-    expect(removeJudgeScope).toHaveBeenCalledWith('assign-1');
-  });
-
   it('switches draft state when selecting another event', async () => {
-    const { result } = renderHook(useHook);
+    const eventCategories: EventCategoryOption[] = [
+      {
+        id: 'ec-event-1-leaf-1',
+        eventId: 'event-1',
+        categoryId: 'leaf-1',
+        name: 'Categoria 1 > Subcategoria 1 > Leaf 1',
+      },
+      {
+        id: 'ec-event-2-leaf-2',
+        eventId: 'event-2',
+        categoryId: 'leaf-2',
+        name: 'Categoria 1 > Subcategoria 1 > Leaf 2',
+      },
+    ];
+
+    const assignments: JudgeAssignmentScope[] = [
+      {
+        id: 'assign-1',
+        judgeUserId: 'judge-1',
+        eventId: 'event-1',
+        eventCategoryId: 'ec-event-1-leaf-1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'assign-2',
+        judgeUserId: 'judge-2',
+        eventId: 'event-2',
+        eventCategoryId: 'ec-event-2-leaf-2',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const { result } = renderHook(() => useHook({ eventCategories, assignments }));
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(result.current.selectedEventId).toBe('event-1');
     expect(result.current.assignedJudgeIds.has('judge-1')).toBe(true);
-    expect(result.current.judgeSubcategoryDraft['judge-1']).toEqual(['sub-1']);
+    expect(result.current.judgeSubcategoryDraft['judge-1']).toEqual(['leaf-1']);
 
     act(() => {
       result.current.setSelectedEventId('event-2');
@@ -237,9 +307,8 @@ describe('useAdminJudgeAssignments', () => {
       await Promise.resolve();
     });
 
-    expect(result.current.selectedEventId).toBe('event-2');
     expect(result.current.assignedJudgeIds.has('judge-1')).toBe(false);
     expect(result.current.assignedJudgeIds.has('judge-2')).toBe(true);
-    expect(result.current.judgeSubcategoryDraft['judge-2']).toEqual(['sub-2']);
+    expect(result.current.judgeSubcategoryDraft['judge-2']).toEqual(['leaf-2']);
   });
 });

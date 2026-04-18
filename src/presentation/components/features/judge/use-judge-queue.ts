@@ -3,6 +3,7 @@ import { useJudgeQueueSlice } from "@/presentation/stores/judge-queue.slice";
 
 type UseJudgeQueueOptions = {
   eventId?: string;
+  categoryId?: string;
 };
 
 export const useJudgeQueue = (options?: UseJudgeQueueOptions) => {
@@ -25,13 +26,29 @@ export const useJudgeQueue = (options?: UseJudgeQueueOptions) => {
   } = useJudgeQueueSlice();
 
   useEffect(() => {
-    if (!models && !modelsLoading && !modelsError) {
+    const expectedEventId = options?.eventId;
+    const expectedCategoryId = options?.categoryId;
+    const scopeMismatch =
+      modelFilters.eventId !== expectedEventId ||
+      modelFilters.categoryId !== expectedCategoryId;
+
+    if ((!models && !modelsLoading && !modelsError) || scopeMismatch) {
       void loadModels({
         page: 1,
-        eventId: options?.eventId,
+        eventId: expectedEventId,
+        categoryId: expectedCategoryId,
       });
     }
-  }, [models, modelsLoading, modelsError, loadModels, options?.eventId]);
+  }, [
+    modelFilters.categoryId,
+    modelFilters.eventId,
+    models,
+    modelsLoading,
+    modelsError,
+    loadModels,
+    options?.eventId,
+    options?.categoryId,
+  ]);
 
   const queueHeadline = useMemo(() => {
     if (modelsLoading) {

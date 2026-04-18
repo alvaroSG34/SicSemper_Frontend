@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { judgeService } from "@/application/judge/judge.service";
 import type {
+  JudgeCategoryNavigationItem,
   JudgeDashboardData,
   JudgeModelDetail,
   JudgeModelListResponse,
@@ -12,6 +13,7 @@ import type {
 type JudgeModelFilters = {
   status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
   eventId?: string;
+  categoryId?: string;
   priority?: "Alta" | "Media" | "Baja";
   search?: string;
   page: number;
@@ -39,6 +41,11 @@ type JudgeStoreState = {
     modelId: string,
     payload: JudgeSubmitReviewPayload,
   ) => Promise<JudgeReviewMutationResult | null>;
+  listEventRootCategories: (eventId: string) => Promise<JudgeCategoryNavigationItem[]>;
+  listEventCategoryChildren: (
+    eventId: string,
+    categoryId: string,
+  ) => Promise<JudgeCategoryNavigationItem[]>;
   clearError: () => void;
   clearModelsError: () => void;
   clearDetailError: () => void;
@@ -250,6 +257,9 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
       return null;
     }
   },
+  listEventRootCategories: async (eventId) => judgeService.listEventRootCategories(eventId),
+  listEventCategoryChildren: async (eventId, categoryId) =>
+    judgeService.listEventCategoryChildren(eventId, categoryId),
   clearError: () => set({ error: null }),
   clearModelsError: () => set({ modelsError: null }),
   clearDetailError: () => set({ detailError: null }),

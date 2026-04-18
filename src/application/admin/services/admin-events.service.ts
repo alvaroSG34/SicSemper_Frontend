@@ -18,6 +18,12 @@ type BackendEvent = ApiAdminEvent;
 type BackendEventCategory = ApiEventCategoryLink;
 
 const mapEvent = (event: BackendEvent) => mapApiEventToCatalogEvent(event);
+const mapEventCategoryLink = (entry: BackendEventCategory) => ({
+  id: entry.id,
+  eventId: entry.eventId,
+  categoryId: entry.categoryId,
+  name: entry.categoryName,
+});
 
 export const adminEventsService: Pick<
   AdminService,
@@ -25,6 +31,8 @@ export const adminEventsService: Pick<
   | "createEventAndLinkCategories"
   | "updateEvent"
   | "updateEventAndLinkCategories"
+  | "createEventCategoryLink"
+  | "removeEventCategoryLink"
   | "getEventDeleteImpact"
   | "removeEvent"
 > = {
@@ -113,6 +121,26 @@ export const adminEventsService: Pick<
       return mapEvent(event);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo actualizar el evento."));
+    }
+  },
+  async createEventCategoryLink(payload) {
+    try {
+      const created = await apiRequest<BackendEventCategory>("/admin/event-categories", {
+        method: "POST",
+        body: payload,
+      });
+      return mapEventCategoryLink(created);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo vincular la categoria al evento."));
+    }
+  },
+  async removeEventCategoryLink(eventCategoryId) {
+    try {
+      await apiRequest<ApiDeleteResponse>(`/admin/event-categories/${eventCategoryId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo remover el vinculo evento-categoria."));
     }
   },
   async getEventDeleteImpact(eventId) {

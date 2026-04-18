@@ -83,6 +83,7 @@ export interface ParticipantService {
     userId: string,
     eventId: string,
     categoryId: string,
+    subcategoryId: string,
   ): Promise<ParticipantEnrollment | null>;
   uploadModelFile(file: File): Promise<{
     name: string;
@@ -123,6 +124,8 @@ const participantErrorMessages: Record<string, string> = {
   PHOTO_REQUIRED: "Debes subir una foto de perfil para guardar tus datos.",
   SCALE_NOT_FOUND: "La escala seleccionada no existe.",
   SUBCATEGORY_CATEGORY_MISMATCH: "La subcategoria no pertenece a la categoria seleccionada.",
+  SUBCATEGORY_MUST_BE_LEAF:
+    "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
 };
@@ -250,12 +253,12 @@ export const participantService: ParticipantService = {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las escalas."));
     }
   },
-  async getEnrollmentContext(_userId, eventId, categoryId) {
+  async getEnrollmentContext(_userId, eventId, categoryId, subcategoryId) {
     try {
       void _userId;
 
       const enrollment = await apiRequest<BackendParticipantEnrollment | null>(
-        `/participant/registrations/context?eventId=${encodeURIComponent(eventId)}&categoryId=${encodeURIComponent(categoryId)}`,
+        `/participant/registrations/context?eventId=${encodeURIComponent(eventId)}&categoryId=${encodeURIComponent(categoryId)}&subcategoryId=${encodeURIComponent(subcategoryId)}`,
       );
 
       return enrollment ? mapEnrollment(enrollment, categoryId) : null;

@@ -2,19 +2,10 @@ import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useMemo, useState } from 'react';
 import type { User } from '@/domain/user/user.types';
 import type { JudgeSubcategoryDraft } from './judge-assignment-tree.utils';
-import {
-  computeCategoryCheckedState,
-  toggleCategoryAllSubcategories,
-} from './judge-assignment-tree.utils';
-
-type CategoryNode = {
-  id: string;
-  name: string;
-  subcategories: Array<{
-    id: string;
-    name: string;
-  }>;
-};
+import type {
+  JudgeCategoryTreeNode,
+  JudgeNodeSelectionState,
+} from './use-admin-judge-assignments';
 
 type JudgeValidationIssue = {
   judgeId: string;
@@ -26,12 +17,16 @@ type JudgeEventAssignmentBoardProps = {
   judges: User[];
   assignedJudgeIds: Set<string>;
   selectionsByJudge: JudgeSubcategoryDraft;
-  categories: CategoryNode[];
+  categoryTree: JudgeCategoryTreeNode[];
   pending: boolean;
   canManage: boolean;
   onAssignJudge: (judgeUserId: string) => void;
   onUnassignJudge: (judgeUserId: string) => void;
-  onSetJudgeSelections: (judgeUserId: string, subcategoryIds: string[]) => void;
+  onToggleJudgeNode: (judgeUserId: string, nodeId: string) => void;
+  getJudgeNodeSelectionState: (
+    judgeUserId: string,
+    nodeId: string,
+  ) => JudgeNodeSelectionState;
   validationIssues?: JudgeValidationIssue[];
   leftTitle?: string;
   rightTitle?: string;
@@ -95,12 +90,13 @@ export function JudgeEventAssignmentBoard({
   judges,
   assignedJudgeIds,
   selectionsByJudge,
-  categories,
+  categoryTree,
   pending,
   canManage,
   onAssignJudge,
   onUnassignJudge,
-  onSetJudgeSelections,
+  onToggleJudgeNode,
+  getJudgeNodeSelectionState,
   validationIssues = [],
   leftTitle = 'Lista de jueces no asignados',
   rightTitle = 'Lista de jueces asignados',
@@ -108,7 +104,7 @@ export function JudgeEventAssignmentBoard({
   const [leftSearch, setLeftSearch] = useState('');
   const [rightSearch, setRightSearch] = useState('');
   const [expandedJudgeIds, setExpandedJudgeIds] = useState<Record<string, boolean>>({});
-  const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<string, boolean>>({});
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Record<string, boolean>>({});
 
   const assignedJudges = useMemo(
     () =>
@@ -117,6 +113,7 @@ export function JudgeEventAssignmentBoard({
         .sort((left, right) => left.name.localeCompare(right.name)),
     [assignedJudgeIds, judges],
   );
+
   const unassignedJudges = useMemo(
     () =>
       judges
@@ -157,30 +154,12 @@ export function JudgeEventAssignmentBoard({
     }));
   };
 
-  const toggleCategoryExpanded = (judgeUserId: string, categoryId: string) => {
-    const key = `${judgeUserId}::${categoryId}`;
-    setExpandedCategoryIds((prev) => ({
+  const toggleNodeExpanded = (judgeUserId: string, nodeId: string) => {
+    const key = `${judgeUserId}::${nodeId}`;
+    setExpandedNodeIds((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
-  };
-
-  const handleToggleSubcategory = (judgeUserId: string, subcategoryId: string) => {
-    const selected = new Set(selectionsByJudge[judgeUserId] ?? []);
-    if (selected.has(subcategoryId)) {
-      selected.delete(subcategoryId);
-    } else {
-      selected.add(subcategoryId);
-    }
-    onSetJudgeSelections(judgeUserId, Array.from(selected));
-  };
-
-  const handleToggleCategory = (judgeUserId: string, subcategoryIds: string[]) => {
-    const next = toggleCategoryAllSubcategories(
-      new Set(selectionsByJudge[judgeUserId] ?? []),
-      subcategoryIds,
-    );
-    onSetJudgeSelections(judgeUserId, Array.from(next));
   };
 
   return (
@@ -236,12 +215,65 @@ export function JudgeEventAssignmentBoard({
         />
         <div className="mt-3 max-h-[52vh] space-y-3 overflow-y-auto pr-1">
           {filteredAssignedJudges.map((judge) => {
-            const selectedForJudge = new Set(selectionsByJudge[judge.id] ?? []);
             const issue = issuesByJudgeId.get(judge.id);
             const expandedJudge = expandedJudgeIds[judge.id] ?? false;
-            const selectedCount = selectedForJudge.size;
+            const selectedCount = (selectionsByJudge[judge.id] ?? []).length;
+
+            const renderNode = (node: JudgeCategoryTreeNode) => {
+              const nodeState = getJudgeNodeSelectionState(judge.id, node.id);
+              const hasChildren = node.children.length > 0;
+              const nodeKey = `${judge.id}::${node.id}`;
+              const isExpanded = expandedNodeIds[nodeKey] ?? false;
+              const disabledNode = nodeState.totalLeaves === 0;
+
+              return (
+                <div
+                  key={nodeKey}
+                  className={`rounded-lg border ${
+                    nodeState.checked
+                      ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
+                      : nodeState.indeterminate
+                        ? 'border-[#3f478f] bg-[rgba(63,71,143,0.15)]'
+                        : 'border-[#2D2D2D] bg-[#0F0F0F]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 px-3 py-2" style={{ paddingLeft: `${8 + node.depth * 10}px` }}>
+                    <CategoryCheckbox
+                      checked={nodeState.checked}
+                      indeterminate={nodeState.indeterminate}
+                      disabled={pending || !canManage || disabledNode}
+                      onChange={() => onToggleJudgeNode(judge.id, node.id)}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white">
+                      {node.isLeaf ? node.pathLabel : node.name}
+                    </span>
+                    <span className="text-[11px] text-[#A8A8A8]">
+                      {nodeState.selectedLeaves}/{nodeState.totalLeaves}
+                    </span>
+                    {hasChildren ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleNodeExpanded(judge.id, node.id)}
+                        className="rounded-md border border-[#2D2D2D] px-2 py-0.5 text-[11px] text-white"
+                      >
+                        {isExpanded ? 'Ocultar' : 'Ver'}
+                      </button>
+                    ) : null}
+                  </div>
+                  {hasChildren && isExpanded ? (
+                    <div className="space-y-2 border-t border-[#2D2D2D] px-2 py-2">
+                      {node.children.map((childNode) => renderNode(childNode))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            };
+
             return (
-              <article key={`right:${judge.id}`} className="rounded-xl border border-[#2D2D2D] bg-[#101010]">
+              <article
+                key={`right:${judge.id}`}
+                className="rounded-xl border border-[#2D2D2D] bg-[#101010]"
+              >
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                   <button
                     type="button"
@@ -271,65 +303,8 @@ export function JudgeEventAssignmentBoard({
 
                 {expandedJudge ? (
                   <div className="space-y-2 border-t border-[#2D2D2D] px-4 py-3">
-                    {categories.map((category) => {
-                      const subcategoryIds = category.subcategories.map((item) => item.id);
-                      const state = computeCategoryCheckedState(selectedForJudge, subcategoryIds);
-                      const categoryKey = `${judge.id}::${category.id}`;
-                      const expandedCategory = expandedCategoryIds[categoryKey] ?? false;
-                      const disabledCategory = category.subcategories.length === 0;
-
-                      return (
-                        <div key={`${judge.id}:${category.id}`} className="rounded-lg border border-[#2D2D2D] bg-[#0F0F0F]">
-                          <div className="flex items-center gap-2 px-3 py-2">
-                            <CategoryCheckbox
-                              checked={state.checked}
-                              indeterminate={state.indeterminate}
-                              disabled={pending || !canManage || disabledCategory}
-                              onChange={() => handleToggleCategory(judge.id, subcategoryIds)}
-                            />
-                            <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white">
-                              {category.name}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => toggleCategoryExpanded(judge.id, category.id)}
-                              className="text-xs text-[#AAB1FF]"
-                            >
-                              {expandedCategory ? 'Ocultar' : 'Ver'}
-                            </button>
-                          </div>
-
-                          {expandedCategory ? (
-                            <div className="border-t border-[#2D2D2D] px-3 py-2">
-                              {category.subcategories.length === 0 ? (
-                                <p className="text-xs text-[#9C9C9C]">
-                                  Sin subcategorias, no asignable.
-                                </p>
-                              ) : (
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                  {category.subcategories.map((subcategory) => (
-                                    <label
-                                      key={`${judge.id}:${subcategory.id}`}
-                                      className="inline-flex items-center gap-2 rounded-md border border-[#2D2D2D] bg-[#121212] px-2 py-1.5 text-xs text-[#D7D7D7]"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedForJudge.has(subcategory.id)}
-                                        disabled={pending || !canManage}
-                                        onChange={() => handleToggleSubcategory(judge.id, subcategory.id)}
-                                        className="h-3.5 w-3.5 accent-[#5B68F1]"
-                                      />
-                                      <span>{subcategory.name}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                    {categories.length === 0 ? (
+                    {categoryTree.map((rootNode) => renderNode(rootNode))}
+                    {categoryTree.length === 0 ? (
                       <p className="text-xs text-[#9C9C9C]">
                         Este evento no tiene categorias disponibles para asignar.
                       </p>
@@ -354,4 +329,3 @@ export function JudgeEventAssignmentBoard({
     </div>
   );
 }
-

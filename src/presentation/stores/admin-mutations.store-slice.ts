@@ -1,7 +1,7 @@
 import type { StateCreator } from "zustand";
 import { adminService } from "@/application/admin/admin.service";
 import type { AdminStoreState } from "./admin.store.types";
-import { executeMutation } from "./admin.store.shared";
+import { executeMutation, getErrorMessage } from "./admin.store.shared";
 
 type AdminMutationsStoreSlice = Pick<
   AdminStoreState,
@@ -17,11 +17,14 @@ type AdminMutationsStoreSlice = Pick<
   | "demoteAdmin"
   | "banParticipant"
   | "unbanParticipant"
+  | "setParticipantVerified"
   | "createEvent"
   | "createEventAndLinkCategories"
   | "updateEvent"
   | "updateEventAndLinkCategories"
   | "getEventDeleteImpact"
+  | "createEventCategoryLink"
+  | "removeEventCategoryLink"
   | "removeEvent"
   | "createCategory"
   | "updateCategory"
@@ -98,6 +101,11 @@ export const createAdminMutationsStoreSlice: StateCreator<
       await adminService.unbanParticipant(userId);
     });
   },
+  setParticipantVerified: async (userId, verified) => {
+    await executeMutation(set, async () => {
+      await adminService.setParticipantVerified(userId, verified);
+    });
+  },
   createEvent: async (payload) => {
     await executeMutation(set, async () => {
       await adminService.createEvent(payload);
@@ -120,6 +128,29 @@ export const createAdminMutationsStoreSlice: StateCreator<
   },
   getEventDeleteImpact: async (eventId) => {
     return adminService.getEventDeleteImpact(eventId);
+  },
+  createEventCategoryLink: async (payload) => {
+    set({ loading: true, error: null });
+    try {
+      const created = await adminService.createEventCategoryLink(payload);
+      set({ loading: false, error: null });
+      return created;
+    } catch (error) {
+      const message = getErrorMessage(error);
+      set({ loading: false, error: message });
+      throw new Error(message);
+    }
+  },
+  removeEventCategoryLink: async (eventCategoryId) => {
+    set({ loading: true, error: null });
+    try {
+      await adminService.removeEventCategoryLink(eventCategoryId);
+      set({ loading: false, error: null });
+    } catch (error) {
+      const message = getErrorMessage(error);
+      set({ loading: false, error: message });
+      throw new Error(message);
+    }
   },
   removeEvent: async (eventId) => {
     await executeMutation(set, async () => {

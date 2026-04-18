@@ -81,6 +81,21 @@ describe('useAdminEvents', () => {
       name: 'Subcategoria 1',
     },
     {
+      id: 'leaf-1',
+      categoryId: 'sub-1',
+      name: 'Leaf 1',
+    },
+    {
+      id: 'leaf-2',
+      categoryId: 'sub-1',
+      name: 'Leaf 2',
+    },
+    {
+      id: 'leaf-3',
+      categoryId: 'cat-1',
+      name: 'Leaf 3',
+    },
+    {
       id: 'sub-2',
       categoryId: 'cat-2',
       name: 'Subcategoria 2',
@@ -89,22 +104,28 @@ describe('useAdminEvents', () => {
 
   const eventCategories: EventCategoryOption[] = [
     {
-      id: 'ec-root-1',
+      id: 'ec-legacy-root',
       eventId: 'event-1',
       categoryId: 'cat-1',
       name: 'Categoria 1',
     },
     {
-      id: 'ec-sub-1',
+      id: 'ec-legacy-l2',
       eventId: 'event-1',
       categoryId: 'sub-1',
       name: 'Categoria 1 > Subcategoria 1',
     },
     {
-      id: 'ec-root-2',
+      id: 'ec-leaf-1',
       eventId: 'event-1',
-      categoryId: 'cat-2',
-      name: 'Categoria 2',
+      categoryId: 'leaf-1',
+      name: 'Categoria 1 > Subcategoria 1 > Leaf 1',
+    },
+    {
+      id: 'ec-leaf-2',
+      eventId: 'event-1',
+      categoryId: 'leaf-2',
+      name: 'Categoria 1 > Subcategoria 1 > Leaf 2',
     },
     {
       id: 'ec-sub-2',
@@ -144,22 +165,23 @@ describe('useAdminEvents', () => {
     removeEvent.mockResolvedValue(undefined);
   });
 
-  it('moves modal from step 1 to step 2 and saves event/category links without judge sync', async () => {
+  it('preloads exact leaves from existing links (including legacy non-leaf links) and saves only leaves', async () => {
     const { result } = renderHook(useHook);
 
     act(() => {
       result.current.openEditEventModal(events[0]!);
     });
 
-    expect(result.current.eventModalStep).toBe(1);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-1')).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-2')).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-3')).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('sub-2')).toBe(true);
 
     await act(async () => {
       await result.current.handleSubmitEventModal({
         preventDefault: vi.fn(),
       } as unknown as FormEvent<HTMLFormElement>);
     });
-
-    expect(result.current.eventModalStep).toBe(2);
 
     await act(async () => {
       await result.current.handleFinalizeEventModal();
@@ -173,26 +195,56 @@ describe('useAdminEvents', () => {
         startDate: '2026-05-10T04:00:00.000Z',
         endDate: '2026-05-11T04:00:00.000Z',
       }),
-      expect.arrayContaining(['cat-1', 'sub-1', 'cat-2', 'sub-2']),
+      expect.arrayContaining(['leaf-1', 'leaf-2', 'leaf-3', 'sub-2']),
     );
-    expect(createEventAndLinkCategories).not.toHaveBeenCalled();
   });
 
-  it('computes implicit removals and affected judge assignments when categories are removed', () => {
+  it('supports parent toggles and tri-state behavior with exact leaf selections', () => {
+    const { result } = renderHook(useHook);
+
+    act(() => {
+      result.current.openCreateEventModal();
+      result.current.toggleCategorySelection('sub-1');
+    });
+
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-1')).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-2')).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-3')).toBe(false);
+
+    const rootStateAfterL2Toggle = result.current.getCategoryNodeSelectionState('cat-1');
+    expect(rootStateAfterL2Toggle.indeterminate).toBe(true);
+    expect(rootStateAfterL2Toggle.selectedLeaves).toBe(2);
+    expect(rootStateAfterL2Toggle.totalLeaves).toBe(3);
+
+    act(() => {
+      result.current.toggleCategorySelection('cat-1');
+    });
+
+    const rootStateAfterRootToggle = result.current.getCategoryNodeSelectionState('cat-1');
+    expect(rootStateAfterRootToggle.checked).toBe(true);
+    expect(result.current.eventModalSelectedLeafIds.has('leaf-3')).toBe(true);
+
+    act(() => {
+      result.current.toggleCategorySelection('cat-1');
+    });
+
+    const rootStateAfterSecondRootToggle = result.current.getCategoryNodeSelectionState('cat-1');
+    expect(rootStateAfterSecondRootToggle.checked).toBe(false);
+    expect(rootStateAfterSecondRootToggle.selectedLeaves).toBe(0);
+  });
+
+  it('computes removals against exact desired leaves and preserves assignment impact', () => {
     const { result } = renderHook(useHook);
 
     act(() => {
       result.current.openEditEventModal(events[0]!);
-    });
-
-    act(() => {
-      result.current.toggleCategorySelection('cat-2');
+      result.current.toggleCategorySelection('sub-2');
     });
 
     expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toEqual(
-      expect.arrayContaining(['ec-root-2', 'ec-sub-2']),
+      expect.arrayContaining(['ec-legacy-root', 'ec-legacy-l2', 'ec-sub-2']),
     );
-    expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toHaveLength(2);
+    expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toHaveLength(3);
     expect(result.current.eventModalCategoryRemovalImpact.removedAssignmentsCount).toBe(1);
   });
 

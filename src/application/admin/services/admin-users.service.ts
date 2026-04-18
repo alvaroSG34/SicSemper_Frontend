@@ -6,6 +6,8 @@ import type {
 import type {
   ApiBanParticipantResponse,
   ApiListUsersResponse,
+  ApiSetParticipantVerifiedRequest,
+  ApiSetParticipantVerifiedResponse,
   ApiUnbanParticipantResponse,
 } from "@/application/admin/contracts/admin-users.contract";
 import type { ApiJudgeUser } from "@/application/admin/contracts/admin-judges.contract";
@@ -22,6 +24,8 @@ import { toErrorMessage } from "./admin-service.shared";
 type BackendListUsers = ApiListUsersResponse;
 type BackendBanParticipantUser = ApiBanParticipantResponse;
 type BackendUnbanParticipantUser = ApiUnbanParticipantResponse;
+type BackendSetParticipantVerifiedRequest = ApiSetParticipantVerifiedRequest;
+type BackendSetParticipantVerifiedResponse = ApiSetParticipantVerifiedResponse;
 type BackendJudgeUser = ApiJudgeUser;
 type BackendAdminManagedUser = ApiAdminManagedUser;
 type BackendPromoteAdminUser = ApiPromoteAdminUser;
@@ -38,6 +42,7 @@ export const adminUsersService: Pick<
   | "demoteAdmin"
   | "banParticipant"
   | "unbanParticipant"
+  | "setParticipantVerified"
 > = {
   async listUsers() {
     try {
@@ -127,6 +132,17 @@ export const adminUsersService: Pick<
       return mapApiAdminDashboardUserToDomainUser(user);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo quitar la suspension."));
+    }
+  },
+  async setParticipantVerified(userId, verified) {
+    try {
+      const user = await apiRequest<BackendSetParticipantVerifiedResponse>(`/admin/users/${userId}/verified`, {
+        method: "PATCH",
+        body: { verified } satisfies BackendSetParticipantVerifiedRequest,
+      });
+      return mapApiAdminDashboardUserToDomainUser(user);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la verificacion."));
     }
   },
 };

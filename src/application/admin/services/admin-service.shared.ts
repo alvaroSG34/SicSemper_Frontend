@@ -10,6 +10,12 @@ const adminErrorMessages: Record<string, string> = {
   CLUB_CONTACT_EMAIL_ALREADY_IN_USE: "Ya existe un club con ese correo de contacto.",
   CLUB_HAS_EVENTS: "No puedes eliminar un club que todavia organiza eventos.",
   CATEGORY_HAS_CHILDREN: "No puedes eliminar una categoria que todavia tiene subcategorias.",
+  CATEGORY_MUST_BE_LEAF_FOR_EVENT_LINK:
+    "Solo se pueden vincular a eventos categorias hoja (sin subcategorias hijas).",
+  CATEGORY_DEPTH_LIMIT_EXCEEDED:
+    "La jerarquia de categorias permite un maximo de 3 niveles.",
+  CATEGORY_CYCLE_DETECTED:
+    "La jerarquia de categorias no permite ciclos entre padre e hijo.",
   EVENT_CATEGORY_ALREADY_EXISTS: "Esa categoria ya esta vinculada al evento.",
   JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
@@ -29,6 +35,8 @@ const adminErrorMessages: Record<string, string> = {
   LANDING_IMAGE_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG, WEBP o GIF.",
   LANDING_IMAGE_FILE_SIZE_INVALID: "La imagen de la landing debe pesar maximo 5MB.",
   SUPERADMIN_IMMUTABLE: "No se puede modificar un usuario con rol SUPERADMIN.",
+  USER_IS_NOT_PARTICIPANT:
+    "Solo se puede actualizar verificacion en cuentas de participante.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
 };
 

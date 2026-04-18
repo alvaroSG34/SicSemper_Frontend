@@ -10,6 +10,8 @@ export type AdminOperationsSlice = {
   updateEvent: ReturnType<typeof useAdminStore.getState>['updateEvent'];
   updateEventAndLinkCategories: ReturnType<typeof useAdminStore.getState>['updateEventAndLinkCategories'];
   getEventDeleteImpact: ReturnType<typeof useAdminStore.getState>['getEventDeleteImpact'];
+  createEventCategoryLink: ReturnType<typeof useAdminStore.getState>['createEventCategoryLink'];
+  removeEventCategoryLink: ReturnType<typeof useAdminStore.getState>['removeEventCategoryLink'];
   removeEvent: ReturnType<typeof useAdminStore.getState>['removeEvent'];
   createCategory: ReturnType<typeof useAdminStore.getState>['createCategory'];
   updateCategory: ReturnType<typeof useAdminStore.getState>['updateCategory'];
@@ -26,6 +28,7 @@ export type AdminOperationsSlice = {
   demoteJudge: ReturnType<typeof useAdminStore.getState>['demoteJudge'];
   banParticipant: ReturnType<typeof useAdminStore.getState>['banParticipant'];
   unbanParticipant: ReturnType<typeof useAdminStore.getState>['unbanParticipant'];
+  setParticipantVerified: ReturnType<typeof useAdminStore.getState>['setParticipantVerified'];
   assignJudgeScope: ReturnType<typeof useAdminStore.getState>['assignJudgeScope'];
   removeJudgeScope: ReturnType<typeof useAdminStore.getState>['removeJudgeScope'];
 };
@@ -41,6 +44,8 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
   const updateEvent = useAdminStore((state) => state.updateEvent);
   const updateEventAndLinkCategories = useAdminStore((state) => state.updateEventAndLinkCategories);
   const getEventDeleteImpact = useAdminStore((state) => state.getEventDeleteImpact);
+  const createEventCategoryLink = useAdminStore((state) => state.createEventCategoryLink);
+  const removeEventCategoryLink = useAdminStore((state) => state.removeEventCategoryLink);
   const removeEvent = useAdminStore((state) => state.removeEvent);
 
   const createCategory = useAdminStore((state) => state.createCategory);
@@ -61,6 +66,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
 
   const banParticipant = useAdminStore((state) => state.banParticipant);
   const unbanParticipant = useAdminStore((state) => state.unbanParticipant);
+  const setParticipantVerified = useAdminStore((state) => state.setParticipantVerified);
 
   const assignJudgeScope = useAdminStore((state) => state.assignJudgeScope);
   const removeJudgeScope = useAdminStore((state) => state.removeJudgeScope);
@@ -75,6 +81,8 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
     updateEvent,
     updateEventAndLinkCategories,
     getEventDeleteImpact,
+    createEventCategoryLink,
+    removeEventCategoryLink,
     removeEvent,
     createCategory,
     updateCategory,
@@ -91,6 +99,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
     demoteJudge,
     banParticipant,
     unbanParticipant,
+    setParticipantVerified,
     assignJudgeScope,
     removeJudgeScope,
   };

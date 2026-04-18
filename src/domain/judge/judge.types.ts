@@ -109,6 +109,14 @@ export type JudgeModelListResponse = {
   totalPages: number;
 };
 
+export type JudgeCategoryNavigationItem = {
+  id: Identifier;
+  name: string;
+  parentId: Identifier | null;
+  hasChildren: boolean;
+  isLeaf: boolean;
+};
+
 export type JudgeModelDetail = {
   id: Identifier;
   nombreModelo: string;

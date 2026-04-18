@@ -23,15 +23,14 @@ export function AdminCategoriesSection({
   const {
     actionFeedback,
     categoryItems,
-    subcategoriesByCategoryId,
-    expandedCategoryId,
-    setExpandedCategoryId,
+    subcategoriesByParentId,
+    expandedNodeIds,
+    toggleNodeExpanded,
     openCreateCategoryModal,
     openEditCategoryModal,
     openCategoryDeleteImpactModal,
     openCreateSubcategoryModal,
     openEditSubcategoryModal,
-    openSubcategoryDeleteModal,
     categoryModalMode,
     closeCategoryModal,
     categoryForm,
@@ -42,9 +41,6 @@ export function AdminCategoriesSection({
     subcategoryForm,
     setSubcategoryForm,
     handleSubmitSubcategoryModal,
-    subcategoryDeleteModal,
-    closeSubcategoryDeleteModal,
-    confirmDeleteSubcategory,
     categoryDeleteImpactModal,
     closeCategoryDeleteImpactModal,
     categoryDeleteConfirmText,
@@ -55,6 +51,87 @@ export function AdminCategoriesSection({
     categories,
     subcategories,
   });
+
+  const renderChildNodes = (parentId: string, depth: 2 | 3) => {
+    const children = subcategoriesByParentId.get(parentId) ?? [];
+
+    if (children.length === 0) {
+      return null;
+    }
+
+    return (
+      <ul className="mt-2 space-y-2">
+        {children.map((node) => {
+          const childNodes = subcategoriesByParentId.get(node.id) ?? [];
+          const hasChildren = childNodes.length > 0;
+          const isExpanded = expandedNodeIds.has(node.id);
+          const isDeleting = pendingAction === `category:delete:${node.id}`;
+          const canCreateChild = depth < 3;
+
+          return (
+            <li
+              key={node.id}
+              className="rounded-md border border-[#2D2D2D] bg-[#121212] px-3 py-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">{node.name}</p>
+                  <p className="text-[11px] text-[#9C9C9C]">Nivel {depth}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-1">
+                  {hasChildren ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleNodeExpanded(node.id)}
+                      className="inline-flex h-7 items-center justify-center rounded-md border border-[#2D2D2D] px-2 text-[11px] font-semibold text-white"
+                    >
+                      {isExpanded ? 'Ocultar hijas' : `Ver hijas (${childNodes.length})`}
+                    </button>
+                  ) : null}
+                  {canCreateChild && canCreateCategories ? (
+                    <button
+                      type="button"
+                      disabled={loading || isDeleting}
+                      onClick={() => openCreateSubcategoryModal(node.id)}
+                      className="inline-flex h-7 items-center justify-center rounded-md bg-[#5B68F1] px-2 text-[11px] font-semibold text-white"
+                    >
+                      + Añadir
+                    </button>
+                  ) : null}
+                  {canUpdateCategories ? (
+                    <button
+                      type="button"
+                      disabled={loading || isDeleting}
+                      onClick={() => openEditSubcategoryModal(node)}
+                      className="inline-flex h-7 items-center justify-center rounded-md border border-[#2D2D2D] px-2 text-[11px] font-semibold text-white"
+                    >
+                      Editar
+                    </button>
+                  ) : null}
+                  {canDeleteCategories ? (
+                    <button
+                      type="button"
+                      disabled={loading || isDeleting}
+                      onClick={() =>
+                        void openCategoryDeleteImpactModal(node.id, node.name)
+                      }
+                      className="inline-flex h-7 items-center justify-center rounded-md bg-[#4B1F2A] px-2 text-[11px] font-semibold text-white"
+                    >
+                      {isDeleting ? '...' : 'Eliminar'}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              {isExpanded && hasChildren ? (
+                <div className="pl-3">{renderChildNodes(node.id, 3)}</div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
 
   return (
     <>
@@ -70,7 +147,7 @@ export function AdminCategoriesSection({
                 onClick={openCreateCategoryModal}
                 className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-xs font-semibold text-white"
               >
-                Crear categoria
+                Crear categoria raiz
               </button>
             ) : null}
           </div>
@@ -89,10 +166,9 @@ export function AdminCategoriesSection({
 
           <div className="mt-4 space-y-3">
             {categoryItems.map((item) => {
+              const childNodes = subcategoriesByParentId.get(item.id) ?? [];
               const isDeleting = pendingAction === `category:delete:${item.id}`;
-              const isExpanded = expandedCategoryId === item.id;
-              const categorySubcategories =
-                subcategoriesByCategoryId.get(item.id) ?? [];
+              const isExpanded = expandedNodeIds.has(item.id);
 
               return (
                 <article
@@ -101,25 +177,30 @@ export function AdminCategoriesSection({
                 >
                   <div className="md:flex md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-white">
-                        {item.name}
-                      </p>
+                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      <p className="text-[11px] text-[#9C9C9C]">Nivel 1</p>
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2 md:mt-0">
                       <button
                         type="button"
-                        onClick={() =>
-                          setExpandedCategoryId((prev) =>
-                            prev === item.id ? null : item.id,
-                          )
-                        }
+                        onClick={() => toggleNodeExpanded(item.id)}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
                       >
                         {isExpanded
-                          ? 'Ocultar subcategorias'
-                          : `Ver subcategorias (${categorySubcategories.length})`}
+                          ? 'Ocultar ramas'
+                          : `Ver ramas (${childNodes.length})`}
                       </button>
+                      {canCreateCategories ? (
+                        <button
+                          type="button"
+                          disabled={loading || isDeleting}
+                          onClick={() => openCreateSubcategoryModal(item.id)}
+                          className="inline-flex h-9 items-center justify-center rounded-lg bg-[#5B68F1] px-3 text-xs font-semibold text-white"
+                        >
+                          + Añadir
+                        </button>
+                      ) : null}
                       {canUpdateCategories ? (
                         <button
                           type="button"
@@ -147,67 +228,11 @@ export function AdminCategoriesSection({
 
                   {isExpanded ? (
                     <div className="mt-3 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-[#A8A8A8]">
-                          Subcategorias
-                        </p>
-                        <button
-                          type="button"
-                          disabled={loading || !canCreateCategories}
-                          onClick={() => openCreateSubcategoryModal(item.id)}
-                          className="inline-flex h-7 items-center justify-center rounded-lg bg-[#5B68F1] px-3 text-[11px] font-semibold text-white"
-                        >
-                          + Agregar
-                        </button>
-                      </div>
-                      {categorySubcategories.length > 0 ? (
-                        <ul className="mt-2 space-y-2">
-                          {categorySubcategories.map((subcategory) => {
-                            const isDeletingSub =
-                              pendingAction ===
-                              `subcategory:delete:${subcategory.id}`;
-                            return (
-                              <li
-                                key={subcategory.id}
-                                className="flex items-center justify-between gap-2 rounded-md border border-[#2D2D2D] bg-[#121212] px-3 py-2"
-                              >
-                                <span className="text-sm text-white">
-                                  {subcategory.name}
-                                </span>
-                                <div className="flex shrink-0 gap-1">
-                                  <button
-                                    type="button"
-                                    disabled={loading || isDeletingSub || !canUpdateCategories}
-                                    onClick={() =>
-                                      openEditSubcategoryModal(subcategory)
-                                    }
-                                    className="inline-flex h-7 items-center justify-center rounded-md border border-[#2D2D2D] px-2 text-[11px] font-semibold text-white"
-                                  >
-                                    Editar
-                                  </button>
-                                  <button
-                                    type="button"
-                                    disabled={loading || isDeletingSub || !canDeleteCategories}
-                                    onClick={() =>
-                                      openSubcategoryDeleteModal(
-                                        subcategory.id,
-                                        subcategory.name,
-                                        item.id,
-                                      )
-                                    }
-                                    className="inline-flex h-7 items-center justify-center rounded-md bg-[#4B1F2A] px-2 text-[11px] font-semibold text-white"
-                                  >
-                                    {isDeletingSub ? '...' : 'Eliminar'}
-                                  </button>
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
+                      {childNodes.length > 0 ? (
+                        renderChildNodes(item.id, 2)
                       ) : (
-                        <p className="mt-2 text-sm text-[#9C9C9C]">
-                          Esta categoria no tiene subcategorias. Agrega una con
-                          el boton de arriba.
+                        <p className="text-sm text-[#9C9C9C]">
+                          Esta categoria no tiene hijas. Puedes crear una categoria hija desde aqui.
                         </p>
                       )}
                     </div>
@@ -231,8 +256,8 @@ export function AdminCategoriesSection({
             <div className="mb-4 flex items-center justify-between gap-3">
               <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
                 {categoryModalMode === 'create'
-                  ? 'Crear categoria'
-                  : 'Editar categoria'}
+                  ? 'Crear categoria raiz'
+                  : 'Editar categoria raiz'}
               </h4>
               <button
                 type="button"
@@ -283,7 +308,7 @@ export function AdminCategoriesSection({
                   : false)
                   ? 'Guardando...'
                   : categoryModalMode === 'create'
-                    ? 'Crear categoria'
+                    ? 'Crear categoria raiz'
                     : 'Guardar cambios'}
               </button>
             </form>
@@ -326,7 +351,7 @@ export function AdminCategoriesSection({
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-3">
-                    <p className="text-[11px] text-[#9C9C9C]">Subcategorias hijas</p>
+                    <p className="text-[11px] text-[#9C9C9C]">Categorias descendientes</p>
                     <p className="text-lg font-semibold text-white">
                       {categoryDeleteImpactModal.impact.children}
                     </p>
@@ -358,8 +383,8 @@ export function AdminCategoriesSection({
                 </div>
                 {categoryDeleteImpactModal.impact.children > 0 ? (
                   <p className="rounded-xl border border-[#78350f] bg-[#78350f]/20 px-4 py-3 text-sm text-[#fcd34d]">
-                    Las {categoryDeleteImpactModal.impact.children} subcategoria(s)
-                    y sus datos asociados tambien seran eliminados.
+                    Tambien se eliminaran {categoryDeleteImpactModal.impact.children} categoria(s)
+                    descendiente(s) y sus datos asociados.
                   </p>
                 ) : null}
               </div>
@@ -428,8 +453,8 @@ export function AdminCategoriesSection({
             <div className="mb-4 flex items-center justify-between gap-3">
               <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
                 {subcategoryModalMode === 'create'
-                  ? 'Crear subcategoria'
-                  : 'Editar subcategoria'}
+                  ? 'Crear categoria hija'
+                  : 'Editar categoria hija'}
               </h4>
               <button
                 type="button"
@@ -480,60 +505,10 @@ export function AdminCategoriesSection({
                   : false)
                   ? 'Guardando...'
                   : subcategoryModalMode === 'create'
-                    ? 'Crear subcategoria'
+                    ? 'Crear categoria hija'
                     : 'Guardar cambios'}
               </button>
             </form>
-          </div>
-        </div>
-      ) : null}
-
-      {subcategoryDeleteModal ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[#4B1F2A] bg-[#161616] p-5 sm:p-6">
-            <div className="mb-3">
-              <p className="text-xs font-semibold tracking-[1.4px] text-[#FCA5A5]">
-                CONFIRMACION DE BORRADO
-              </p>
-              <h4 className={`${headingClassName} mt-1 text-[20px] font-semibold text-white`}>
-                Eliminar subcategoria
-              </h4>
-              <p className="mt-1 text-sm text-[#BFBFBF]">
-                {subcategoryDeleteModal.subcategoryName}
-              </p>
-            </div>
-            <p className="text-sm text-[#D5D5D5]">
-              Esta accion eliminara la subcategoria y todos sus datos asociados
-              permanentemente.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={closeSubcategoryDeleteModal}
-                disabled={
-                  pendingAction ===
-                  `subcategory:delete:${subcategoryDeleteModal.subcategoryId}`
-                }
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#2D2D2D] px-4 text-sm font-semibold text-white"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => void confirmDeleteSubcategory()}
-                disabled={
-                  !canDeleteCategories ||
-                  pendingAction ===
-                  `subcategory:delete:${subcategoryDeleteModal.subcategoryId}`
-                }
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#7f1d1d] px-4 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {pendingAction ===
-                `subcategory:delete:${subcategoryDeleteModal.subcategoryId}`
-                  ? 'Eliminando...'
-                  : 'Eliminar definitivamente'}
-              </button>
-            </div>
           </div>
         </div>
       ) : null}
