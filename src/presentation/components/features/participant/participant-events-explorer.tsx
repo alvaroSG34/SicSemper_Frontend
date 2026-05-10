@@ -49,6 +49,7 @@ export function ParticipantEventsExplorer({
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<"available" | "past">("available");
+  const [renderedAt] = useState(() => Date.now());
 
   const visibleEvents = activeFilter === "past" ? pastEvents : events;
 
@@ -86,7 +87,7 @@ export function ParticipantEventsExplorer({
 
   const isPastEvent = (endDate: string) => {
     const parsedDate = new Date(endDate);
-    return Number.isFinite(parsedDate.getTime()) && parsedDate.getTime() < Date.now();
+    return Number.isFinite(parsedDate.getTime()) && parsedDate.getTime() < renderedAt;
   };
 
   const handleStartUpload = async (eventId: string) => {

@@ -12,6 +12,7 @@ import {
   Save,
 } from "lucide-react";
 import type { JudgeReviewCriteria } from "@/domain/judge/judge.types";
+import { getApiBaseUrl } from "@/core/api-base-url";
 import { ImgWithSkeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
@@ -27,7 +28,6 @@ type JudgeReviewPageProps = {
 
 const MAX_CRITERION_SCORE = 10;
 const MAX_TOTAL_SCORE = 30;
-const DEFAULT_API_BASE_URL = "http://localhost:3001/api/v1";
 
 type CriteriaKey = "armado" | "pintura" | "detallesAgregados";
 
@@ -61,9 +61,6 @@ const criteriaConfig: Array<{
   },
 ];
 
-const resolveApiBaseUrl = () =>
-  (process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
-
 const resolveMediaUrl = (input: { publicUrl: string | null; storageKey: string | null }) => {
   if (input.publicUrl) {
     return input.publicUrl;
@@ -73,7 +70,7 @@ const resolveMediaUrl = (input: { publicUrl: string | null; storageKey: string |
     return null;
   }
 
-  const apiBaseUrl = resolveApiBaseUrl();
+  const apiBaseUrl = getApiBaseUrl();
   const apiOrigin = apiBaseUrl.replace(/\/api\/v1$/i, "");
   const normalizedStorageKey = input.storageKey.replace(/^\/+/, "");
   return `${apiOrigin}/uploads/${normalizedStorageKey}`;

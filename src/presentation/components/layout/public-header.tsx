@@ -172,7 +172,7 @@ export function PublicHeader({
               variant === "login" ? "text-[#0f172a]" : "text-white"
             }`}
           >
-            NOMBRE
+            IPMS BOLIVIA
           </span>
         </Link>
 

@@ -5,21 +5,21 @@ export function LandingFooter() {
         <div className="flex w-full flex-wrap justify-center gap-12 xl:gap-20">
           <div className="w-full xl:w-[280px]">
             <p className="text-xl font-semibold text-[color:var(--landing-text)]">
-              ▼ NOMBRE
+              IPMS BOLIVIA
             </p>
             <p className="mt-3 text-[13px] text-[color:var(--landing-muted)]">
-              Plataforma oficial de gestión para competencias de modelismo y maquetas.
+              Plataforma oficial de gestion para competencias de modelismo y maquetas.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-10 xl:gap-20">
             <div className="flex min-w-[170px] flex-col gap-4">
               <p className="text-sm font-semibold text-[color:var(--landing-text)]">
-                Navegación
+                Navegacion
               </p>
               <p className="text-[13px] text-[color:var(--landing-muted)]">Inicio</p>
               <p className="text-[13px] text-[color:var(--landing-muted)]">Eventos</p>
-              <p className="text-[13px] text-[color:var(--landing-muted)]">Categorías</p>
+              <p className="text-[13px] text-[color:var(--landing-muted)]">Categorias</p>
               <p className="text-[13px] text-[color:var(--landing-muted)]">Organizadores</p>
             </div>
 
@@ -31,7 +31,7 @@ export function LandingFooter() {
                 Bases y reglamento
               </p>
               <p className="text-[13px] text-[color:var(--landing-muted)]">
-                Proceso de evaluación
+                Proceso de evaluacion
               </p>
               <p className="text-[13px] text-[color:var(--landing-muted)]">
                 Cronograma
@@ -46,13 +46,13 @@ export function LandingFooter() {
                 Contacto
               </p>
               <p className="max-w-[280px] text-[13px] leading-[1.5] text-[color:var(--landing-muted)]">
-                ¿Tienes dudas sobre la inscripción o categorías? Contáctanos para
-                recibir información oficial del evento.
+                Tienes dudas sobre la inscripcion o categorias? Contactanos para
+                recibir informacion oficial del evento.
               </p>
 
               <div className="flex h-11 w-full max-w-[280px] items-center rounded-[22px] border border-[color:var(--landing-border)] px-5">
                 <span className="truncate text-[13px] text-[color:var(--landing-subtle)]">
-                  contacto@sicsemper.com
+                  contacto@ipmsbolivia.org
                 </span>
               </div>
             </div>
@@ -61,14 +61,14 @@ export function LandingFooter() {
 
         <div className="flex w-full flex-wrap items-center gap-4 border-t border-transparent pt-8">
           <p className="text-[13px] text-[color:var(--landing-subtle)]">
-            © 2026 SicSemper. Todos los derechos reservados.
+            (c) 2026 IPMS BOLIVIA. Todos los derechos reservados.
           </p>
           <div className="flex gap-4 xl:ml-auto">
             <p className="text-[13px] text-[color:var(--landing-muted)]">
-              Política de privacidad
+              Politica de privacidad
             </p>
             <p className="text-[13px] text-[color:var(--landing-muted)]">
-              Términos y condiciones
+              Terminos y condiciones
             </p>
           </div>
         </div>

@@ -4,35 +4,35 @@ const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export const landingDefaultContent: LandingContent = {
   heroDate: '15 Y 16 DE AGOSTO, 2026 / SALON GUARAYO - FEXPOCRUZ',
-  heroTitle: '¡Nuestra Competencia de Maquetas\nSe Acerca!',
+  heroTitle: 'Competencia IPMS BOLIVIA\nDe Modelismo',
   modelCards: [
     {
-      name: 'Avion Personalizado',
+      name: 'Avion a escala',
       category: 'Aviones',
       scale: '1:100',
       image: '/Images/Avion.webp',
     },
     {
-      name: 'M4 Sherman',
+      name: 'Vehiculo militar a escala',
       category: 'Tanques',
       scale: '1:72',
       image: '/Images/Tanque.webp',
     },
     {
-      name: 'Bluenose II',
+      name: 'Barco a escala',
       category: 'Barcos',
       scale: '1:75',
       image: '/Images/Barco.webp',
     },
   ],
   eventsCopy: {
-    title: 'Eventos Que\nRecordarás',
+    title: 'Eventos Que\nRecordaras',
     subtitle:
-      'Vive la pasión por el modelismo en un evento que celebra el detalle, la creatividad y la precisión.',
+      'Vive la pasion por el modelismo en un evento que celebra el detalle, la creatividad y la precision.',
     descriptionOne:
-      'NOMBRE reúne a constructores, coleccionistas y entusiastas de las maquetas en un espacio donde cada pieza cuenta una historia. Desde aviones y tanques hasta creaciones personalizadas, nuestra competencia es el escenario perfecto para demostrar tu talento y compartir tu trabajo con una comunidad que valora cada detalle.',
+      'IPMS BOLIVIA reune a constructores, coleccionistas y entusiastas de las maquetas en un espacio donde cada pieza cuenta una historia. Desde aviones y tanques hasta creaciones personalizadas, nuestra competencia es el escenario para demostrar talento y compartir trabajo con una comunidad que valora cada detalle.',
     descriptionTwo:
-      'Participa, compite y conecta con personas que comparten tu misma pasión. Aquí no solo presentas una maqueta: presentas horas de dedicación, técnica y creatividad.',
+      'Participa, compite y conecta con personas que comparten tu misma pasion. Aqui no solo presentas una maqueta: presentas horas de dedicacion, tecnica y creatividad.',
     image: '/Images/Evento.webp',
   },
   featuredSpeakersGroup: {
@@ -40,53 +40,53 @@ export const landingDefaultContent: LandingContent = {
       'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=webp&q=80&w=1600',
     members: [
       {
-        name: 'Dale Slemp',
-        role: 'Director General del Evento\nCoordinación y Supervisión de Competencias',
+        name: 'Comite Organizador',
+        role: 'Direccion general del evento\nCoordinacion y supervision de competencias',
       },
       {
-        name: 'Jolan Memory',
-        role: 'Coordinadora de Participantes\nRegistro y Gestión de Categorías',
+        name: 'Mesa de Registro',
+        role: 'Atencion a participantes\nRegistro y gestion de categorias',
       },
       {
-        name: 'Christa Ceinture',
-        role: 'Responsable de Evaluación\nLogística y Soporte a Jurados',
+        name: 'Equipo de Jueces',
+        role: 'Evaluacion tecnica\nLogistica y soporte a jurados',
       },
     ],
   },
   scheduleItems: [
     {
       time: '8:00 AM - 10:00 AM',
-      title: 'Registro y Café',
+      title: 'Registro y acreditacion',
       description:
-        'Recepción de participantes, verificación de inscripciones y entrega de credenciales. Espacio para preparar las maquetas y compartir con otros modelistas antes de iniciar la evaluación.',
+        'Recepcion de participantes, verificacion de inscripciones y entrega de credenciales. Espacio para preparar las maquetas y compartir con otros modelistas antes de iniciar la evaluacion.',
       isActive: true,
     },
     {
       time: '10:00 AM - 11:00 AM',
-      title: 'Exhibición y Evaluación Técnica',
+      title: 'Exhibicion y evaluacion tecnica',
       description:
-        'Inicio oficial de la exhibición. Las maquetas quedan abiertas al público mientras el jurado revisa criterios como precisión histórica, nivel de detalle y acabado.',
+        'Inicio oficial de la exhibicion. Las maquetas quedan abiertas al publico mientras el jurado revisa criterios como precision historica, nivel de detalle y acabado.',
       isActive: false,
     },
     {
       time: '11:00 AM - 1:00 PM',
-      title: 'Mesa Técnica con Jurados',
+      title: 'Mesa tecnica con jurados',
       description:
-        'Interacción entre participantes y jueces. Los modelistas pueden explicar técnicas, materiales utilizados y procesos de construcción.',
+        'Interaccion entre participantes y jueces. Los modelistas pueden explicar tecnicas, materiales utilizados y procesos de construccion.',
       isActive: false,
     },
     {
       time: '1:00 PM - 2:00 PM',
       title: 'Descanso para Almuerzo',
       description:
-        'Pausa para el almuerzo mientras continúa la exhibición abierta al público y la deliberación parcial del jurado.',
+        'Pausa para el almuerzo mientras continua la exhibicion abierta al publico y la deliberacion parcial del jurado.',
       isActive: false,
     },
     {
       time: '2:00 PM - 3:00 PM',
-      title: 'Deliberación Final del Jurado',
+      title: 'Deliberacion final del jurado',
       description:
-        'Evaluación final y deliberación del jurado. Se determinan los puntajes y se preparan los resultados por categoría y subcategoría.',
+        'Evaluacion final y deliberacion del jurado. Se determinan los puntajes y se preparan los resultados por categoria y subcategoria.',
       isActive: false,
     },
   ],
@@ -101,24 +101,24 @@ export const landingDefaultContent: LandingContent = {
       'HOBBY MASTER',
       'PINTURAS ATLAS',
     ],
-    secondary: ['CREATIVE CO', 'PIXEL STUDIO', 'BRANDIFY'],
+    secondary: ['IPMS BOLIVIA'],
   },
   locationCards: [
     {
       icon: 'mapPin',
       iconBackground: 'rgba(255, 107, 157, 0.2)',
-      label: 'Dirección',
-      title: 'Salón Hotel Guarayo',
+      label: 'Direccion',
+      title: 'Salon Hotel Guarayo',
       description:
         'Av. Roca y Coronado, Cerca del Hipermaxi, Entrada por la Puerta Principal.',
     },
     {
       icon: 'transport',
       iconBackground: 'rgba(107, 154, 255, 0.2)',
-      label: 'Transporte Público',
-      title: 'Línea 29 - Línea 70',
+      label: 'Transporte publico',
+      title: 'Linea 29 - Linea 70',
       description:
-        'Las líneas 29 y 70 cuentan con paradas cercanas a la entrada principal de la Fexpocruz.',
+        'Las lineas 29 y 70 cuentan con paradas cercanas a la entrada principal de la Fexpocruz.',
     },
     {
       icon: 'parking',

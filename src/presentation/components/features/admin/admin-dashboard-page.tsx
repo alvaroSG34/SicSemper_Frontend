@@ -263,7 +263,7 @@ export function AdminDashboardPage({
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-5 w-5 text-white" />
-            <span className="text-2xl font-bold tracking-[-0.5px] text-white">NOMBRE</span>
+            <span className="text-2xl font-bold tracking-[-0.5px] text-white">IPMS BOLIVIA</span>
           </div>
 
           <nav className="mt-16 flex flex-col gap-7">
@@ -302,7 +302,7 @@ export function AdminDashboardPage({
             <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
               <div className="flex items-center gap-3">
                 <ChevronDown className="h-4 w-4 text-white" />
-                <span className="text-lg font-bold tracking-[-0.3px] text-white">NOMBRE</span>
+                <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
               </div>
               <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {visibleSidebarItems.map((item) => (
@@ -325,7 +325,7 @@ export function AdminDashboardPage({
             <header id="inicio" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
               <div className="flex flex-col gap-1">
                 <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
-                  Hola, Admin {user?.name?.split(" ")[0] ?? "NOMBRE"}
+                  Hola, Admin {user?.name?.split(" ")[0] ?? "IPMS BOLIVIA"}
                 </h1>
                 <p className="text-sm text-[#AAAAAA]">Centro de control operativo de competencias de modelismo</p>
               </div>
@@ -619,10 +619,10 @@ export function AdminDashboardPage({
             ) : null}
             {!isAdminPermissionManagerVisible ? (
               <footer className="pb-6 text-xs text-[#777777]">
-                {loading ? "Actualizando panel..." : "Panel Admin v1 - Datos de demostracion en memoria de sesion"}
+                {loading ? "Actualizando panel..." : "Panel administrativo actualizado"}
                 <span className="ml-2 inline-flex items-center gap-1">
                   <ArrowRight className="h-3 w-3" />
-                  Modo demostracion sin conexion a servicios externos
+                  Datos sincronizados con la API
                 </span>
               </footer>
             ) : null}

@@ -164,7 +164,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-5 w-5 text-white" />
-            <span className="text-2xl font-bold tracking-[-0.5px] text-white">NOMBRE</span>
+            <span className="text-2xl font-bold tracking-[-0.5px] text-white">IPMS BOLIVIA</span>
           </div>
 
           <nav className="mt-16 flex flex-col gap-8">
@@ -203,7 +203,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <ChevronDown className="h-4 w-4 text-white" />
-                  <span className="text-lg font-bold tracking-[-0.3px] text-white">NOMBRE</span>
+                  <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
                 </div>
                 <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
               </div>

@@ -28,7 +28,10 @@ export function AutoPublicHeader() {
   const switchRole = useAuthStore((state) => state.switchRole);
   const logout = useAuthStore((state) => state.logout);
 
-  const availableRoles = user?.roles ?? [];
+  const rawAvailableRoles = user?.roles ?? [];
+  const availableRoles = rawAvailableRoles.includes("SUPERADMIN")
+    ? (["SUPERADMIN"] as UserRole[])
+    : rawAvailableRoles;
   const activeRole = currentRole ?? availableRoles[0] ?? null;
 
   const dashboardHref = useMemo(() => {

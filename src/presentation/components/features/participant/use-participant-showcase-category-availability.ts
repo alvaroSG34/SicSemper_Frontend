@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { participantService } from "@/application/participant/participant.service";
 
+const emptyCategoryIds: string[] = [];
+
 export const useParticipantShowcaseCategoryAvailability = (eventId: string) => {
   const normalizedEventId = eventId.trim();
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
@@ -11,15 +13,18 @@ export const useParticipantShowcaseCategoryAvailability = (eventId: string) => {
 
   useEffect(() => {
     if (!normalizedEventId) {
-      setCategoryIds([]);
-      setLoading(false);
-      setError(null);
       return;
     }
 
     let alive = true;
-    setLoading(true);
-    setError(null);
+
+    void Promise.resolve().then(() => {
+      if (!alive) {
+        return;
+      }
+      setLoading(true);
+      setError(null);
+    });
 
     void participantService
       .getEventCategoryIdsWithModels(normalizedEventId)
@@ -48,12 +53,13 @@ export const useParticipantShowcaseCategoryAvailability = (eventId: string) => {
     };
   }, [normalizedEventId]);
 
-  const categoryIdSet = useMemo(() => new Set(categoryIds), [categoryIds]);
+  const effectiveCategoryIds = normalizedEventId ? categoryIds : emptyCategoryIds;
+  const categoryIdSet = useMemo(() => new Set(effectiveCategoryIds), [effectiveCategoryIds]);
 
   return {
     categoryIdSet,
-    loading,
-    error,
+    loading: normalizedEventId ? loading : false,
+    error: normalizedEventId ? error : null,
   };
 };
 

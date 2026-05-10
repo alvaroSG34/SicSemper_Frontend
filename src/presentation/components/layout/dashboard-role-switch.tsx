@@ -26,7 +26,10 @@ export function DashboardRoleSwitch() {
   const switchRole = useAuthStore((state) => state.switchRole);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
-  const availableRoles = user?.roles ?? [];
+  const rawAvailableRoles = user?.roles ?? [];
+  const availableRoles = rawAvailableRoles.includes("SUPERADMIN")
+    ? (["SUPERADMIN"] as UserRole[])
+    : rawAvailableRoles;
   const activeRole = currentRole ?? availableRoles[0] ?? null;
 
   if (availableRoles.length <= 1 || !activeRole) {

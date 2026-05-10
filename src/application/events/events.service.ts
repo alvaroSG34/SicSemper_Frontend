@@ -1,20 +1,20 @@
 import type { Event } from "@/domain/event/event.types";
-import { findEventById } from "@/domain/event/event.model";
-import { mockEvents } from "@/infrastructure/mock/mock-events";
+import { apiRequest } from "@/infrastructure/api/http-client";
 
 export interface EventsService {
   getEvents(): Promise<Event[]>;
   getEventById(eventId: string): Promise<Event | null>;
 }
 
-const cloneEvent = (event: Event): Event => ({ ...event });
-
 export const eventsService: EventsService = {
   async getEvents() {
-    return mockEvents.map(cloneEvent);
+    return apiRequest<Event[]>("/participant/events/upcoming");
   },
   async getEventById(eventId) {
-    const event = findEventById(mockEvents, eventId);
-    return event ? cloneEvent(event) : null;
+    try {
+      return await apiRequest<Event>(`/participant/events/${encodeURIComponent(eventId)}`);
+    } catch {
+      return null;
+    }
   },
 };

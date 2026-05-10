@@ -19,12 +19,11 @@ export const useParticipantEvents = ({ onStartUpload }: UseParticipantEventsPara
     loadEventCategoriesForDetail,
   } = useParticipantEventsSlice();
   const [registeredEventIds, setRegisteredEventIds] = useState<string[]>([]);
-  const [registeredEventIdsLoading, setRegisteredEventIdsLoading] = useState(false);
+  const [registeredEventIdsLoading, setRegisteredEventIdsLoading] = useState(true);
   const [registeredPastEvents, setRegisteredPastEvents] = useState<ParticipantEventDetail[]>([]);
 
   useEffect(() => {
     let alive = true;
-    setRegisteredEventIdsLoading(true);
 
     void participantService
       .getMyRegisteredEventIds()

@@ -1,4 +1,3 @@
 export const appConfig = {
-  appName: "NOMBRE",
-  isMockMode: true,
+  appName: "IPMS BOLIVIA",
 } as const;

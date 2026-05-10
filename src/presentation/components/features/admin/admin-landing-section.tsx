@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { ImagePlus, RefreshCw, Save, Send, Undo2, Upload } from 'lucide-react';
 import { adminLandingService } from '@/application/admin/services/admin-landing.service';
 import type {
@@ -132,7 +132,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
   const [activeImageTarget, setActiveImageTarget] = useState<ImageTarget | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState>(null);
 
-  const applyServerState = (state: LandingDraftState) => {
+  const applyServerState = useCallback((state: LandingDraftState) => {
     const nextDraft = deepClone(state.draftContent);
     setDraft(nextDraft);
     setServerDraft(deepClone(nextDraft));
@@ -142,9 +142,9 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
     setDraftUpdatedBy(state.draftUpdatedBy?.name ?? null);
     setPublishedAt(state.publishedAt ?? null);
     setPublishedBy(state.publishedBy?.name ?? null);
-  };
+  }, []);
 
-  const loadDraftState = async () => {
+  const loadDraftState = useCallback(async () => {
     setLoading(true);
     setFeedback(null);
     try {
@@ -158,7 +158,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
     } finally {
       setLoading(false);
     }
-  };
+  }, [applyServerState]);
 
   const loadAssets = async () => {
     setAssetsLoading(true);
@@ -178,7 +178,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
 
   useEffect(() => {
     void loadDraftState();
-  }, []);
+  }, [loadDraftState]);
 
   const localDirty = useMemo(() => {
     if (!draft || !serverDraft) return false;
