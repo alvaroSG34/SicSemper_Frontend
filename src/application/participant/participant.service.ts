@@ -6,9 +6,13 @@ import type {
   ParticipantEventDetail,
   ParticipantProfileDetails,
   ParticipantModel,
+  ParticipantCategoryShowcase,
+  ParticipantShowcaseModelDetail,
   ParticipantNotificationsMutationResult,
   ParticipantNotificationsPageResponse,
+  ParticipantRegisteredEvents,
   ParticipantScale,
+  ParticipantShowcaseSortOption,
   ParticipantSubcategoryOption,
   UpdateParticipantProfilePayload,
 } from "@/domain/participant/participant.types";
@@ -74,6 +78,7 @@ export interface ParticipantService {
   getUpcomingEvents(): Promise<ParticipantEventDetail[]>;
   getEventDetailForParticipant(eventId: string): Promise<ParticipantEventDetail | null>;
   getCategoriesForEvent(eventId: string): Promise<ParticipantCategoryOption[]>;
+  getEventCategoryIdsWithModels(eventId: string): Promise<{ categoryIds: string[] }>;
   getSubcategoriesForCategory(
     categoryId: string,
     eventId?: string,
@@ -105,6 +110,20 @@ export interface ParticipantService {
   deleteNotification(
     notificationId: string,
   ): Promise<ParticipantNotificationsMutationResult>;
+  getMyRegisteredEventIds(): Promise<ParticipantRegisteredEvents>;
+  getCategoryShowcase(input: {
+    eventId: string;
+    finalCategoryId: string;
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    sort?: ParticipantShowcaseSortOption;
+  }): Promise<ParticipantCategoryShowcase>;
+  getShowcaseModelDetail(input: {
+    eventId: string;
+    finalCategoryId: string;
+    modelId: string;
+  }): Promise<ParticipantShowcaseModelDetail>;
 }
 
 const participantErrorMessages: Record<string, string> = {
@@ -128,6 +147,10 @@ const participantErrorMessages: Record<string, string> = {
     "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
+  EVENT_ACCESS_FORBIDDEN: "No tienes acceso a participantes para este evento.",
+  CATEGORY_MUST_BE_LEAF: "Debes elegir una categoria final para ver maquetas.",
+  MODEL_NOT_FOUND: "No se encontro la maqueta seleccionada.",
+  MODEL_ACCESS_FORBIDDEN: "No puedes visualizar esa maqueta.",
 };
 
 const toErrorMessage = (error: unknown, fallback: string) => {
@@ -234,6 +257,17 @@ export const participantService: ParticipantService = {
       return await apiRequest<ParticipantCategoryOption[]>(`/participant/events/${eventId}/categories`);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias del evento."));
+    }
+  },
+  async getEventCategoryIdsWithModels(eventId) {
+    try {
+      return await apiRequest<{ categoryIds: string[] }>(
+        `/participant/events/${eventId}/categories/with-models`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudieron cargar las categorias con maquetas."),
+      );
     }
   },
   async getSubcategoriesForCategory(categoryId, eventId) {
@@ -369,6 +403,48 @@ export const participantService: ParticipantService = {
       );
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo eliminar la notificacion."));
+    }
+  },
+  async getMyRegisteredEventIds() {
+    try {
+      return await apiRequest<ParticipantRegisteredEvents>("/participant/registrations/my-events");
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo validar tus eventos inscritos."));
+    }
+  },
+  async getCategoryShowcase(input) {
+    try {
+      const searchParams = new URLSearchParams();
+      if (typeof input.page === "number") {
+        searchParams.set("page", String(input.page));
+      }
+      if (typeof input.pageSize === "number") {
+        searchParams.set("pageSize", String(input.pageSize));
+      }
+      if (input.search?.trim()) {
+        searchParams.set("search", input.search.trim());
+      }
+      if (input.sort) {
+        searchParams.set("sort", input.sort);
+      }
+
+      const query = searchParams.toString();
+      const path = query
+        ? `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase?${query}`
+        : `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase`;
+
+      return await apiRequest<ParticipantCategoryShowcase>(path);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el listado de participantes y maquetas."));
+    }
+  },
+  async getShowcaseModelDetail(input) {
+    try {
+      return await apiRequest<ParticipantShowcaseModelDetail>(
+        `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}`,
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));
     }
   },
 };

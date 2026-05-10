@@ -1,21 +1,23 @@
 "use client";
 
 import { ParticipantKpis } from "./participant-kpis";
+import { ParticipantClubRankingCard } from "./participant-club-ranking-card";
 import { ParticipantNextChallenge } from "./participant-next-challenge";
 import { useParticipantHome } from "./use-participant-home";
 
 type ParticipantHomeSectionProps = {
-  onGoToResults: () => void;
+  onStartUpload: (eventId: string) => void;
 };
 
-export function ParticipantHomeSection({ onGoToResults }: ParticipantHomeSectionProps) {
+export function ParticipantHomeSection({ onStartUpload }: ParticipantHomeSectionProps) {
   const {
     challenge,
     kpis,
+    clubRanking,
     isStartingUploadFromNextChallenge,
     handleStartUploadFromNextChallenge,
   } = useParticipantHome({
-    onGoToResults,
+    onStartUpload,
   });
 
   if (!challenge) {
@@ -29,6 +31,7 @@ export function ParticipantHomeSection({ onGoToResults }: ParticipantHomeSection
         onStartUpload={handleStartUploadFromNextChallenge}
         isStartingUpload={isStartingUploadFromNextChallenge}
       />
+      <ParticipantClubRankingCard ranking={clubRanking} />
       <ParticipantKpis kpis={kpis} />
     </section>
   );

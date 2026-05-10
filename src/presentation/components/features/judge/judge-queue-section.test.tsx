@@ -79,13 +79,10 @@ describe("JudgeQueueSection", () => {
     vi.clearAllMocks();
   });
 
-  it("muestra alcances del evento bloqueado en el encabezado", () => {
+  it("muestra el resumen del evento bloqueado en el encabezado", () => {
     render(<JudgeQueueSection headingClassName="heading" lockedEventId="event-1" />);
 
     expect(screen.getByText("Evento: Open 2026")).toBeTruthy();
-    expect(screen.getByText("Alcances asignados")).toBeTruthy();
-    expect(screen.getByText("Aeronaves")).toBeTruthy();
-    expect(screen.getByText("General (toda la categoría)")).toBeTruthy();
-    expect(screen.getByText("Jets")).toBeTruthy();
+    expect(screen.getByText("Volver a eventos")).toBeTruthy();
   });
 });

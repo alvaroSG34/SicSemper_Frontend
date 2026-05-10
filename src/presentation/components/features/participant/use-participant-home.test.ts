@@ -44,6 +44,15 @@ const dashboard: ParticipantDashboardData = {
     },
   ],
   openEvents: [],
+  clubRanking: {
+    enabled: true,
+    clubName: "Club Uno",
+    message: null,
+    position: 2,
+    totalParticipants: 10,
+    averageScore: 8.5,
+    scoredModels: 4,
+  },
 };
 
 let currentDashboard: ParticipantDashboardData | null = dashboard;
@@ -62,17 +71,18 @@ describe("useParticipantHome", () => {
   });
 
   it("expone challenge y kpis del dashboard", () => {
-    const { result } = renderHook(() => useParticipantHome({ onGoToResults: vi.fn() }));
+    const { result } = renderHook(() => useParticipantHome({ onStartUpload: vi.fn() }));
 
     expect(result.current.challenge?.eventId).toBe("event-1");
     expect(result.current.kpis).toHaveLength(1);
+    expect(result.current.clubRanking?.position).toBe(2);
     expect(result.current.isStartingUploadFromNextChallenge).toBe(false);
   });
 
-  it("navega a resultados si selectEvent retorna true", async () => {
-    const goToResults = vi.fn();
+  it("inicia flujo de subida si selectEvent retorna true", async () => {
+    const onStartUpload = vi.fn();
     selectEvent.mockResolvedValue(true);
-    const { result } = renderHook(() => useParticipantHome({ onGoToResults: goToResults }));
+    const { result } = renderHook(() => useParticipantHome({ onStartUpload }));
 
     await act(async () => {
       result.current.handleStartUploadFromNextChallenge();
@@ -80,7 +90,7 @@ describe("useParticipantHome", () => {
     });
 
     expect(selectEvent).toHaveBeenCalledWith("event-1");
-    expect(goToResults).toHaveBeenCalledTimes(1);
+    expect(onStartUpload).toHaveBeenCalledWith("event-1");
   });
 
   it("no ejecuta seleccion si no existe eventId", () => {
@@ -91,7 +101,7 @@ describe("useParticipantHome", () => {
         eventId: null,
       },
     };
-    const { result } = renderHook(() => useParticipantHome({ onGoToResults: vi.fn() }));
+    const { result } = renderHook(() => useParticipantHome({ onStartUpload: vi.fn() }));
 
     act(() => {
       result.current.handleStartUploadFromNextChallenge();

@@ -37,7 +37,7 @@ export const useJudgeQueueSlice = () => {
     submitReview: (
       modelId: string,
       payload: {
-        criteria: Record<"tecnica" | "pintura" | "fidelidad" | "detalle" | "presentacion", number>;
+        criteria: Record<"armado" | "pintura" | "detallesAgregados", number>;
         generalComment?: string;
       },
     ) => submitReview(modelId, payload),

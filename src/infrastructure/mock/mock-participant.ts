@@ -1,4 +1,5 @@
 import type {
+  ParticipantClubRanking,
   ParticipantDashboardData,
   ParticipantKpi,
   ParticipantNextChallenge,
@@ -70,6 +71,16 @@ export const mockParticipantOpenEvents: ParticipantOpenEvent[] = [
   },
 ];
 
+export const mockParticipantClubRanking: ParticipantClubRanking = {
+  enabled: true,
+  clubName: "Club IPMS",
+  message: null,
+  position: 4,
+  totalParticipants: 156,
+  averageScore: 8.72,
+  scoredModels: 12,
+};
+
 const cloneSidebarItem = (item: ParticipantSidebarItem): ParticipantSidebarItem => ({ ...item });
 const cloneProfile = (profile: ParticipantProfile): ParticipantProfile => ({ ...profile });
 const cloneNextChallenge = (challenge: ParticipantNextChallenge): ParticipantNextChallenge => ({
@@ -85,4 +96,5 @@ export const getClonedParticipantDashboardData = (): ParticipantDashboardData =>
   nextChallenge: cloneNextChallenge(mockParticipantNextChallenge),
   kpis: mockParticipantKpis.map(cloneKpi),
   openEvents: mockParticipantOpenEvents.map(cloneOpenEvent),
+  clubRanking: { ...mockParticipantClubRanking },
 });

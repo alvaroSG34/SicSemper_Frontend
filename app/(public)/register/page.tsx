@@ -111,13 +111,13 @@ const getFieldErrors = (form: RegisterFormFields): FieldErrors => {
   }
 
   if (form.password.length < 8) {
-    errors.password = "La contrasena debe tener al menos 8 caracteres.";
+    errors.password = "La contraseña debe tener al menos 8 caracteres.";
   }
 
   if (!form.confirmPassword) {
-    errors.confirmPassword = "Confirma tu contrasena.";
+    errors.confirmPassword = "Confirma tu contraseña.";
   } else if (form.password !== form.confirmPassword) {
-    errors.confirmPassword = "La confirmacion de contrasena no coincide.";
+    errors.confirmPassword = "La confirmacion de contraseña no coincide.";
   }
 
   return errors;
@@ -822,7 +822,7 @@ export default function RegisterPage() {
 
               <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(610)}>
                 <label htmlFor="password" className={labelClassName}>
-                  Contrasena *
+                  Contraseña *
                 </label>
                 <div className="relative">
                   <input
@@ -840,7 +840,7 @@ export default function RegisterPage() {
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999999] transition-colors hover:text-[#e5e5e5]"
-                    aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -854,7 +854,7 @@ export default function RegisterPage() {
                   <span className="text-xs text-[#999999]">{passwordStrength.label}</span>
                 </div>
                 <p className="text-xs text-[#999999]">
-                  Usa al menos 8 caracteres. Mayusculas, numeros o simbolos hacen la contrasena mas fuerte.
+                  Usa al menos 8 caracteres. Mayusculas, numeros o simbolos hacen la contraseña mas fuerte.
                 </p>
                 {getVisibleFieldError("password") ? (
                   <p className="text-xs text-[#fca5a5]">{getVisibleFieldError("password")}</p>
@@ -863,7 +863,7 @@ export default function RegisterPage() {
 
               <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(660)}>
                 <label htmlFor="confirmPassword" className={labelClassName}>
-                  Confirmar contrasena *
+                  Confirmar contraseña *
                 </label>
                 <div className="relative">
                   <input
@@ -872,7 +872,7 @@ export default function RegisterPage() {
                     value={form.confirmPassword}
                     onChange={handleChange("confirmPassword")}
                     onBlur={handleBlur("confirmPassword")}
-                    placeholder="Repite tu contrasena"
+                    placeholder="Repite tu contraseña"
                     className={`${inputClassName} pr-12`}
                     autoComplete="new-password"
                     required
@@ -883,8 +883,8 @@ export default function RegisterPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999999] transition-colors hover:text-[#e5e5e5]"
                     aria-label={
                       showConfirmPassword
-                        ? "Ocultar confirmacion de contrasena"
-                        : "Mostrar confirmacion de contrasena"
+                        ? "Ocultar confirmacion de contraseña"
+                        : "Mostrar confirmacion de contraseña"
                     }
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

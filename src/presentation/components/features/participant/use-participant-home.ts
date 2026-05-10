@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useParticipantHomeSlice } from "@/presentation/stores/participant-home.slice";
 
 type UseParticipantHomeParams = {
-  onGoToResults: () => void;
+  onStartUpload: (eventId: string) => void;
 };
 
-export const useParticipantHome = ({ onGoToResults }: UseParticipantHomeParams) => {
+export const useParticipantHome = ({ onStartUpload }: UseParticipantHomeParams) => {
   const { dashboard, selectEvent } = useParticipantHomeSlice();
   const [isStartingUploadFromNextChallenge, setIsStartingUploadFromNextChallenge] = useState(false);
 
@@ -24,7 +24,7 @@ export const useParticipantHome = ({ onGoToResults }: UseParticipantHomeParams) 
       try {
         const wasSelected = await selectEvent(eventId);
         if (wasSelected) {
-          onGoToResults();
+          onStartUpload(eventId);
         }
       } finally {
         setIsStartingUploadFromNextChallenge(false);
@@ -35,6 +35,7 @@ export const useParticipantHome = ({ onGoToResults }: UseParticipantHomeParams) 
   return {
     challenge: dashboard?.nextChallenge ?? null,
     kpis: dashboard?.kpis ?? [],
+    clubRanking: dashboard?.clubRanking ?? null,
     isStartingUploadFromNextChallenge,
     handleStartUploadFromNextChallenge,
   };

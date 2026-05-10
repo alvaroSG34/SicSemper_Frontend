@@ -17,7 +17,7 @@ const judgeErrorMessages: Record<string, string> = {
   ROLE_FORBIDDEN: "Tu rol activo no tiene acceso al panel de juez.",
   USER_NOT_FOUND: "No se encontro al juez actual.",
   REVIEW_ALREADY_SUBMITTED: "La evaluacion ya fue enviada y esta bloqueada.",
-  REVIEW_CRITERIA_INCOMPLETE: "Completa los 5 criterios antes de enviar.",
+  REVIEW_CRITERIA_INCOMPLETE: "Completa los 3 criterios antes de enviar.",
   REVIEW_CRITERIA_OUT_OF_RANGE: "Cada criterio debe estar entre 0 y 10.",
 };
 

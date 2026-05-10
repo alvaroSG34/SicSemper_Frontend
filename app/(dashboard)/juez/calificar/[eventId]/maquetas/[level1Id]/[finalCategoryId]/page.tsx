@@ -29,6 +29,21 @@ export default async function JuezCalificarMaquetasPage({
   const level2Name = firstValue(resolvedSearchParams.l2) ?? null;
   const level2Id = firstValue(resolvedSearchParams.l2id) ?? null;
   const finalCategoryName = firstValue(resolvedSearchParams.final) ?? "Especialidad";
+  const reviewBasePath = `/juez/calificar/${eventId}/maquetas/${level1Id}/${finalCategoryId}/evaluar`;
+  const reviewSearchParams = new URLSearchParams();
+  if (level1Name) {
+    reviewSearchParams.set("l1", level1Name);
+  }
+  if (level2Name) {
+    reviewSearchParams.set("l2", level2Name);
+  }
+  if (level2Id) {
+    reviewSearchParams.set("l2id", level2Id);
+  }
+  if (finalCategoryName) {
+    reviewSearchParams.set("final", finalCategoryName);
+  }
+  const reviewQuery = reviewSearchParams.toString();
 
   const backHref = level2Name && level2Id
     ? `/juez/calificar/${eventId}/nivel-3/${level1Id}/${level2Id}?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(level2Name)}`
@@ -65,6 +80,8 @@ export default async function JuezCalificarMaquetasPage({
         tableView
         hideFilters
         showLockedEventSummary={false}
+        reviewBasePath={reviewBasePath}
+        reviewQuery={reviewQuery ? `?${reviewQuery}` : ""}
       />
     </section>
   );

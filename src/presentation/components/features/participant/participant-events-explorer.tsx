@@ -1,14 +1,14 @@
 "use client";
 
-import { CalendarDays, MapPin, Sparkles, X } from "lucide-react";
+import { CalendarDays, MapPin, Sparkles, Users, X } from "lucide-react";
 import { Outfit } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
 import type {
   ParticipantEventAllowedCategoryGroup,
   ParticipantEventDetail,
 } from "@/domain/participant/participant.types";
-import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
+import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -17,35 +17,45 @@ const outfit = Outfit({
 
 type ParticipantEventsExplorerProps = {
   events: ParticipantEventDetail[];
+  pastEvents?: ParticipantEventDetail[];
   selectedEventId: string | null;
   loading?: boolean;
   categoriesByEventId: Record<string, ParticipantEventAllowedCategoryGroup[]>;
   categoriesLoadingByEventId: Record<string, boolean>;
   categoriesErrorByEventId: Record<string, string | null>;
+  registeredEventIdSet: Set<string>;
+  registeredEventIdsLoading: boolean;
   onLoadEventCategories: (eventId: string) => Promise<void>;
   onStartUpload: (eventId: string) => Promise<boolean>;
   onGoToMyModelsByEvent: (eventId: string) => void;
+  onOpenParticipantsByEvent: (eventId: string) => void;
 };
 
 export function ParticipantEventsExplorer({
   events,
+  pastEvents = [],
   selectedEventId,
   loading = false,
   categoriesByEventId,
   categoriesLoadingByEventId,
   categoriesErrorByEventId,
+  registeredEventIdSet,
+  registeredEventIdsLoading,
   onLoadEventCategories,
   onStartUpload,
   onGoToMyModelsByEvent,
+  onOpenParticipantsByEvent,
 }: ParticipantEventsExplorerProps) {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"available" | "past">("available");
+
+  const visibleEvents = activeFilter === "past" ? pastEvents : events;
 
   const detailEvent = useMemo(
-    () => events.find((event) => event.id === detailEventId) ?? null,
-    [detailEventId, events],
+    () => visibleEvents.find((event) => event.id === detailEventId) ?? null,
+    [detailEventId, visibleEvents],
   );
-
 
   useEffect(() => {
     if (!detailEventId) {
@@ -72,7 +82,12 @@ export function ParticipantEventsExplorer({
     void onLoadEventCategories(detailEventId);
   }, [categoriesByEventId, categoriesLoadingByEventId, detailEventId, onLoadEventCategories]);
 
-  const showSkeleton = loading && events.length === 0;
+  const showSkeleton = activeFilter === "available" && loading && events.length === 0;
+
+  const isPastEvent = (endDate: string) => {
+    const parsedDate = new Date(endDate);
+    return Number.isFinite(parsedDate.getTime()) && parsedDate.getTime() < Date.now();
+  };
 
   const handleStartUpload = async (eventId: string) => {
     if (uploadingEventId) {
@@ -90,9 +105,34 @@ export function ParticipantEventsExplorer({
 
   return (
     <article className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h3 className={`${outfit.className} text-[22px] font-semibold text-white`}>Eventos proximos</h3>
-        <span className="text-xs uppercase tracking-[1.5px] text-[#8D8D8D]">Explorar eventos</span>
+
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#2D2D2D] bg-[#121212] p-1">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("available")}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              activeFilter === "available" ? "bg-[#5B68F1] text-white" : "text-[#BDBDBD]"
+            }`}
+          >
+            Actuales
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("past")}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              activeFilter === "past" ? "bg-[#5B68F1] text-white" : "text-[#BDBDBD]"
+            }`}
+          >
+            Pasados
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-4 flex items-center justify-between text-xs text-[#9E9E9E]">
+        <span>{activeFilter === "past" ? "Eventos pasados" : "Disponibles"}</span>
+        <span>{visibleEvents.length}</span>
       </div>
 
       {showSkeleton ? (
@@ -116,18 +156,37 @@ export function ParticipantEventsExplorer({
         </div>
       ) : null}
 
-      {!showSkeleton && events.length === 0 ? (
-        <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-          No hay eventos proximos disponibles.
-        </p>
+      {!showSkeleton && visibleEvents.length === 0 ? (
+        <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-4 text-center">
+          <p className="text-sm text-[#9C9C9C]">
+            {activeFilter === "past"
+              ? "No tienes eventos pasados registrados por ahora."
+              : "No hay eventos proximos por ahora. Vuelve mas tarde para descubrir nuevas competencias."}
+          </p>
+          <button
+            type="button"
+            className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-[#343434] px-3 text-xs font-semibold text-[#E5E5E5] transition hover:border-[#4A4A4A]"
+            onClick={() => undefined}
+          >
+            Refrescar
+          </button>
+        </div>
       ) : null}
 
       {!showSkeleton ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {events.map((event) => {
+          {visibleEvents.map((event) => {
             const isSelected = selectedEventId === event.id;
             const isUploading = uploadingEventId === event.id;
             const imageUrl = event.imageUrl?.trim();
+            const isRegistered = registeredEventIdSet.has(event.id);
+            const eventUploadLocked = activeFilter === "past" || isPastEvent(event.endDate);
+            const isUploadButtonDisabled = Boolean(uploadingEventId) || eventUploadLocked;
+            const uploadButtonLabel = eventUploadLocked
+              ? "Evento finalizado"
+              : isUploading
+                ? "Cargando..."
+                : "Subir maqueta";
 
             return (
               <article
@@ -165,6 +224,19 @@ export function ParticipantEventsExplorer({
                 )}
 
                 <div className="p-4">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex rounded-full border border-[#3B3B3B] px-2.5 py-1 text-[10px] font-semibold tracking-[0.4px] text-[#D7D7D7]">
+                      {event.status}
+                    </span>
+                    {registeredEventIdsLoading ? (
+                      <span className="text-[10px] text-[#9B9B9B]">Verificando registro...</span>
+                    ) : isRegistered ? (
+                      <span className="text-[10px] text-[#7EE787]">Inscrito</span>
+                    ) : (
+                      <span className="text-[10px] text-[#AFAFAF]">No inscrito</span>
+                    )}
+                  </div>
+
                   <h4 className="line-clamp-2 text-base font-semibold text-white">{event.name}</h4>
 
                   <div className="mt-3 space-y-2 text-xs text-[#B9B9B9]">
@@ -178,32 +250,55 @@ export function ParticipantEventsExplorer({
                     </p>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="mt-4 grid grid-cols-2 gap-2">
                     <button
                       type="button"
+                      aria-label={uploadButtonLabel}
                       onClick={(clickEvent) => {
+                        if (isUploadButtonDisabled) {
+                          return;
+                        }
                         clickEvent.stopPropagation();
                         void handleStartUpload(event.id);
                       }}
-                      disabled={Boolean(uploadingEventId)}
-                      className="inline-flex h-10 items-center justify-center rounded-xl bg-[#5B68F1] px-3 text-sm font-semibold text-white transition hover:bg-[#6975f3] disabled:cursor-not-allowed disabled:opacity-70"
+                      disabled={isUploadButtonDisabled}
+                      className={`inline-flex h-10 items-center justify-center rounded-xl px-3 text-sm font-semibold transition ${
+                        eventUploadLocked
+                          ? "cursor-not-allowed border border-[#343434] bg-[#1D1D1D] text-[#7E7E7E]"
+                          : "bg-[#5B68F1] text-white hover:bg-[#6975f3] disabled:cursor-not-allowed disabled:opacity-70"
+                      }`}
                     >
-                      {isUploading ? "Cargando..." : "Subir maqueta"}
+                      {uploadButtonLabel}
                     </button>
 
                     <button
                       type="button"
+                      aria-label="Ver maquetas"
                       onClick={(clickEvent) => {
                         clickEvent.stopPropagation();
                         onGoToMyModelsByEvent(event.id);
                       }}
                       className="inline-flex h-10 items-center justify-center rounded-xl border border-[#3A3A3A] px-3 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
                     >
-                      Ver maquetas subidas
+                      Ver maquetas
                     </button>
 
                     <button
                       type="button"
+                      aria-label="Ver participantes"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onOpenParticipantsByEvent(event.id);
+                      }}
+                      className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-[#3A3A3A] px-3 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      Ver participantes
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label="Mas detalles"
                       onClick={(clickEvent) => {
                         clickEvent.stopPropagation();
                         setDetailEventId(event.id);
@@ -332,8 +427,6 @@ export function ParticipantEventsExplorer({
                     ))
                   : null}
               </div>
-
-             
             </div>
           </article>
         </div>
@@ -341,5 +434,3 @@ export function ParticipantEventsExplorer({
     </article>
   );
 }
-
-

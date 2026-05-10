@@ -3,6 +3,7 @@ import type { Identifier } from "@/core/types";
 export type JudgeQueueStatus = "ENVIADA" | "EN_REVISION" | "CALIFICADA";
 export type JudgePriority = "Alta" | "Media" | "Baja";
 export type JudgeReviewStatus = "DRAFT" | "SUBMITTED";
+export type JudgePanelReviewStatus = "PENDING" | "DRAFT" | "SUBMITTED";
 
 export type JudgeProfile = {
   userId: Identifier;
@@ -82,7 +83,7 @@ export type JudgeDashboardData = {
 };
 
 export type JudgeReviewCriteria = Partial<
-  Record<"tecnica" | "pintura" | "fidelidad" | "detalle" | "presentacion", number>
+  Record<"armado" | "pintura" | "detallesAgregados", number>
 >;
 
 export type JudgeModelListItem = {
@@ -115,6 +116,7 @@ export type JudgeCategoryNavigationItem = {
   parentId: Identifier | null;
   hasChildren: boolean;
   isLeaf: boolean;
+  pendingCount: number;
 };
 
 export type JudgeModelDetail = {
@@ -157,6 +159,22 @@ export type JudgeModelDetail = {
     submittedAt: string | null;
     updatedAt: string;
   } | null;
+  panelReviews: Array<{
+    judgeUserId: Identifier;
+    judgeName: string;
+    isCurrentJudge: boolean;
+    status: JudgePanelReviewStatus;
+    criteria: JudgeReviewCriteria | null;
+    totalScore: number | null;
+    submittedAt: string | null;
+  }>;
+  reviewSummary: {
+    currentJudgeScore: number | null;
+    maxScore: number;
+    averageScore: number | null;
+    assignedJudgeCount: number;
+    submittedJudgeCount: number;
+  };
   progress: {
     assignedJudgeCount: number;
     submittedJudgeCount: number;
@@ -171,7 +189,7 @@ export type JudgeSaveDraftPayload = {
 };
 
 export type JudgeSubmitReviewPayload = {
-  criteria: Record<"tecnica" | "pintura" | "fidelidad" | "detalle" | "presentacion", number>;
+  criteria: Record<"armado" | "pintura" | "detallesAgregados", number>;
   generalComment?: string;
 };
 

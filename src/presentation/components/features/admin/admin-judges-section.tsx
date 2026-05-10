@@ -147,7 +147,7 @@ export function AdminJudgesSection({
           return (
             <article
               key={judge.id}
-              className="flex flex-col gap-3 rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 sm:flex-row sm:items-center"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <JudgeAvatar user={judge} />
@@ -159,25 +159,27 @@ export function AdminJudgesSection({
                   </p>
                 </div>
               </div>
-              {canManageJudgeRole ? (
-                <button
-                  type="button"
-                  disabled={isRemovingJudge}
-                  onClick={() => void handleToggleJudgeRole(judge.id, true)}
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white disabled:opacity-50"
-                >
-                  {isRemovingJudge ? 'Procesando...' : 'Quitar rol JUEZ'}
-                </button>
-              ) : null}
-              {canReadJudgePermissions ? (
-                <button
-                  type="button"
-                  onClick={() => void openJudgePermissionsModal(judge)}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
-                >
-                  Permisos
-                </button>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:justify-end">
+                {canManageJudgeRole ? (
+                  <button
+                    type="button"
+                    disabled={isRemovingJudge}
+                    onClick={() => void handleToggleJudgeRole(judge.id, true)}
+                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {isRemovingJudge ? 'Procesando...' : 'Quitar rol JUEZ'}
+                  </button>
+                ) : null}
+                {canReadJudgePermissions ? (
+                  <button
+                    type="button"
+                    onClick={() => void openJudgePermissionsModal(judge)}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                  >
+                    Permisos
+                  </button>
+                ) : null}
+              </div>
             </article>
           );
         })}
@@ -275,7 +277,7 @@ export function AdminJudgesSection({
                 onChange={(event) =>
                   setCreateJudgeForm((prev) => ({ ...prev, password: event.target.value }))
                 }
-                placeholder="Contrasena (min. 8)"
+                placeholder="Contraseña (min. 8)"
                 className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
               />
             </div>

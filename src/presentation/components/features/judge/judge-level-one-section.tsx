@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { JudgeCategoryNavigationItem } from "@/domain/judge/judge.types";
 import { useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
+import { JudgePendingCountBadge } from "./judge-pending-count-badge";
 
 type JudgeLevelOneSectionProps = {
   eventId: string;
@@ -103,16 +104,21 @@ export function JudgeLevelOneSection({ eventId }: JudgeLevelOneSectionProps) {
                   ? `/juez/calificar/${eventId}/maquetas/${item.id}/${item.id}?l1=${encodeURIComponent(item.name)}&final=${encodeURIComponent(item.name)}`
                   : `/juez/calificar/${eventId}/nivel-2/${item.id}?l1=${encodeURIComponent(item.name)}`
               }
-              className="group rounded-2xl border border-[#2D2D2D] bg-[#151515] p-5 transition hover:border-[#5B68F1]/70"
+              className="group flex h-full flex-col rounded-2xl border border-[#2D2D2D] bg-[#151515] p-5 transition hover:border-[#5B68F1]/70"
             >
               <h3 className="text-lg font-semibold text-white">{item.name}</h3>
               <p className="mt-2 text-sm text-[#9E9E9E]">
                 {item.isLeaf ? "Seleccion final disponible" : "Contiene subcategorias para evaluar"}
               </p>
-              <p className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#8BA3FF]">
-                Continuar
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-              </p>
+              <div className="mt-auto pt-6">
+                <p className="inline-flex items-center gap-1 text-xs font-semibold text-[#8BA3FF]">
+                  Continuar
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </p>
+                <div className="mt-2">
+                  <JudgePendingCountBadge count={item.pendingCount} />
+                </div>
+              </div>
             </Link>
           ))}
         </div>

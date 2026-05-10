@@ -226,7 +226,7 @@ export function AdminAdminsSection({
                     onChange={(event) =>
                       setCreateAdminForm((prev) => ({ ...prev, password: event.target.value }))
                     }
-                    placeholder="Contrasena (minimo 8 caracteres)"
+                    placeholder="Contraseña (minimo 8 caracteres)"
                     className="h-9 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-xs text-white outline-none"
                   />
                 </div>

@@ -101,6 +101,16 @@ export type ParticipantOpenEvent = {
   ctaLabel: string;
 };
 
+export type ParticipantClubRanking = {
+  enabled: boolean;
+  clubName: string;
+  message: string | null;
+  position: number | null;
+  totalParticipants: number;
+  averageScore: number | null;
+  scoredModels: number;
+};
+
 export type ParticipantEventStatus = "ACTIVO" | "PAUSADO" | "BORRADOR";
 
 export type ParticipantEventDetail = {
@@ -222,6 +232,7 @@ export type ParticipantDashboardData = {
   nextChallenge: ParticipantNextChallenge;
   kpis: ParticipantKpi[];
   openEvents: ParticipantOpenEvent[];
+  clubRanking: ParticipantClubRanking;
 };
 
 export type ParticipantNotificationType =
@@ -262,5 +273,98 @@ export type ParticipantNotificationsPageResponse = {
 export type ParticipantNotificationsMutationResult = {
   success: boolean;
   marked?: number;
+};
+
+export type ParticipantRegisteredEvents = {
+  eventIds: Identifier[];
+};
+
+export type ParticipantShowcaseParticipant = {
+  userId: Identifier;
+  name: string;
+  registrationStatus: ParticipantEnrollmentStatus;
+  modelsCount: number;
+};
+
+export type ParticipantShowcaseModelItem = {
+  id: Identifier;
+  nombreModelo: string;
+  codigo: string;
+  participantUserId: Identifier;
+  participantName: string;
+  status: ParticipantModelStatus;
+  finalScore: number | null;
+  previewImageUrl: string | null;
+  scoreRankGlobal: number | null;
+  createdAt: string;
+};
+
+export type ParticipantShowcaseSortOption =
+  | "SCORE_DESC"
+  | "SCORE_ASC"
+  | "DATE_DESC"
+  | "DATE_ASC";
+
+export type ParticipantShowcaseModelsPage = {
+  items: ParticipantShowcaseModelItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export type ParticipantCategoryShowcase = {
+  participants: ParticipantShowcaseParticipant[];
+  models: ParticipantShowcaseModelsPage;
+};
+
+export type ParticipantShowcaseDetailMediaItem = {
+  id: Identifier;
+  fileName: string;
+  mimeType: string;
+  publicUrl: string | null;
+  sortOrder: number;
+};
+
+export type ParticipantShowcaseJudgeBreakdownItem = {
+  judgeName: string;
+  totalScore: number | null;
+  criteria: {
+    armado?: number;
+    pintura?: number;
+    detallesAgregados?: number;
+  } | null;
+  generalComment: string | null;
+  submittedAt: string | null;
+};
+
+export type ParticipantShowcaseModelDetail = {
+  model: {
+    id: Identifier;
+    nombreModelo: string;
+    codigo: string;
+    marca: string;
+    descripcion: string;
+    status: ParticipantModelStatus;
+    createdAt: string;
+  };
+  owner: {
+    id: Identifier;
+    name: string;
+    clubName: string | null;
+  };
+  context: {
+    eventName: string;
+    categoryLabel: string;
+    scaleValue: string;
+  };
+  media: {
+    images: ParticipantShowcaseDetailMediaItem[];
+    documents: ParticipantShowcaseDetailMediaItem[];
+  };
+  scoring: {
+    finalScore: number | null;
+    judgeBreakdown: ParticipantShowcaseJudgeBreakdownItem[];
+  };
 };
 

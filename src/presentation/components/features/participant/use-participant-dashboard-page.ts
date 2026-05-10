@@ -41,10 +41,12 @@ export const useParticipantDashboardPage = ({
 
   const sidebarItems = useMemo(
     () =>
-      (dashboard?.sidebarItems ?? []).map((item) => ({
-        ...item,
-        active: item.id === activeSection,
-      })),
+      (dashboard?.sidebarItems ?? [])
+        .filter((item) => item.id !== "resultados")
+        .map((item) => ({
+          ...item,
+          active: item.id === activeSection,
+        })),
     [activeSection, dashboard?.sidebarItems],
   );
 

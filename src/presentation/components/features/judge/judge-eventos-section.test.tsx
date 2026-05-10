@@ -48,15 +48,15 @@ vi.mock("@/presentation/stores", () => ({
 }));
 
 describe("JudgeEventosSection", () => {
-  it("muestra alcances agrupados por categoria en cada evento", () => {
+  it("muestra evento y acceso a calificar sin bloque de alcances", () => {
     render(<JudgeEventosSection />);
 
     expect(screen.getByText("Open 2026")).toBeTruthy();
-    expect(screen.getByText("Alcances asignados")).toBeTruthy();
-    expect(screen.getByText("Aeronaves")).toBeTruthy();
-    expect(screen.getByText("General (toda la categoría)")).toBeTruthy();
-    expect(screen.getByText("Helicopteros")).toBeTruthy();
-    expect(screen.getByText("Jets")).toBeTruthy();
+    expect(screen.queryByText("Alcances asignados")).toBeNull();
+    expect(screen.queryByText("Aeronaves")).toBeNull();
+    expect(screen.queryByText("Helicopteros")).toBeNull();
+    expect(screen.queryByText("Jets")).toBeNull();
+
     const actionLink = screen.getByRole("link", { name: /Calificar maquetas/i });
     expect(actionLink.getAttribute("href")).toBe("/juez/calificar/event-1/nivel-1");
   });
