@@ -4,4 +4,6 @@ export { DashboardRoleSwitch } from "./dashboard-role-switch";
 export { DashboardSidebar } from "./dashboard-sidebar";
 export { AutoPublicHeader } from "./auto-public-header";
 export { AuthSessionSync } from "./auth-session-sync";
+export { DashboardAuthGuard } from "./dashboard-auth-guard";
+export { DashboardRoleGuard } from "./dashboard-role-guard";
 export { PublicHeader } from "./public-header";
