@@ -611,7 +611,7 @@ export interface components {
             events: number;
         };
         /** @enum {string} */
-        EventStatus: "ACTIVO" | "PAUSADO" | "BORRADOR";
+        EventStatus: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
         AdminEventOrganizerClub: {
             id: string;
             name: string;

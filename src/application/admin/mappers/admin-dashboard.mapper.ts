@@ -87,10 +87,25 @@ export const buildCatalogFromApiAdminDashboard = (
       name: buildCategoryPath(entry.categoryId) || entry.categoryName,
     }));
 
+  const catalogWithScales = dashboard.catalog as ApiAdminDashboardResponse["catalog"] & {
+    scales?: Array<{
+      id: string;
+      value: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  };
+
   return {
     events: dashboard.catalog.events.map(mapApiEventToCatalogEvent),
     categories: Array.from(rootCategories.values()),
     subcategories: Array.from(subcategories.values()),
     eventCategories,
+    scales: (catalogWithScales.scales ?? []).map((scale) => ({
+      id: scale.id,
+      value: scale.value,
+      createdAt: scale.createdAt,
+      updatedAt: scale.updatedAt,
+    })),
   };
 };

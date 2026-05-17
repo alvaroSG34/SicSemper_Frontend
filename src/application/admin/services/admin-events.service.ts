@@ -1,5 +1,7 @@
 import type {
   ApiAdminEvent,
+  ApiAdminEventCategoryScalesResponse,
+  ApiAdminSyncEventCategoryScalesRequest,
   ApiEventDeleteImpact,
 } from "@/application/admin/contracts/admin-events.contract";
 import type { ApiDeleteResponse } from "@/application/admin/contracts/admin-clubs.contract";
@@ -31,6 +33,8 @@ export const adminEventsService: Pick<
   | "createEventAndLinkCategories"
   | "updateEvent"
   | "updateEventAndLinkCategories"
+  | "listEventCategoryScales"
+  | "syncEventCategoryScales"
   | "createEventCategoryLink"
   | "removeEventCategoryLink"
   | "getEventDeleteImpact"
@@ -48,21 +52,38 @@ export const adminEventsService: Pick<
       throw new Error(toErrorMessage(error, "No se pudo crear el evento."));
     }
   },
-  async createEventAndLinkCategories(payload, categoryIds) {
+  async createEventAndLinkCategories(payload, categoryIds, scalesByCategoryId) {
     try {
       const event = await apiRequest<BackendEvent>("/admin/events", {
         method: "POST",
         body: mapCreateEventPayloadToApiRequest(payload),
       });
 
+      const createdLinks =
+        categoryIds.length > 0
+          ? await Promise.all(
+              categoryIds.map((categoryId) =>
+                apiRequest<BackendEventCategory>("/admin/event-categories", {
+                  method: "POST",
+                  body: { eventId: event.id, categoryId },
+                }),
+              ),
+            )
+          : [];
+
       if (categoryIds.length > 0) {
-        await Promise.all(
-          categoryIds.map((categoryId) =>
-            apiRequest("/admin/event-categories", {
-              method: "POST",
-              body: { eventId: event.id, categoryId },
-            }),
-          ),
+        const syncItems: ApiAdminSyncEventCategoryScalesRequest["items"] = createdLinks.map((entry) => ({
+          eventCategoryId: entry.id,
+          scaleIds: scalesByCategoryId[entry.categoryId] ?? [],
+        }));
+        await apiRequest<ApiAdminEventCategoryScalesResponse>(
+          `/admin/events/${event.id}/category-scales`,
+          {
+            method: "PUT",
+            body: {
+              items: syncItems,
+            },
+          },
         );
       }
 
@@ -83,7 +104,7 @@ export const adminEventsService: Pick<
       throw new Error(toErrorMessage(error, "No se pudo actualizar el evento."));
     }
   },
-  async updateEventAndLinkCategories(payload, categoryIds) {
+  async updateEventAndLinkCategories(payload, categoryIds, scalesByCategoryId) {
     try {
       const dashboard = await getDashboardSnapshot();
       const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
@@ -97,7 +118,7 @@ export const adminEventsService: Pick<
       const currentCategoryIds = new Set(currentLinks.map((entry) => entry.categoryId));
       const desiredCategoryIds = new Set(categoryIds);
 
-      await Promise.all(
+      const createdLinks = await Promise.all(
         categoryIds
           .filter((categoryId) => !currentCategoryIds.has(categoryId))
           .map((categoryId) =>
@@ -108,15 +129,42 @@ export const adminEventsService: Pick<
           ),
       );
 
+      const removedLinks = currentLinks.filter(
+        (entry) => !desiredCategoryIds.has(entry.categoryId),
+      );
+
       await Promise.all(
-        currentLinks
-          .filter((entry) => !desiredCategoryIds.has(entry.categoryId))
+        removedLinks
           .map((entry) =>
             apiRequest<{ success: boolean }>(`/admin/event-categories/${entry.id}`, {
               method: "DELETE",
             }),
           ),
       );
+
+      const removedLinkIds = new Set(removedLinks.map((entry) => entry.id));
+      const retainedLinks = currentLinks.filter(
+        (entry) => !removedLinkIds.has(entry.id),
+      );
+      const effectiveLinks = [...retainedLinks, ...createdLinks];
+      const syncItems: ApiAdminSyncEventCategoryScalesRequest["items"] = effectiveLinks.map(
+        (entry) => ({
+          eventCategoryId: entry.id,
+          scaleIds: scalesByCategoryId[entry.categoryId] ?? [],
+        }),
+      );
+
+      if (effectiveLinks.length > 0) {
+        await apiRequest<ApiAdminEventCategoryScalesResponse>(
+          `/admin/events/${payload.id}/category-scales`,
+          {
+            method: "PUT",
+            body: {
+              items: syncItems,
+            },
+          },
+        );
+      }
 
       return mapEvent(event);
     } catch (error) {
@@ -141,6 +189,40 @@ export const adminEventsService: Pick<
       });
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo remover el vinculo evento-categoria."));
+    }
+  },
+  async listEventCategoryScales(eventId) {
+    try {
+      return await apiRequest<ApiAdminEventCategoryScalesResponse>(
+        `/admin/events/${eventId}/category-scales`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron cargar las escalas por categoria del evento.",
+        ),
+      );
+    }
+  },
+  async syncEventCategoryScales(eventId, items) {
+    try {
+      await apiRequest<ApiAdminEventCategoryScalesResponse>(
+        `/admin/events/${eventId}/category-scales`,
+        {
+          method: "PUT",
+          body: {
+            items,
+          },
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron guardar las escalas por categoria del evento.",
+        ),
+      );
     }
   },
   async getEventDeleteImpact(eventId) {

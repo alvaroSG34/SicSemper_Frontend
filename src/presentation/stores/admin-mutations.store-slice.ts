@@ -30,6 +30,10 @@ type AdminMutationsStoreSlice = Pick<
   | "updateCategory"
   | "getCategoryDeleteImpact"
   | "removeCategory"
+  | "createScale"
+  | "updateScale"
+  | "getScaleDeleteImpact"
+  | "removeScale"
   | "createSubcategory"
   | "updateSubcategory"
   | "removeSubcategory"
@@ -111,9 +115,13 @@ export const createAdminMutationsStoreSlice: StateCreator<
       await adminService.createEvent(payload);
     });
   },
-  createEventAndLinkCategories: async (payload, categoryIds) => {
+  createEventAndLinkCategories: async (payload, categoryIds, scalesByCategoryId) => {
     await executeMutation(set, async () => {
-      await adminService.createEventAndLinkCategories(payload, categoryIds);
+      await adminService.createEventAndLinkCategories(
+        payload,
+        categoryIds,
+        scalesByCategoryId,
+      );
     });
   },
   updateEvent: async (payload) => {
@@ -121,9 +129,17 @@ export const createAdminMutationsStoreSlice: StateCreator<
       await adminService.updateEvent(payload);
     });
   },
-  updateEventAndLinkCategories: async (payload, categoryIds) => {
+  updateEventAndLinkCategories: async (
+    payload,
+    categoryIds,
+    scalesByCategoryId,
+  ) => {
     await executeMutation(set, async () => {
-      await adminService.updateEventAndLinkCategories(payload, categoryIds);
+      await adminService.updateEventAndLinkCategories(
+        payload,
+        categoryIds,
+        scalesByCategoryId,
+      );
     });
   },
   getEventDeleteImpact: async (eventId) => {
@@ -173,6 +189,24 @@ export const createAdminMutationsStoreSlice: StateCreator<
   removeCategory: async (categoryId) => {
     await executeMutation(set, async () => {
       await adminService.removeCategory(categoryId);
+    });
+  },
+  createScale: async (payload) => {
+    await executeMutation(set, async () => {
+      await adminService.createScale(payload);
+    });
+  },
+  updateScale: async (payload) => {
+    await executeMutation(set, async () => {
+      await adminService.updateScale(payload);
+    });
+  },
+  getScaleDeleteImpact: async (scaleId) => {
+    return adminService.getScaleDeleteImpact(scaleId);
+  },
+  removeScale: async (scaleId) => {
+    await executeMutation(set, async () => {
+      await adminService.removeScale(scaleId);
     });
   },
   createSubcategory: async (payload) => {

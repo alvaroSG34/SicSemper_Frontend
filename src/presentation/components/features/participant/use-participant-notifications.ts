@@ -6,7 +6,6 @@ import type { ParticipantNotificationItem } from "@/domain/participant/participa
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const POLLING_INTERVAL_MS = 60_000;
 
 type UseParticipantNotificationsResult = {
   isOpen: boolean;
@@ -163,16 +162,6 @@ export const useParticipantNotifications = (): UseParticipantNotificationsResult
 
   useEffect(() => {
     void fetchNotifications(false);
-  }, [fetchNotifications]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      void fetchNotifications(false);
-    }, POLLING_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(interval);
-    };
   }, [fetchNotifications]);
 
   useEffect(() => {

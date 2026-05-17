@@ -54,7 +54,10 @@ export function ParticipantUploadFormSection({
   finalCategoryName,
   onGoToMyModelsByEvent,
 }: ParticipantUploadFormSectionProps) {
-  const { loading, error, eventName, scales } = useParticipantUploadEventContext(eventId);
+  const { loading, error, eventName, scales } = useParticipantUploadEventContext(
+    eventId,
+    finalCategoryId,
+  );
   const submitModel = useParticipantStore((state) => state.submitModel);
   const flowError = useParticipantStore((state) => state.flowError);
   const flowSuccessMessage = useParticipantStore((state) => state.flowSuccessMessage);
@@ -217,6 +220,16 @@ export function ParticipantUploadFormSection({
       <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
         <p className="rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
           No se pudo identificar al participante actual.
+        </p>
+      </section>
+    );
+  }
+
+  if (scales.length === 0) {
+    return (
+      <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
+        <p className="rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
+          No hay escalas configuradas para esta categoria final en el evento. Contacta a un administrador.
         </p>
       </section>
     );

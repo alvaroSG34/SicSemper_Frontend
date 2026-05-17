@@ -8,8 +8,10 @@ import type {
   AdminNotificationsPageResponse,
   AssignJudgeScopePayload,
   CategoryDeleteImpact,
+  ScaleDeleteImpact,
   CatalogCategory,
   CatalogEvent,
+  EventCategoryScaleConfig,
   EventCategoryOption,
   CatalogSubcategory,
   ClubDeleteImpact,
@@ -58,9 +60,33 @@ export interface AdminService {
   setParticipantVerified(userId: string, verified: boolean): Promise<User>;
   listCatalog(): Promise<SyntheticCatalog>;
   createEvent(payload: CreateEventPayload): Promise<CatalogEvent>;
-  createEventAndLinkCategories(payload: CreateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
   updateEvent(payload: UpdateEventPayload): Promise<CatalogEvent>;
-  updateEventAndLinkCategories(payload: UpdateEventPayload, categoryIds: string[]): Promise<CatalogEvent>;
+  createEventAndLinkCategories(
+    payload: CreateEventPayload,
+    categoryIds: string[],
+    scalesByCategoryId: Record<string, string[]>,
+  ): Promise<CatalogEvent>;
+  updateEventAndLinkCategories(
+    payload: UpdateEventPayload,
+    categoryIds: string[],
+    scalesByCategoryId: Record<string, string[]>,
+  ): Promise<CatalogEvent>;
+  listEventCategoryScales(
+    eventId: string,
+  ): Promise<{
+    eventId: string;
+    availableScales: Array<{
+      id: string;
+      value: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    items: EventCategoryScaleConfig[];
+  }>;
+  syncEventCategoryScales(
+    eventId: string,
+    items: Array<{ eventCategoryId: string; scaleIds: string[] }>,
+  ): Promise<void>;
   createEventCategoryLink(payload: { eventId: string; categoryId: string }): Promise<EventCategoryOption>;
   removeEventCategoryLink(eventCategoryId: string): Promise<void>;
   getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
@@ -69,6 +95,11 @@ export interface AdminService {
   updateCategory(payload: UpdateCategoryPayload): Promise<CatalogCategory>;
   getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;
   removeCategory(categoryId: string): Promise<void>;
+  listScales(): Promise<Array<{ id: string; value: string; createdAt: string; updatedAt: string }>>;
+  createScale(payload: { value: string }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
+  updateScale(payload: { id: string; value: string }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
+  getScaleDeleteImpact(scaleId: string): Promise<ScaleDeleteImpact>;
+  removeScale(scaleId: string): Promise<void>;
   createSubcategory(payload: CreateSubcategoryPayload): Promise<CatalogSubcategory>;
   updateSubcategory(payload: UpdateSubcategoryPayload): Promise<CatalogSubcategory>;
   removeSubcategory(subcategoryId: string): Promise<void>;

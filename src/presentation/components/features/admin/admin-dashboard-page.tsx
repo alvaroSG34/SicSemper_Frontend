@@ -16,6 +16,7 @@ import {
   ImageIcon,
   LogOut,
   Settings,
+  Ruler,
   Shield,
   Trophy,
   UserCog,
@@ -30,6 +31,7 @@ import { AdminJudgesSection } from "@/presentation/components/features/admin/adm
 import { AdminClubsSection } from "@/presentation/components/features/admin/admin-clubs-section";
 import { AdminEventsSection } from "@/presentation/components/features/admin/admin-events-section";
 import { AdminCategoriesSection } from "@/presentation/components/features/admin/admin-categories-section";
+import { AdminScalesSection } from "@/presentation/components/features/admin/admin-scales-section";
 import { AdminAdminsSection } from "@/presentation/components/features/admin/admin-admins-section";
 import { AdminAdminPermissionsManager } from "@/presentation/components/features/admin/admin-admin-permissions-manager";
 import { AdminPermissionsSection } from "@/presentation/components/features/admin/admin-permissions-section";
@@ -77,6 +79,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "admins", label: "Admins", icon: Crown },
   { id: "landing", label: "Landing", icon: ImageIcon },
   { id: "categorias", label: "Categorias", icon: FolderTree },
+  { id: "escalas", label: "Escalas", icon: Ruler },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
 
@@ -477,6 +480,7 @@ export function AdminDashboardPage({
                 categories={catalog?.categories ?? []}
                 subcategories={catalog?.subcategories ?? []}
                 eventCategories={catalog?.eventCategories ?? []}
+                scales={catalog?.scales ?? []}
                 users={users}
                 assignments={assignments}
                 headingClassName={outfit.className}
@@ -525,6 +529,17 @@ export function AdminDashboardPage({
                 canCreateCategories={adminAccess.module.categories.create}
                 canUpdateCategories={adminAccess.module.categories.update}
                 canDeleteCategories={adminAccess.module.categories.delete}
+              />
+            ) : null}
+
+            {activeSection === "escalas" && adminAccess.section.escalas ? (
+              <AdminScalesSection
+                scales={catalog?.scales ?? []}
+                headingClassName={outfit.className}
+                loading={loading}
+                canCreateScales={adminAccess.module.categories.create}
+                canUpdateScales={adminAccess.module.categories.update}
+                canDeleteScales={adminAccess.module.categories.delete}
               />
             ) : null}
 

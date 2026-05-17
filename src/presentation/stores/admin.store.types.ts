@@ -72,6 +72,7 @@ export type AdminStoreState = {
       imageUrl?: string;
     },
     categoryIds: string[],
+    scalesByCategoryId: Record<string, string[]>,
   ) => Promise<void>;
   updateEvent: (payload: {
     id: string;
@@ -97,6 +98,7 @@ export type AdminStoreState = {
       imageUrl?: string;
     },
     categoryIds: string[],
+    scalesByCategoryId: Record<string, string[]>,
   ) => Promise<void>;
   getEventDeleteImpact: (eventId: string) => Promise<EventDeleteImpact>;
   createEventCategoryLink: (payload: { eventId: string; categoryId: string }) => Promise<EventCategoryOption>;
@@ -106,6 +108,15 @@ export type AdminStoreState = {
   updateCategory: (payload: { id: string; eventId?: string | null; name: string }) => Promise<void>;
   getCategoryDeleteImpact: (categoryId: string) => Promise<CategoryDeleteImpact>;
   removeCategory: (categoryId: string) => Promise<void>;
+  createScale: (payload: { value: string }) => Promise<void>;
+  updateScale: (payload: { id: string; value: string }) => Promise<void>;
+  getScaleDeleteImpact: (scaleId: string) => Promise<{
+    scaleId: string;
+    scaleValue: string;
+    eventCategoryRules: number;
+    models: number;
+  }>;
+  removeScale: (scaleId: string) => Promise<void>;
   createSubcategory: (payload: { categoryId: string; name: string }) => Promise<void>;
   updateSubcategory: (payload: { id: string; categoryId: string; name: string }) => Promise<void>;
   removeSubcategory: (subcategoryId: string) => Promise<void>;

@@ -99,6 +99,25 @@ describe("AdminNotificationsBell", () => {
     });
   });
 
+  it("refreshes notifications from popover action", async () => {
+    render(<AdminNotificationsBell />);
+
+    const bellButton = await screen.findByRole("button", { name: /Notificaciones\./i });
+    fireEvent.click(bellButton);
+    await screen.findByRole("dialog", { name: /Notificaciones de admin/i });
+    await waitFor(() => {
+      expect(listNotificationsMock).toHaveBeenCalled();
+    });
+
+    const callsBeforeRefresh = listNotificationsMock.mock.calls.length;
+    const refreshButton = await screen.findByRole("button", { name: "Actualizar" });
+    fireEvent.click(refreshButton);
+
+    await waitFor(() => {
+      expect(listNotificationsMock.mock.calls.length).toBeGreaterThan(callsBeforeRefresh);
+    });
+  });
+
   it("deletes a read notification from action button", async () => {
     listNotificationsMock.mockResolvedValue({
       items: [

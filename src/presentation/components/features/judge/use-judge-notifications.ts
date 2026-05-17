@@ -6,7 +6,6 @@ import type { JudgeNotificationItem } from "@/domain/judge/judge.types";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const POLLING_INTERVAL_MS = 60_000;
 
 type UseJudgeNotificationsResult = {
   isOpen: boolean;
@@ -160,16 +159,6 @@ export const useJudgeNotifications = (): UseJudgeNotificationsResult => {
 
   useEffect(() => {
     void fetchNotifications(false);
-  }, [fetchNotifications]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      void fetchNotifications(false);
-    }, POLLING_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(interval);
-    };
   }, [fetchNotifications]);
 
   useEffect(() => {

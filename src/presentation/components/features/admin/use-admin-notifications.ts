@@ -6,7 +6,6 @@ import type { AdminNotificationItem } from "@/domain/admin/admin.types";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
-const POLLING_INTERVAL_MS = 60_000;
 
 type UseAdminNotificationsResult = {
   isOpen: boolean;
@@ -168,16 +167,6 @@ export const useAdminNotifications = (): UseAdminNotificationsResult => {
 
   useEffect(() => {
     void fetchNotifications(false);
-  }, [fetchNotifications]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      void fetchNotifications(false);
-    }, POLLING_INTERVAL_MS);
-
-    return () => {
-      window.clearInterval(interval);
-    };
   }, [fetchNotifications]);
 
   useEffect(() => {

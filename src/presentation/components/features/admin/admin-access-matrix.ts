@@ -5,6 +5,7 @@ export type AdminSectionId =
   | "jueces"
   | "clubes"
   | "categorias"
+  | "escalas"
   | "admins"
   | "permisos"
   | "landing"
@@ -82,6 +83,7 @@ export const createAdminAccessMatrix = (
       jueces: canReadJudgesSection,
       clubes: moduleAccess.clubs.read,
       categorias: moduleAccess.categories.read,
+      escalas: moduleAccess.categories.read,
       admins: isSuperadmin && moduleAccess.adminPermissions.read,
       permisos: isSuperadmin && moduleAccess.adminPermissions.read,
       landing: isSuperadmin,
@@ -102,6 +104,7 @@ export const listAvailableAdminSections = (
     "jueces",
     "clubes",
     "categorias",
+    "escalas",
     "admins",
     "permisos",
     "landing",
@@ -120,6 +123,7 @@ export const emptyAdminAccessMatrix = (): AdminAccessMatrix => ({
     jueces: false,
     clubes: false,
     categorias: false,
+    escalas: false,
     admins: false,
     permisos: false,
     landing: false,

@@ -1,7 +1,7 @@
 import type { Identifier } from "@/core/types";
 import type { User } from "@/domain/user/user.types";
 
-export type CatalogEventStatus = "ACTIVO" | "PAUSADO" | "BORRADOR";
+export type CatalogEventStatus = "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
 
 export type AlertSeverity = "BAJA" | "MEDIA" | "ALTA";
 export type AlertStatus = "ABIERTA" | "EN_PROGRESO" | "RESUELTA";
@@ -38,6 +38,23 @@ export type EventCategoryOption = {
   eventId: Identifier;
   categoryId: Identifier;
   name: string;
+};
+
+export type CatalogScale = {
+  id: Identifier;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type EventCategoryScaleConfig = {
+  eventCategoryId: Identifier;
+  categoryId: Identifier;
+  categoryName: string;
+  categoryParentId: Identifier | null;
+  categoryParentName: string | null;
+  scaleIds: Identifier[];
+  scaleValues: string[];
 };
 
 export type JudgeAssignmentScope = {
@@ -114,6 +131,7 @@ export type AdminDashboardData = {
     categories: CatalogCategory[];
     subcategories: CatalogSubcategory[];
     eventCategories: EventCategoryOption[];
+    scales: CatalogScale[];
   };
 };
 
@@ -145,6 +163,13 @@ export type CategoryDeleteImpact = {
   eventCategories: number;
   judgeAssignments: number;
   registrations: number;
+  models: number;
+};
+
+export type ScaleDeleteImpact = {
+  scaleId: Identifier;
+  scaleValue: string;
+  eventCategoryRules: number;
   models: number;
 };
 

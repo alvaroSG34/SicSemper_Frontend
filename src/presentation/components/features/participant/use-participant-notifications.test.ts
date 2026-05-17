@@ -87,19 +87,32 @@ describe("useParticipantNotifications", () => {
     expect(result.current.items.every((item) => item.isRead)).toBe(true);
   });
 
-  it("refreshes notifications every 60 seconds", async () => {
+  it("does not refresh notifications automatically after 60 seconds", async () => {
     vi.useFakeTimers();
-    const { result } = renderHook(() => useParticipantNotifications());
+    renderHook(() => useParticipantNotifications());
 
     await act(async () => {
       await Promise.resolve();
     });
-    expect(result.current.items).toHaveLength(1);
     expect(listNotificationsMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       vi.advanceTimersByTime(60_000);
       await Promise.resolve();
+    });
+
+    expect(listNotificationsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes notifications manually", async () => {
+    const { result } = renderHook(() => useParticipantNotifications());
+
+    await waitFor(() => {
+      expect(listNotificationsMock).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      await result.current.refresh();
     });
 
     expect(listNotificationsMock).toHaveBeenCalledTimes(2);

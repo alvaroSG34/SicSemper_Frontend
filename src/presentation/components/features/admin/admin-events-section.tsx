@@ -1,10 +1,11 @@
 import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { CalendarDays, Clock3 } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Clock3, Layers, Search } from 'lucide-react';
 import type {
   AdminClub,
   CatalogCategory,
   CatalogEvent,
+  CatalogScale,
   CatalogSubcategory,
   EventCategoryOption,
   JudgeAssignmentScope,
@@ -21,6 +22,7 @@ type AdminEventsSectionProps = {
   categories: CatalogCategory[];
   subcategories: CatalogSubcategory[];
   eventCategories: EventCategoryOption[];
+  scales: CatalogScale[];
   users: User[];
   assignments: JudgeAssignmentScope[];
   headingClassName: string;
@@ -60,6 +62,7 @@ export function AdminEventsSection({
   categories,
   subcategories,
   eventCategories,
+  scales,
   users,
   assignments,
   headingClassName,
@@ -104,6 +107,29 @@ export function AdminEventsSection({
     eventModalCategoryTree,
     getCategoryNodeSelectionState,
     eventModalError,
+    eventModalScaleConfigLoading,
+    availableScales,
+    eventModalScaleCategorySearch,
+    setEventModalScaleCategorySearch,
+    eventModalScaleSubcategorySearch,
+    setEventModalScaleSubcategorySearch,
+    eventModalScaleSpecialtySearch,
+    setEventModalScaleSpecialtySearch,
+    eventModalSelectedScaleCategoryId,
+    eventModalSelectedScaleSubcategoryId,
+    eventModalSelectedScaleLeafId,
+    filteredStep3ScaleCategories,
+    filteredStep3ScaleSubcategories,
+    filteredStep3ScaleSpecialties,
+    selectStep3ScaleCategory,
+    selectStep3ScaleSubcategory,
+    selectStep3ScaleSpecialty,
+    step3ScaleProgress,
+    activeStep3ScaleSpecialty,
+    eventModalScaleDraftIds,
+    markAllStep3ScaleDraft,
+    clearStep3ScaleDraft,
+    toggleStep3ScaleDraftId,
     eventForm,
     setEventForm,
     eventImageFileInputRef,
@@ -125,6 +151,7 @@ export function AdminEventsSection({
     categories,
     subcategories,
     eventCategories,
+    scales,
     assignments,
     canReadJudgeAssignments,
   });
@@ -425,13 +452,13 @@ export function AdminEventsSection({
 
       {eventModalMode ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-2xl rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6">
+          <div className="w-full max-w-7xl max-h-[92vh] overflow-y-auto rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
                   {eventModalMode === 'create' ? 'Crear evento' : 'Editar evento'}
                 </h4>
-                <p className="mt-0.5 text-xs text-[#9C9C9C]">Paso {eventModalStep} de 2</p>
+                <p className="mt-0.5 text-xs text-[#9C9C9C]">Paso {eventModalStep} de 3</p>
               </div>
               <button
                 type="button"
@@ -771,16 +798,300 @@ export function AdminEventsSection({
                     })}
                   </div>
                 )}
+
                 {eventModalError ? (
                   <p className="mt-3 rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5]">
                     {eventModalError}
                   </p>
                 ) : null}
+
                 <div className="mt-4 flex gap-2">
                   <button
                     type="button"
                     disabled={isEventModalPending}
                     onClick={() => setEventModalStep(1)}
+                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-sm font-semibold text-white"
+                  >
+                    Atras
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
+                    onClick={() => setEventModalStep(3)}
+                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#5B68F1] text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {eventModalStep === 3 ? (
+              <div>
+                <div className="overflow-hidden rounded-xl border border-[#2D2D2D] bg-[#0D0D0F]">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1E1E23] px-4 py-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[rgba(91,104,241,0.24)] text-[#99A4FF]">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-white">
+                          Escalas permitidas por categoria
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-[#8E8E95]">
+                          {eventModalMode === 'create' ? 'Crear evento' : 'Editar evento'} - Selecciona una especialidad para configurar sus escalas
+                        </p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center rounded-full border border-[#14532d] bg-[rgba(20,83,45,0.22)] px-3 py-1 text-xs font-semibold text-[#4ADE80]">
+                      {step3ScaleProgress.configuredCount} / {step3ScaleProgress.totalCount} configuradas
+                    </span>
+                  </div>
+
+                  <div className="grid gap-px bg-[#1E1E23] lg:grid-cols-4">
+                    <section className="bg-[#0D0D0F]">
+                      <div className="border-b border-[#1E1E23] px-3 py-2">
+                        <label className="relative block">
+                          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
+                          <input
+                            value={eventModalScaleCategorySearch}
+                            onChange={(event) => setEventModalScaleCategorySearch(event.target.value)}
+                            placeholder="Buscar categoria..."
+                            className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
+                          />
+                        </label>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">CATEGORIAS</p>
+                      </div>
+                      <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
+                        {filteredStep3ScaleCategories.length === 0 ? (
+                          <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                            Sin categorias.
+                          </p>
+                        ) : (
+                          filteredStep3ScaleCategories.map((category) => {
+                            const selected = eventModalSelectedScaleCategoryId === category.id;
+                            return (
+                              <button
+                                key={`scale-category-${category.id}`}
+                                type="button"
+                                onClick={() => selectStep3ScaleCategory(category.id)}
+                                className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
+                                  selected
+                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
+                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                }`}
+                              >
+                                <div>
+                                  <p className="text-sm font-semibold text-white">{category.name}</p>
+                                  <p className="text-[11px] text-[#7C7C86]">
+                                    {category.subcategoriesCount} subcategorias · {category.specialtiesCount} especialidades
+                                  </p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-[#6D72B8]" />
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="bg-[#0D0D0F]">
+                      <div className="border-b border-[#1E1E23] px-3 py-2">
+                        <label className="relative block">
+                          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
+                          <input
+                            value={eventModalScaleSubcategorySearch}
+                            onChange={(event) => setEventModalScaleSubcategorySearch(event.target.value)}
+                            placeholder="Buscar subcategoria..."
+                            className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
+                          />
+                        </label>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">SUBCATEGORIAS</p>
+                      </div>
+                      <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
+                        {filteredStep3ScaleSubcategories.length === 0 ? (
+                          <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                            Sin subcategorias.
+                          </p>
+                        ) : (
+                          filteredStep3ScaleSubcategories.map((subcategory) => {
+                            const selected = eventModalSelectedScaleSubcategoryId === subcategory.id;
+                            return (
+                              <button
+                                key={`scale-subcategory-${subcategory.categoryId}-${subcategory.id}`}
+                                type="button"
+                                onClick={() => selectStep3ScaleSubcategory(subcategory.id)}
+                                className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
+                                  selected
+                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
+                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                }`}
+                              >
+                                <div>
+                                  <p className="text-sm font-semibold text-white">{subcategory.name}</p>
+                                  <p className="text-[11px] text-[#7C7C86]">
+                                    {subcategory.specialtiesCount} especialidades
+                                  </p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-[#6D72B8]" />
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="bg-[#0D0D0F]">
+                      <div className="border-b border-[#1E1E23] px-3 py-2">
+                        <label className="relative block">
+                          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
+                          <input
+                            value={eventModalScaleSpecialtySearch}
+                            onChange={(event) => setEventModalScaleSpecialtySearch(event.target.value)}
+                            placeholder="Buscar especialidad..."
+                            className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
+                          />
+                        </label>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">ESPECIALIDADES</p>
+                      </div>
+                      <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
+                        {filteredStep3ScaleSpecialties.length === 0 ? (
+                          <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                            Sin especialidades.
+                          </p>
+                        ) : (
+                          filteredStep3ScaleSpecialties.map((specialty) => {
+                            const selected = eventModalSelectedScaleLeafId === specialty.id;
+                            return (
+                              <button
+                                key={`scale-specialty-${specialty.id}`}
+                                type="button"
+                                onClick={() => selectStep3ScaleSpecialty(specialty.id)}
+                                className={`mb-1 w-full rounded-md border px-3 py-2 text-left ${
+                                  selected
+                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
+                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                }`}
+                              >
+                                <p className="text-sm font-semibold text-white">{specialty.name}</p>
+                                <p className="mt-0.5 text-[11px] text-[#41D87D]">
+                                  {specialty.activeScalesCount} escalas activas
+                                </p>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="bg-[#0D0D0F]">
+                      <div className="border-b border-[#1E1E23] px-3 py-2">
+                        <p className="text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">ESCALAS PERMITIDAS</p>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={markAllStep3ScaleDraft}
+                              disabled={!eventModalSelectedScaleLeafId || availableScales.length === 0}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D5D5DB] disabled:opacity-40"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              Marcar todas
+                            </button>
+                            <button
+                              type="button"
+                              onClick={clearStep3ScaleDraft}
+                              disabled={!eventModalSelectedScaleLeafId}
+                              className="inline-flex h-8 items-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#B6B6BD] disabled:opacity-40"
+                            >
+                              Limpiar
+                            </button>
+                          </div>
+                          <span className="rounded-full bg-[#17171C] px-2.5 py-1 text-[10px] font-semibold text-[#9A9AA4]">
+                            {eventModalScaleDraftIds.length} / {availableScales.length} activas
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
+                        {eventModalScaleConfigLoading ? (
+                          <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                            Cargando configuracion de escalas...
+                          </p>
+                        ) : null}
+
+                        {!eventModalScaleConfigLoading && !activeStep3ScaleSpecialty ? (
+                          <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                            Selecciona una especialidad para configurar sus escalas.
+                          </p>
+                        ) : null}
+
+                        {!eventModalScaleConfigLoading && activeStep3ScaleSpecialty
+                          ? availableScales.map((scale) => {
+                              const checked = eventModalScaleDraftIds.includes(scale.id);
+                              return (
+                                <button
+                                  key={`step3-scale-${activeStep3ScaleSpecialty.id}-${scale.id}`}
+                                  type="button"
+                                  onClick={() => toggleStep3ScaleDraftId(scale.id)}
+                                  className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
+                                    checked
+                                      ? 'border-[#166534] bg-[rgba(22,101,52,0.25)]'
+                                      : 'border-[#2B2B31] bg-[#141419]'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`inline-flex h-4 w-4 items-center justify-center rounded-sm border ${
+                                        checked
+                                          ? 'border-[#22C55E] bg-[#22C55E] text-[#04140A]'
+                                          : 'border-[#4A4A52] bg-transparent'
+                                      }`}
+                                    >
+                                      {checked ? <Check className="h-3 w-3" /> : null}
+                                    </span>
+                                    <div>
+                                      <p className={`text-sm font-semibold ${checked ? 'text-[#4ADE80]' : 'text-[#E5E5E8]'}`}>
+                                        {scale.value}
+                                      </p>
+                                      <p className="text-[11px] text-[#6F6F76]">Escala disponible del catalogo</p>
+                                    </div>
+                                  </div>
+                                  <span
+                                    className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
+                                      checked
+                                        ? 'bg-[rgba(34,197,94,0.18)] text-[#4ADE80]'
+                                        : 'bg-[#1E1E23] text-[#7D7D86]'
+                                    }`}
+                                  >
+                                    {checked ? 'ACTIVA' : 'INACTIVA'}
+                                  </span>
+                                </button>
+                              );
+                            })
+                          : null}
+                      </div>
+
+                      <div className="border-t border-[#1E1E23] px-3 py-2">
+                        <p className="text-center text-[11px] text-[#6F6F76]">
+                          Los cambios se guardan automaticamente al marcar o desmarcar escalas.
+                        </p>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+
+                {eventModalError ? (
+                  <p className="mt-3 rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5]">
+                    {eventModalError}
+                  </p>
+                ) : null}
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={isEventModalPending}
+                    onClick={() => setEventModalStep(2)}
                     className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-sm font-semibold text-white"
                   >
                     Atras

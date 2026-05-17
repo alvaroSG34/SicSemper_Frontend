@@ -1,13 +1,15 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { FormEvent } from 'react';
 import type {
   AdminClub,
   CatalogCategory,
   CatalogEvent,
+  CatalogScale,
   CatalogSubcategory,
   EventCategoryOption,
   JudgeAssignmentScope,
 } from '@/domain/admin/admin.types';
+import { adminEventsService } from '@/application/admin/services/admin-events.service';
 import { useAdminEvents } from './use-admin-events';
 
 const createEventAndLinkCategories = vi.fn();
@@ -35,6 +37,12 @@ vi.mock('@/presentation/stores/admin.store', () => ({
       getState: () => ({ error: latestError }),
     },
   ),
+}));
+
+vi.mock('@/application/admin/services/admin-events.service', () => ({
+  adminEventsService: {
+    listEventCategoryScales: vi.fn(),
+  },
 }));
 
 describe('useAdminEvents', () => {
@@ -135,6 +143,21 @@ describe('useAdminEvents', () => {
     },
   ];
 
+  const scales: CatalogScale[] = [
+    {
+      id: 'scale-1',
+      value: '1/72',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+    {
+      id: 'scale-2',
+      value: '1/48',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+  ];
+
   const assignments: JudgeAssignmentScope[] = [
     {
       id: 'assign-1',
@@ -152,6 +175,7 @@ describe('useAdminEvents', () => {
       categories,
       subcategories,
       eventCategories,
+      scales,
       assignments,
       canReadJudgeAssignments: true,
     });
@@ -163,6 +187,11 @@ describe('useAdminEvents', () => {
     updateEventAndLinkCategories.mockResolvedValue(undefined);
     getEventDeleteImpact.mockResolvedValue(undefined);
     removeEvent.mockResolvedValue(undefined);
+    vi.mocked(adminEventsService.listEventCategoryScales).mockResolvedValue({
+      eventId: 'event-1',
+      availableScales: [],
+      items: [],
+    });
   });
 
   it('preloads exact leaves from existing links (including legacy non-leaf links) and saves only leaves', async () => {
@@ -170,6 +199,10 @@ describe('useAdminEvents', () => {
 
     act(() => {
       result.current.openEditEventModal(events[0]!);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleConfigLoading).toBe(false);
     });
 
     expect(result.current.eventModalSelectedLeafIds.has('leaf-1')).toBe(true);
@@ -181,6 +214,20 @@ describe('useAdminEvents', () => {
       await result.current.handleSubmitEventModal({
         preventDefault: vi.fn(),
       } as unknown as FormEvent<HTMLFormElement>);
+    });
+
+    act(() => {
+      result.current.updateCategoryScaleIds('leaf-1', ['scale-1']);
+      result.current.updateCategoryScaleIds('leaf-2', ['scale-1']);
+      result.current.updateCategoryScaleIds('leaf-3', ['scale-2']);
+      result.current.updateCategoryScaleIds('sub-2', ['scale-2']);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleIdsByCategoryId['leaf-1']).toEqual(['scale-1']);
+      expect(result.current.eventModalScaleIdsByCategoryId['leaf-2']).toEqual(['scale-1']);
+      expect(result.current.eventModalScaleIdsByCategoryId['leaf-3']).toEqual(['scale-2']);
+      expect(result.current.eventModalScaleIdsByCategoryId['sub-2']).toEqual(['scale-2']);
     });
 
     await act(async () => {
@@ -196,6 +243,12 @@ describe('useAdminEvents', () => {
         endDate: '2026-05-11T04:00:00.000Z',
       }),
       expect.arrayContaining(['leaf-1', 'leaf-2', 'leaf-3', 'sub-2']),
+      expect.objectContaining({
+        'leaf-1': ['scale-1'],
+        'leaf-2': ['scale-1'],
+        'leaf-3': ['scale-2'],
+        'sub-2': ['scale-2'],
+      }),
     );
   });
 
@@ -233,7 +286,7 @@ describe('useAdminEvents', () => {
     expect(rootStateAfterSecondRootToggle.selectedLeaves).toBe(0);
   });
 
-  it('computes removals against exact desired leaves and preserves assignment impact', () => {
+  it('computes removals against exact desired leaves and preserves assignment impact', async () => {
     const { result } = renderHook(useHook);
 
     act(() => {
@@ -241,11 +294,77 @@ describe('useAdminEvents', () => {
       result.current.toggleCategorySelection('sub-2');
     });
 
+    await waitFor(() => {
+      expect(result.current.eventModalScaleConfigLoading).toBe(false);
+    });
+
+    expect(adminEventsService.listEventCategoryScales).toHaveBeenCalledWith('event-1');
+
     expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toEqual(
       expect.arrayContaining(['ec-legacy-root', 'ec-legacy-l2', 'ec-sub-2']),
     );
     expect(result.current.eventModalCategoryRemovalImpact.removedEventCategoryIds).toHaveLength(3);
     expect(result.current.eventModalCategoryRemovalImpact.removedAssignmentsCount).toBe(1);
+  });
+
+  it('handles step 3 scale draft actions per selected specialty', async () => {
+    const { result } = renderHook(useHook);
+
+    act(() => {
+      result.current.openEditEventModal(events[0]!);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleConfigLoading).toBe(false);
+      expect(result.current.eventModalSelectedScaleLeafId).not.toBeNull();
+    });
+
+    const selectedLeafId = result.current.eventModalSelectedScaleLeafId!;
+
+    act(() => {
+      result.current.markAllStep3ScaleDraft();
+    });
+
+    expect(result.current.eventModalScaleDraftIds).toHaveLength(scales.length);
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleIdsByCategoryId[selectedLeafId]).toHaveLength(scales.length);
+    });
+
+    act(() => {
+      result.current.clearStep3ScaleDraft();
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleDraftIds).toEqual([]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleIdsByCategoryId[selectedLeafId]).toEqual([]);
+    });
+  });
+
+  it('computes configured progress for step 3 based on committed scales', async () => {
+    const { result } = renderHook(useHook);
+
+    act(() => {
+      result.current.openEditEventModal(events[0]!);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleConfigLoading).toBe(false);
+      expect(result.current.step3ScaleProgress.totalCount).toBe(4);
+    });
+
+    act(() => {
+      result.current.updateCategoryScaleIds('leaf-1', ['scale-1']);
+      result.current.updateCategoryScaleIds('leaf-2', ['scale-2']);
+    });
+
+    await waitFor(() => {
+      expect(result.current.step3ScaleProgress.configuredCount).toBe(2);
+      expect(result.current.step3ScaleProgress.totalCount).toBe(4);
+    });
   });
 
   it('requires end date/time to be equal or after start date/time', async () => {

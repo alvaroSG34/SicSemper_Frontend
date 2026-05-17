@@ -50,7 +50,6 @@ type ParticipantStoreState = {
 
 type ExplorePayload = {
   events: ParticipantEventDetail[];
-  scales: ParticipantScale[];
 };
 
 let dashboardRequest: Promise<ParticipantDashboardData> | null = null;
@@ -168,26 +167,24 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
   loadExploreEvents: async () => {
     const state = get();
 
-    if (state.exploreEvents.length > 0 && state.scales.length > 0) {
+    if (state.exploreEvents.length > 0) {
       return;
     }
 
     if (!exploreRequest) {
       set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
-      exploreRequest = Promise.all([
-        participantService.getUpcomingEvents(),
-        participantService.getScales(),
-      ]).then(([events, scales]) => ({ events, scales }));
+      exploreRequest = participantService
+        .getUpcomingEvents()
+        .then((events) => ({ events }));
     }
 
     const request = exploreRequest;
 
     try {
-      const { events, scales } = await request;
+      const { events } = await request;
 
       set((currentState) => ({
         exploreEvents: events,
-        scales,
         selectedEvent:
           currentState.selectedEvent && events.some((event) => event.id === currentState.selectedEvent?.id)
             ? currentState.selectedEvent

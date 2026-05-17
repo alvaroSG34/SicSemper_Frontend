@@ -7,6 +7,7 @@ import { adminJudgesService } from "@/application/admin/services/admin-judges.se
 import { adminLandingService } from "@/application/admin/services/admin-landing.service";
 import { adminNotificationsService } from "@/application/admin/services/admin-notifications.service";
 import { adminPermissionsService } from "@/application/admin/services/admin-permissions.service";
+import { adminScalesService } from "@/application/admin/services/admin-scales.service";
 import { adminUploadsService } from "@/application/admin/services/admin-uploads.service";
 import { adminUsersService } from "@/application/admin/services/admin-users.service";
 
@@ -20,6 +21,7 @@ export const adminService: AdminService = {
   ...adminUsersService,
   ...adminEventsService,
   ...adminCategoriesService,
+  ...adminScalesService,
   ...adminJudgesService,
   ...adminPermissionsService,
   ...adminNotificationsService,

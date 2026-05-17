@@ -84,6 +84,10 @@ export interface ParticipantService {
     eventId?: string,
   ): Promise<ParticipantSubcategoryOption[]>;
   getScales(): Promise<ParticipantScale[]>;
+  getScalesForEventCategory(
+    eventId: string,
+    finalCategoryId: string,
+  ): Promise<ParticipantScale[]>;
   getEnrollmentContext(
     userId: string,
     eventId: string,
@@ -142,6 +146,8 @@ const participantErrorMessages: Record<string, string> = {
   PHOTO_FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG o WEBP.",
   PHOTO_REQUIRED: "Debes subir una foto de perfil para guardar tus datos.",
   SCALE_NOT_FOUND: "La escala seleccionada no existe.",
+  SCALE_NOT_ALLOWED_FOR_CATEGORY:
+    "La escala seleccionada no esta permitida para esta categoria en el evento.",
   SUBCATEGORY_CATEGORY_MISMATCH: "La subcategoria no pertenece a la categoria seleccionada.",
   SUBCATEGORY_MUST_BE_LEAF:
     "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
@@ -285,6 +291,20 @@ export const participantService: ParticipantService = {
       return await apiRequest<BackendParticipantScale[]>("/participant/scales");
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las escalas."));
+    }
+  },
+  async getScalesForEventCategory(eventId, finalCategoryId) {
+    try {
+      return await apiRequest<BackendParticipantScale[]>(
+        `/participant/events/${encodeURIComponent(eventId)}/categories/${encodeURIComponent(finalCategoryId)}/scales`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron cargar las escalas permitidas para esta categoría.",
+        ),
+      );
     }
   },
   async getEnrollmentContext(_userId, eventId, categoryId, subcategoryId) {

@@ -114,14 +114,24 @@ export function AdminNotificationsBell() {
               <p className="text-xs text-[#999999]">{unreadLabel}</p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => void markAllAsRead()}
-              disabled={markingAll || unreadCount === 0}
-              className="rounded-full border border-[#2D2D2D] px-3 py-1 text-[11px] font-semibold text-[#C8CEFF] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {markingAll ? "Marcando..." : "Marcar todas"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={loading}
+                className="rounded-full border border-[#2D2D2D] px-3 py-1 text-[11px] font-semibold text-[#9FD2FF] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loading ? "Actualizando..." : "Actualizar"}
+              </button>
+              <button
+                type="button"
+                onClick={() => void markAllAsRead()}
+                disabled={markingAll || unreadCount === 0}
+                className="rounded-full border border-[#2D2D2D] px-3 py-1 text-[11px] font-semibold text-[#C8CEFF] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {markingAll ? "Marcando..." : "Marcar todas"}
+              </button>
+            </div>
           </div>
 
           {loading && items.length === 0 ? (

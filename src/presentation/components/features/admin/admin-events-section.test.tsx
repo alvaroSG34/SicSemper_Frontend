@@ -3,6 +3,7 @@ import type {
   AdminClub,
   CatalogCategory,
   CatalogEvent,
+  CatalogScale,
   CatalogSubcategory,
   EventCategoryOption,
   JudgeAssignmentScope,
@@ -55,6 +56,7 @@ const clubs: AdminClub[] = [
 const categories: CatalogCategory[] = [];
 const subcategories: CatalogSubcategory[] = [];
 const eventCategories: EventCategoryOption[] = [];
+const scales: CatalogScale[] = [];
 const users: User[] = [];
 const assignments: JudgeAssignmentScope[] = [];
 
@@ -65,7 +67,7 @@ const buildAdminEventsHookReturn = () => ({
   setEventSearch: vi.fn(),
   eventStatusFilter: 'TODOS' as const,
   setEventStatusFilter: vi.fn(),
-  eventStatusOptions: ['ACTIVO', 'PAUSADO', 'BORRADOR'] as const,
+  eventStatusOptions: ['ACTIVO', 'PAUSADO', 'BORRADOR', 'FINALIZADO'] as const,
   openCreateEventModal: vi.fn(),
   openEditEventModal: vi.fn(),
   eventModalMode: null,
@@ -81,6 +83,10 @@ const buildAdminEventsHookReturn = () => ({
     totalLeaves: 0,
   }),
   eventModalError: null,
+  eventModalScaleConfigLoading: false,
+  eventModalScaleIdsByCategoryId: {},
+  availableScales: [],
+  updateCategoryScaleIds: vi.fn(),
   eventForm: {
     organizerClubId: 'club-1',
     name: '',
@@ -142,6 +148,7 @@ const renderSection = (canReadJudgeAssignments = true) =>
       categories={categories}
       subcategories={subcategories}
       eventCategories={eventCategories}
+      scales={scales}
       users={users}
       assignments={assignments}
       headingClassName="heading"

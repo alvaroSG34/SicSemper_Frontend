@@ -95,6 +95,17 @@ describe("JudgeNotificationsBell", () => {
     });
   });
 
+  it("refreshes notifications from popover action", async () => {
+    render(<JudgeNotificationsBell />);
+
+    const refreshButton = await screen.findByRole("button", { name: "Actualizar" });
+    fireEvent.click(refreshButton);
+
+    await waitFor(() => {
+      expect(refreshMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("deletes a read notification from action button", async () => {
     useJudgeNotificationsMock.mockReturnValue({
       isOpen: true,

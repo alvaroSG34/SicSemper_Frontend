@@ -17,6 +17,10 @@ export type AdminOperationsSlice = {
   updateCategory: ReturnType<typeof useAdminStore.getState>['updateCategory'];
   getCategoryDeleteImpact: ReturnType<typeof useAdminStore.getState>['getCategoryDeleteImpact'];
   removeCategory: ReturnType<typeof useAdminStore.getState>['removeCategory'];
+  createScale: ReturnType<typeof useAdminStore.getState>['createScale'];
+  updateScale: ReturnType<typeof useAdminStore.getState>['updateScale'];
+  getScaleDeleteImpact: ReturnType<typeof useAdminStore.getState>['getScaleDeleteImpact'];
+  removeScale: ReturnType<typeof useAdminStore.getState>['removeScale'];
   createSubcategory: ReturnType<typeof useAdminStore.getState>['createSubcategory'];
   updateSubcategory: ReturnType<typeof useAdminStore.getState>['updateSubcategory'];
   removeSubcategory: ReturnType<typeof useAdminStore.getState>['removeSubcategory'];
@@ -52,6 +56,10 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
   const updateCategory = useAdminStore((state) => state.updateCategory);
   const getCategoryDeleteImpact = useAdminStore((state) => state.getCategoryDeleteImpact);
   const removeCategory = useAdminStore((state) => state.removeCategory);
+  const createScale = useAdminStore((state) => state.createScale);
+  const updateScale = useAdminStore((state) => state.updateScale);
+  const getScaleDeleteImpact = useAdminStore((state) => state.getScaleDeleteImpact);
+  const removeScale = useAdminStore((state) => state.removeScale);
   const createSubcategory = useAdminStore((state) => state.createSubcategory);
   const updateSubcategory = useAdminStore((state) => state.updateSubcategory);
   const removeSubcategory = useAdminStore((state) => state.removeSubcategory);
@@ -88,6 +96,10 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
     updateCategory,
     getCategoryDeleteImpact,
     removeCategory,
+    createScale,
+    updateScale,
+    getScaleDeleteImpact,
+    removeScale,
     createSubcategory,
     updateSubcategory,
     removeSubcategory,
