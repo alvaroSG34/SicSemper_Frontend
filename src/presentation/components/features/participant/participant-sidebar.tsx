@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, ChevronDown, Compass, FolderOpen, Home, LogOut, Settings, Trophy } from "lucide-react";
+import { BarChart3, ChevronDown, Compass, FolderOpen, Home, LogOut, Menu, Settings, Trophy, X } from "lucide-react";
 import type { ParticipantSidebarItem } from "@/domain/participant/participant.types";
 import { participantSectionRouteById } from "./participant-routes";
 
@@ -61,39 +65,98 @@ export function ParticipantSidebar({ items, onLogout }: ParticipantSidebarProps)
 }
 
 export function ParticipantMobileSidebar({ items, onLogout }: ParticipantSidebarProps) {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPath, setMenuPath] = useState<string | null>(null);
+  const isMenuVisible = menuOpen && menuPath === pathname;
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
+  const openMenu = () => {
+    setMenuPath(pathname);
+    setMenuOpen(true);
+  };
+
   return (
-    <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
-      <div className="flex items-center gap-3">
-        <ChevronDown className="h-4 w-4 text-white" />
-        <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
+    <>
+      <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <ChevronDown className="h-4 w-4 text-white" />
+            <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
+          </div>
+          <button
+            type="button"
+            aria-label="Abrir menu de navegacion"
+            onClick={openMenu}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        </div>
       </div>
-      <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
-        {items.map((item) => {
-          const Icon = sidebarIconByKey[item.icon];
-          return (
-            <Link
-              key={`mobile-${item.id}`}
-              href={participantSectionRouteById[item.id]}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                item.active
-                  ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
-                  : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
-              }`}
+
+      {isMenuVisible ? (
+        <div className="fixed inset-0 z-[70] xl:hidden">
+          <button
+            type="button"
+            aria-label="Cerrar menu"
+            onClick={closeMenu}
+            className="absolute inset-0 bg-black/70"
+          />
+          <aside className="relative h-full w-[86%] max-w-[320px] border-r border-[#2A2A2A] bg-[#0A0A0A] px-5 py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <ChevronDown className="h-4 w-4 text-white" />
+                <span className="text-lg font-bold text-white">IPMS BOLIVIA</span>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar menu de navegacion"
+                onClick={closeMenu}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <nav className="mt-6 flex flex-col gap-2">
+              {items.map((item) => {
+                const Icon = sidebarIconByKey[item.icon];
+                return (
+                  <Link
+                    key={`mobile-drawer-${item.id}`}
+                    href={participantSectionRouteById[item.id]}
+                    onClick={closeMenu}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium ${
+                      item.active
+                        ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
+                        : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <button
+              type="button"
+              onClick={() => {
+                closeMenu();
+                onLogout?.();
+              }}
+              className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-2 text-sm font-medium text-[#AAAAAA]"
             >
-              <Icon className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-      <button
-        type="button"
-        onClick={onLogout}
-        className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-1.5 text-xs font-medium text-[#AAAAAA]"
-      >
-        <LogOut className="h-3.5 w-3.5" />
-        Cerrar sesion
-      </button>
-    </div>
+              <LogOut className="h-4 w-4" />
+              Cerrar sesion
+            </button>
+          </aside>
+        </div>
+      ) : null}
+    </>
   );
 }

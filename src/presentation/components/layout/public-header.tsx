@@ -49,7 +49,7 @@ function getLinkHref(linkId: string, isLandingPage: boolean) {
 
 function getBackgroundClass(variant: PublicHeaderVariant) {
   if (variant === "login") {
-    return "bg-[linear-gradient(to_right,#dcdcdc_0%,#dcdcdc_50%,#000000_50%,#000000_100%)]";
+    return "bg-[#0a0a0a] xl:bg-[linear-gradient(to_right,#dcdcdc_0%,#dcdcdc_50%,#000000_50%,#000000_100%)]";
   }
 
   return "bg-[color:var(--landing-header-bg)]";
@@ -162,14 +162,14 @@ export function PublicHeader({
 
   return (
     <header className={`sticky top-0 z-50 w-full ${getBackgroundClass(variant)}`}>
-      <div className="mx-auto grid h-[84px] w-full max-w-[1440px] grid-cols-[auto_1fr_auto] items-center gap-8 px-8 lg:px-16">
-        <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--landing-pink)] text-[12px] text-white">
+      <div className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center justify-center px-5 sm:h-[78px] sm:px-6 md:h-[84px] md:px-8 lg:grid lg:h-[84px] lg:grid-cols-[auto_1fr_auto] lg:justify-normal lg:gap-8 lg:px-16">
+        <Link href="/" className="flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap sm:gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--landing-pink)] text-[12px] text-white sm:h-9 sm:w-9">
             ▼
           </span>
           <span
-            className={`text-[52px] leading-none font-bold ${
-              variant === "login" ? "text-[#0f172a]" : "text-white"
+            className={`min-w-0 max-w-[calc(100vw-6.5rem)] overflow-hidden whitespace-nowrap text-[28px] leading-none font-bold sm:max-w-none sm:text-[34px] md:text-[42px] lg:text-[52px] ${
+              variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >
             IPMS BOLIVIA

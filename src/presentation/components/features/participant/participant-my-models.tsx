@@ -204,6 +204,224 @@ export function ParticipantMyModels({
     setExpandedModelId((currentModelId) => (currentModelId === modelId ? null : modelId));
   };
 
+  const renderModelExpandedDetail = (model: ParticipantModel) => {
+    const imageFiles = model.files.filter((file) => file.mimeType.startsWith("image/"));
+    const pdfFiles = model.files.filter(
+      (file) => file.mimeType === "application/pdf" || file.fileName.toLowerCase().endsWith(".pdf"),
+    );
+
+    return (
+      <div id={`model-detail-${model.id}`} className="border-t border-[#333333] bg-[#181818] p-4 sm:p-5 xl:p-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">{model.nombreModelo}</p>
+                <p className="mt-1 text-base font-medium text-[#D8D8D8] sm:text-lg">{model.marca}</p>
+              </div>
+              <span
+                className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold leading-none ${
+                  statusStyles[model.status]
+                }`}
+              >
+                {model.status}
+              </span>
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-3">
+              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Evento</p>
+                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">{model.eventName}</p>
+              </div>
+              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Categoria</p>
+                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">{model.categoryName}</p>
+              </div>
+              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Subcategoria</p>
+                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">
+                  {model.subcategoryName ?? "Sin subcategoria"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm text-[#E1E1E1]">
+              <div className="flex w-full flex-col overflow-hidden rounded-lg border border-[#4A79EE]/60 bg-gradient-to-r from-[#1C2A5A] to-[#101A36] shadow-[0_0_0_1px_rgba(59,107,234,0.2)] sm:w-auto sm:flex-row sm:items-stretch">
+                <span className="inline-flex items-center gap-1.5 border-b border-[#4A79EE]/60 px-3 py-2 text-sm font-semibold uppercase tracking-[1px] text-[#D3E0FF] sm:border-b-0 sm:border-r">
+                  <Tag className="h-4 w-4" />
+                  Codigo
+                </span>
+                <span className="px-3 py-2 font-mono text-sm tracking-[0.12em] text-[#F8FAFF] break-all sm:text-base">
+                  {model.codigo}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void copyModelCode(model.id, model.codigo)}
+                  className="inline-flex h-11 w-full items-center justify-center gap-1.5 border-t border-[#4A79EE]/60 px-3 text-sm font-semibold text-[#E2EBFF] transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70 sm:w-auto sm:justify-start sm:border-l sm:border-t-0"
+                  aria-label={`Copiar codigo ${model.codigo}`}
+                >
+                  {copiedModelId === model.id ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copiar
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
+                Escala: {model.escalaValue}
+              </span>
+              <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
+                <ImageIcon className="h-4 w-4" />
+                {model.files.length} archivo(s)
+              </span>
+            </div>
+
+            <div className="grid gap-2 text-sm text-[#D4D4D4] sm:grid-cols-2 sm:text-base">
+              <p className="inline-flex items-center gap-1.5">
+                <CalendarClock className="h-4 w-4 shrink-0" />
+                Enviado: {formatDate(model.createdAt)}
+              </p>
+              <p className="inline-flex items-center gap-1.5">
+                <CalendarClock className="h-4 w-4 shrink-0" />
+                Actualizado: {formatDate(model.updatedAt)}
+              </p>
+            </div>
+
+            {model.descripcion.trim() ? (
+              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-4 py-3 text-base leading-relaxed text-[#DBDBDB] break-words">
+                {model.descripcion}
+              </div>
+            ) : null}
+          </div>
+
+          <section className="space-y-4 rounded-xl border border-[#3A3A3A] bg-[#141414] p-4 sm:p-5">
+            <h4 className={`${outfit.className} text-xl font-semibold leading-relaxed text-white`}>Imagenes y PDF</h4>
+
+            {model.files.length === 0 ? (
+              <p className="text-base text-[#C5C5C5]">No hay archivos adjuntos.</p>
+            ) : (
+              <>
+                <section className="space-y-3">
+                  <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">Imagenes</p>
+
+                  {imageFiles.length === 0 ? (
+                    <p className="text-base text-[#C5C5C5]">No hay imagenes adjuntas.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {imageFiles.map((file) => {
+                        const resolvedFileUrl = resolveFileUrl(file.publicUrl, file.fileName);
+                        const hasPublicUrl = Boolean(resolvedFileUrl);
+                        return (
+                          <figure
+                            key={file.id}
+                            className="overflow-hidden rounded-lg border border-[#3A3A3A] bg-[#101010]"
+                          >
+                            {hasPublicUrl ? (
+                              <button
+                                type="button"
+                                className="group block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
+                                onClick={() =>
+                                  setPreviewImage({
+                                    url: resolvedFileUrl,
+                                    fileName: file.fileName,
+                                  })
+                                }
+                                aria-label={`Ampliar imagen ${file.fileName}`}
+                              >
+                                <ImageWithSkeleton
+                                  src={resolvedFileUrl}
+                                  alt={file.fileName}
+                                  width={640}
+                                  height={440}
+                                  sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                                  className="h-44 w-full object-cover transition duration-200 group-hover:scale-[1.03]"
+                                  unoptimized
+                                />
+                              </button>
+                            ) : (
+                              <div className="flex h-44 flex-col items-center justify-center gap-1 bg-[#151515] text-[#A8A8A8]">
+                                <ImageIcon className="h-6 w-6" />
+                                <span className="text-sm">Sin URL de imagen</span>
+                              </div>
+                            )}
+                            <figcaption className="space-y-1 px-3 py-3 text-sm text-[#D8D8D8]">
+                              <p className="truncate font-medium">{file.fileName}</p>
+                              <p className="text-[#BDBDBD]">
+                                {formatFileSize(file.sizeBytes)} - #{file.order}
+                              </p>
+                            </figcaption>
+                          </figure>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="space-y-3">
+                  <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">PDF</p>
+
+                  {pdfFiles.length === 0 ? (
+                    <p className="text-base text-[#C5C5C5]">No hay PDF adjuntos.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {pdfFiles.map((file) => {
+                        const resolvedFileUrl = resolveFileUrl(file.publicUrl, file.fileName);
+                        const hasPublicUrl = Boolean(resolvedFileUrl);
+
+                        return (
+                          <li
+                            key={file.id}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 py-3 text-sm text-[#DEDEDE]"
+                          >
+                            <div className="flex min-w-0 items-center gap-2">
+                              <FileText className="h-4 w-4 shrink-0 text-[#D1D1D1]" />
+                              <span className="truncate font-medium">{file.fileName}</span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-[#CBCBCB]">
+                              <span>{formatFileSize(file.sizeBytes)}</span>
+                              <span>#{file.order}</span>
+                              <a
+                                href={hasPublicUrl ? resolvedFileUrl : "#"}
+                                download={file.fileName}
+                                aria-disabled={!hasPublicUrl}
+                                onClick={(event) => {
+                                  if (!hasPublicUrl) {
+                                    event.preventDefault();
+                                  }
+                                }}
+                                className={`inline-flex h-11 items-center gap-1.5 rounded border px-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70 ${
+                                  hasPublicUrl
+                                    ? "border-[#525252] text-[#F1F1F1] hover:border-[#666666] hover:text-white"
+                                    : "cursor-not-allowed border-[#3B3B3B] text-[#8F8F8F]"
+                                }`}
+                                title={hasPublicUrl ? "Descargar PDF" : "PDF sin URL disponible"}
+                              >
+                                <Download className="h-4 w-4" />
+                                Descargar PDF
+                              </a>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </section>
+              </>
+            )}
+          </section>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (!previewImage) {
       return;
@@ -360,39 +578,26 @@ export function ParticipantMyModels({
             ) : null}
 
             {filteredModels.length > 0 ? (
-              <div className="overflow-x-auto rounded-2xl border border-[#383838] bg-[#1A1A1A]">
-                <div className="min-w-[980px]">
-                  <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] border-b border-[#393939] bg-[#141414] px-4 py-3 text-sm font-semibold uppercase tracking-[1px] text-[#D0D0D0] sm:px-5">
-                    <p>Nombre</p>
-                    <p>Marca</p>
-                    <p>Evento</p>
-                    <p>Categoria</p>
-                    <p>Subcategoria</p>
-                    <p className="text-center">Detalle</p>
-                  </div>
-
+              <>
+                <div className="space-y-3 overflow-x-hidden lg:hidden">
                   {filteredModels.map((model) => {
-                    const imageFiles = model.files.filter((file) => file.mimeType.startsWith("image/"));
-                    const pdfFiles = model.files.filter(
-                      (file) => file.mimeType === "application/pdf" || file.fileName.toLowerCase().endsWith(".pdf"),
-                    );
                     const isExpanded = expandedModelId === model.id;
-
                     return (
-                      <article key={model.id} className="border-b border-[#333333] last:border-b-0">
-                        <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] items-center gap-3 px-4 py-3.5 text-sm text-[#E2E2E2] sm:px-5">
-                          <p className="truncate text-base font-semibold text-white">{model.nombreModelo}</p>
-                          <p className="truncate">{model.marca}</p>
-                          <p className="truncate">{model.eventName}</p>
-                          <p className="truncate">{model.categoryName}</p>
-                          <p className="truncate">{model.subcategoryName ?? "Sin subcategoria"}</p>
-                          <div className="flex justify-center">
+                      <article
+                        key={`mobile-${model.id}`}
+                        className="overflow-hidden rounded-2xl border border-[#383838] bg-[#1A1A1A]"
+                      >
+                        <div className="space-y-3 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-lg font-semibold text-white">{model.nombreModelo}</p>
+                              <p className="truncate text-sm text-[#D2D2D2]">{model.marca}</p>
+                            </div>
                             <button
                               type="button"
                               onClick={() => toggleModelExpand(model.id)}
-                              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
+                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
                               aria-expanded={isExpanded}
-                              aria-controls={`model-detail-${model.id}`}
                               aria-label={isExpanded ? "Ocultar detalle de la maqueta" : "Ver detalle de la maqueta"}
                             >
                               <ChevronDown
@@ -400,224 +605,77 @@ export function ParticipantMyModels({
                               />
                             </button>
                           </div>
-                        </div>
 
-                        {isExpanded ? (
-                          <div id={`model-detail-${model.id}`} className="border-t border-[#333333] bg-[#181818] p-4 sm:p-5 xl:p-6">
-                            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-                    <div className="space-y-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">{model.nombreModelo}</p>
-                          <p className="mt-1 text-base font-medium text-[#D8D8D8] sm:text-lg">{model.marca}</p>
-                        </div>
-                        <span
-                          className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold leading-none ${
-                            statusStyles[model.status]
-                          }`}
-                        >
-                          {model.status}
-                        </span>
-                      </div>
+                          <div className="grid gap-2 text-sm text-[#D7D7D7] sm:grid-cols-2">
+                            <p><span className="text-[#AFAFAF]">Evento:</span> <span className="break-words">{model.eventName}</span></p>
+                            <p><span className="text-[#AFAFAF]">Categoria:</span> <span className="break-words">{model.categoryName}</span></p>
+                            <p><span className="text-[#AFAFAF]">Subcategoria:</span> <span className="break-words">{model.subcategoryName ?? "Sin subcategoria"}</span></p>
+                            <p><span className="text-[#AFAFAF]">Escala:</span> {model.escalaValue}</p>
+                            <p><span className="text-[#AFAFAF]">Archivos:</span> {model.files.length}</p>
+                            <p><span className="text-[#AFAFAF]">Enviado:</span> {formatDate(model.createdAt)}</p>
+                            <p><span className="text-[#AFAFAF]">Codigo:</span> <span className="break-all">{model.codigo}</span></p>
+                          </div>
 
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                          <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Evento</p>
-                          <p className="mt-1 text-base leading-relaxed text-[#E2E2E2]">{model.eventName}</p>
-                        </div>
-                        <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                          <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Categoria</p>
-                          <p className="mt-1 text-base leading-relaxed text-[#E2E2E2]">{model.categoryName}</p>
-                        </div>
-                        <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                          <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">Subcategoria</p>
-                          <p className="mt-1 text-base leading-relaxed text-[#E2E2E2]">
-                            {model.subcategoryName ?? "Sin subcategoria"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-[#E1E1E1]">
-                        <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-[#4A79EE]/60 bg-gradient-to-r from-[#1C2A5A] to-[#101A36] shadow-[0_0_0_1px_rgba(59,107,234,0.2)]">
-                          <span className="inline-flex items-center gap-1.5 border-r border-[#4A79EE]/60 px-3 py-2 text-sm font-semibold uppercase tracking-[1px] text-[#D3E0FF]">
-                            <Tag className="h-4 w-4" />
-                            Codigo
-                          </span>
-                          <span className="px-3 py-2 font-mono text-base tracking-[0.14em] text-[#F8FAFF]">
-                            {model.codigo}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => void copyModelCode(model.id, model.codigo)}
-                            className="inline-flex h-11 items-center gap-1.5 border-l border-[#4A79EE]/60 px-3 text-sm font-semibold text-[#E2EBFF] transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
-                            aria-label={`Copiar codigo ${model.codigo}`}
+                          <span
+                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold leading-none ${
+                              statusStyles[model.status]
+                            }`}
                           >
-                            {copiedModelId === model.id ? (
-                              <>
-                                <Check className="h-4 w-4" />
-                                Copiado
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="h-4 w-4" />
-                                Copiar
-                              </>
-                            )}
-                          </button>
+                            {model.status}
+                          </span>
                         </div>
+                        {isExpanded ? renderModelExpandedDetail(model) : null}
+                      </article>
+                    );
+                  })}
+                </div>
 
-                        <span className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
-                          Escala: {model.escalaValue}
-                        </span>
-                        <span className="inline-flex h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
-                          <ImageIcon className="h-4 w-4" />
-                          {model.files.length} archivo(s)
-                        </span>
-                      </div>
-
-                      <div className="grid gap-2 text-sm text-[#D4D4D4] sm:grid-cols-2 sm:text-base">
-                        <p className="inline-flex items-center gap-1.5">
-                          <CalendarClock className="h-4 w-4 shrink-0" />
-                          Enviado: {formatDate(model.createdAt)}
-                        </p>
-                        <p className="inline-flex items-center gap-1.5">
-                          <CalendarClock className="h-4 w-4 shrink-0" />
-                          Actualizado: {formatDate(model.updatedAt)}
-                        </p>
-                      </div>
-
-                      {model.descripcion.trim() ? (
-                        <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-4 py-3 text-base leading-relaxed text-[#DBDBDB]">
-                          {model.descripcion}
-                        </div>
-                      ) : null}
+                <div className="hidden overflow-x-auto rounded-2xl border border-[#383838] bg-[#1A1A1A] lg:block">
+                  <div className="min-w-[980px]">
+                    <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] border-b border-[#393939] bg-[#141414] px-4 py-3 text-sm font-semibold uppercase tracking-[1px] text-[#D0D0D0] sm:px-5">
+                      <p>Nombre</p>
+                      <p>Marca</p>
+                      <p>Evento</p>
+                      <p>Categoria</p>
+                      <p>Subcategoria</p>
+                      <p className="text-center">Detalle</p>
                     </div>
 
-                    <section className="space-y-4 rounded-xl border border-[#3A3A3A] bg-[#141414] p-4 sm:p-5">
-                      <h4 className={`${outfit.className} text-xl font-semibold leading-relaxed text-white`}>Imagenes y PDF</h4>
+                    {filteredModels.map((model) => {
+                      const isExpanded = expandedModelId === model.id;
 
-                      {model.files.length === 0 ? (
-                        <p className="text-base text-[#C5C5C5]">No hay archivos adjuntos.</p>
-                      ) : (
-                        <>
-                          <section className="space-y-3">
-                            <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">Imagenes</p>
+                      return (
+                        <article key={model.id} className="border-b border-[#333333] last:border-b-0">
+                          <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] items-center gap-3 px-4 py-3.5 text-sm text-[#E2E2E2] sm:px-5">
+                            <p className="truncate text-base font-semibold text-white">{model.nombreModelo}</p>
+                            <p className="truncate">{model.marca}</p>
+                            <p className="truncate">{model.eventName}</p>
+                            <p className="truncate">{model.categoryName}</p>
+                            <p className="truncate">{model.subcategoryName ?? "Sin subcategoria"}</p>
+                            <div className="flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() => toggleModelExpand(model.id)}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
+                                aria-expanded={isExpanded}
+                                aria-controls={`model-detail-${model.id}`}
+                                aria-label={isExpanded ? "Ocultar detalle de la maqueta" : "Ver detalle de la maqueta"}
+                              >
+                                <ChevronDown
+                                  className={`h-5 w-5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                                />
+                              </button>
+                            </div>
+                          </div>
 
-                            {imageFiles.length === 0 ? (
-                              <p className="text-base text-[#C5C5C5]">No hay imagenes adjuntas.</p>
-                            ) : (
-                              <div className="grid gap-3 sm:grid-cols-2">
-                                {imageFiles.map((file) => {
-                                  const resolvedFileUrl = resolveFileUrl(file.publicUrl, file.fileName);
-                                  const hasPublicUrl = Boolean(resolvedFileUrl);
-                                  return (
-                                    <figure
-                                      key={file.id}
-                                      className="overflow-hidden rounded-lg border border-[#3A3A3A] bg-[#101010]"
-                                    >
-                                      {hasPublicUrl ? (
-                                        <button
-                                          type="button"
-                                          className="group block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
-                                          onClick={() =>
-                                            setPreviewImage({
-                                              url: resolvedFileUrl,
-                                              fileName: file.fileName,
-                                            })
-                                          }
-                                          aria-label={`Ampliar imagen ${file.fileName}`}
-                                        >
-                                          <ImageWithSkeleton
-                                            src={resolvedFileUrl}
-                                            alt={file.fileName}
-                                            width={640}
-                                            height={440}
-                                            sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
-                                            className="h-44 w-full object-cover transition duration-200 group-hover:scale-[1.03]"
-                                            unoptimized
-                                          />
-                                        </button>
-                                      ) : (
-                                        <div className="flex h-44 flex-col items-center justify-center gap-1 bg-[#151515] text-[#A8A8A8]">
-                                          <ImageIcon className="h-6 w-6" />
-                                          <span className="text-sm">Sin URL de imagen</span>
-                                        </div>
-                                      )}
-                                      <figcaption className="space-y-1 px-3 py-3 text-sm text-[#D8D8D8]">
-                                        <p className="truncate font-medium">{file.fileName}</p>
-                                        <p className="text-[#BDBDBD]">
-                                          {formatFileSize(file.sizeBytes)} - #{file.order}
-                                        </p>
-                                      </figcaption>
-                                    </figure>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </section>
-
-                          <section className="space-y-3">
-                            <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">PDF</p>
-
-                            {pdfFiles.length === 0 ? (
-                              <p className="text-base text-[#C5C5C5]">No hay PDF adjuntos.</p>
-                            ) : (
-                              <ul className="space-y-2">
-                                {pdfFiles.map((file) => {
-                                  const resolvedFileUrl = resolveFileUrl(file.publicUrl, file.fileName);
-                                  const hasPublicUrl = Boolean(resolvedFileUrl);
-
-                                  return (
-                                    <li
-                                      key={file.id}
-                                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 py-3 text-sm text-[#DEDEDE]"
-                                    >
-                                      <div className="flex min-w-0 items-center gap-2">
-                                        <FileText className="h-4 w-4 shrink-0 text-[#D1D1D1]" />
-                                        <span className="truncate font-medium">{file.fileName}</span>
-                                      </div>
-
-                                      <div className="flex flex-wrap items-center gap-2 text-sm text-[#CBCBCB]">
-                                        <span>{formatFileSize(file.sizeBytes)}</span>
-                                        <span>#{file.order}</span>
-                                        <a
-                                          href={hasPublicUrl ? resolvedFileUrl : "#"}
-                                          download={file.fileName}
-                                          aria-disabled={!hasPublicUrl}
-                                          onClick={(event) => {
-                                            if (!hasPublicUrl) {
-                                              event.preventDefault();
-                                            }
-                                          }}
-                                          className={`inline-flex h-11 items-center gap-1.5 rounded border px-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70 ${
-                                            hasPublicUrl
-                                              ? "border-[#525252] text-[#F1F1F1] hover:border-[#666666] hover:text-white"
-                                              : "cursor-not-allowed border-[#3B3B3B] text-[#8F8F8F]"
-                                          }`}
-                                          title={hasPublicUrl ? "Descargar PDF" : "PDF sin URL disponible"}
-                                        >
-                                          <Download className="h-4 w-4" />
-                                          Descargar PDF
-                                        </a>
-                                      </div>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            )}
-                          </section>
-                        </>
-                      )}
-                    </section>
+                          {isExpanded ? renderModelExpandedDetail(model) : null}
+                        </article>
+                      );
+                    })}
                   </div>
                 </div>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
-    </div>
-) : null}
+              </>
+            ) : null}
           </div>
         ) : null}
       </article>

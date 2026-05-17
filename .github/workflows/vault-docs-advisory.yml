@@ -1,0 +1,23 @@
+name: Vault Docs Advisory
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  vault-docs-advisory:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate vault structure and frontmatter (advisory)
+        run: node scripts/vault-validate.mjs

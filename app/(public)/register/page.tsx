@@ -533,76 +533,7 @@ export default function RegisterPage() {
                 ) : null}
               </div>
 
-              <div
-                className="register-field-enter grid grid-cols-1 gap-4 md:grid-cols-2"
-                style={fieldEnterStyle(310)}
-              >
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="ci" className={labelClassName}>
-                    C.I.
-                  </label>
-                  <input
-                    id="ci"
-                    type="text"
-                    value={form.ci}
-                    onChange={handleChange("ci")}
-                    onBlur={handleBlur("ci")}
-                    placeholder="12345678"
-                    className={inputClassName}
-                    inputMode="numeric"
-                  />
-                  {getVisibleFieldError("ci") ? (
-                    <p className="text-xs text-[#fca5a5]">{getVisibleFieldError("ci")}</p>
-                  ) : null}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="city" className={labelClassName}>
-                    Ciudad
-                  </label>
-                  {citiesForCountry.length > 0 ? (
-                    <select
-                      id="city"
-                      value={form.city}
-                      onChange={handleChange("city")}
-                      onBlur={handleBlur("city")}
-                      className={inputClassName}
-                    >
-                      <option value="">Selecciona tu ciudad</option>
-                      {citiesForCountry.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      id="city"
-                      type="text"
-                      value={form.city}
-                      onChange={handleChange("city")}
-                      onBlur={handleBlur("city")}
-                      placeholder="Tu ciudad"
-                      className={inputClassName}
-                      autoComplete="address-level2"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(360)}>
-                <label htmlFor="birthDate" className={labelClassName}>
-                  Fecha de nacimiento
-                </label>
-                <input
-                  id="birthDate"
-                  type="date"
-                  value={form.birthDate}
-                  onChange={handleChange("birthDate")}
-                  onBlur={handleBlur("birthDate")}
-                  className={inputClassName}
-                  autoComplete="bday"
-                />
-              </div>
-
-              <div className="register-field-enter flex flex-col gap-2" style={{ ...fieldEnterStyle(410), ...(isCountryMenuOpen ? { position: 'relative', zIndex: 50 } : {}) }}>
+              <div className="register-field-enter flex flex-col gap-2" style={{ ...fieldEnterStyle(310), ...(isCountryMenuOpen ? { position: 'relative', zIndex: 50 } : {}) }}>
                 <label htmlFor="country" className={labelClassName}>
                   Pais
                 </label>
@@ -665,6 +596,86 @@ export default function RegisterPage() {
                     </ul>
                   ) : null}
                 </div>
+              </div>
+
+              <div
+                className="register-field-enter grid grid-cols-1 gap-4 md:grid-cols-2"
+                style={fieldEnterStyle(360)}
+              >
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="ci" className={labelClassName}>
+                    C.I.
+                  </label>
+                  <input
+                    id="ci"
+                    type="text"
+                    value={form.ci}
+                    onChange={handleChange("ci")}
+                    onBlur={handleBlur("ci")}
+                    placeholder="12345678"
+                    className={inputClassName}
+                    inputMode="numeric"
+                  />
+                  {getVisibleFieldError("ci") ? (
+                    <p className="text-xs text-[#fca5a5]">{getVisibleFieldError("ci")}</p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="city" className={labelClassName}>
+                    Ciudad
+                  </label>
+                  {!form.country ? (
+                    <input
+                      id="city"
+                      type="text"
+                      value=""
+                      placeholder="Selecciona un pais primero"
+                      className={`${inputClassName} disabled:cursor-not-allowed disabled:opacity-60`}
+                      autoComplete="address-level2"
+                      disabled
+                      readOnly
+                    />
+                  ) : citiesForCountry.length > 0 ? (
+                    <select
+                      id="city"
+                      value={form.city}
+                      onChange={handleChange("city")}
+                      onBlur={handleBlur("city")}
+                      className={inputClassName}
+                    >
+                      <option value="">Selecciona tu ciudad</option>
+                      {citiesForCountry.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      id="city"
+                      type="text"
+                      value={form.city}
+                      onChange={handleChange("city")}
+                      onBlur={handleBlur("city")}
+                      placeholder="Tu ciudad"
+                      className={inputClassName}
+                      autoComplete="address-level2"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="register-field-enter flex flex-col gap-2" style={fieldEnterStyle(410)}>
+                <label htmlFor="birthDate" className={labelClassName}>
+                  Fecha de nacimiento
+                </label>
+                <input
+                  id="birthDate"
+                  type="date"
+                  value={form.birthDate}
+                  onChange={handleChange("birthDate")}
+                  onBlur={handleBlur("birthDate")}
+                  className={inputClassName}
+                  autoComplete="bday"
+                />
               </div>
 
               <div className="register-field-enter flex flex-col gap-2" style={{ ...fieldEnterStyle(460), ...(isClubMenuOpen ? { position: 'relative', zIndex: 50 } : {}) }}>
