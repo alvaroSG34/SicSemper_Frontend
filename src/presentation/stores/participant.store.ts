@@ -17,6 +17,7 @@ type ParticipantStoreState = {
   error: string | null;
   exploreEvents: ParticipantEventDetail[];
   selectedEvent: ParticipantEventDetail | null;
+  selectedEventSubcategoryPurpose: "default" | "upload";
   eventCategories: ParticipantCategoryOption[];
   subcategoriesByCategory: Record<string, ParticipantSubcategoryOption[]>;
   categoriesByEventId: Record<string, ParticipantEventAllowedCategoryGroup[]>;
@@ -30,7 +31,10 @@ type ParticipantStoreState = {
   flowSuccessMessage: string | null;
   loadDashboard: (userId?: string) => Promise<void>;
   loadExploreEvents: () => Promise<void>;
-  selectEvent: (eventId: string) => Promise<boolean>;
+  selectEvent: (
+    eventId: string,
+    subcategoryPurpose?: "default" | "upload",
+  ) => Promise<boolean>;
   loadEventCategoriesForDetail: (eventId: string) => Promise<void>;
   submitModel: (payload: {
     userId: string;
@@ -68,6 +72,7 @@ const getErrorMessage = (error: unknown): string => {
 const loadSubcategoriesByCategory = async (
   eventId: string,
   rootCategories: ParticipantCategoryOption[],
+  subcategoryPurpose: "default" | "upload",
 ) => {
   const map: Record<string, ParticipantSubcategoryOption[]> = {};
   const visited = new Set<string>();
@@ -83,6 +88,7 @@ const loadSubcategoriesByCategory = async (
     const children = await participantService.getSubcategoriesForCategory(
       parentId,
       eventId,
+      subcategoryPurpose === "upload" ? "upload" : undefined,
     );
     map[parentId] = children;
 
@@ -127,6 +133,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
   error: null,
   exploreEvents: [],
   selectedEvent: null,
+  selectedEventSubcategoryPurpose: "default",
   eventCategories: [],
   subcategoriesByCategory: {},
   categoriesByEventId: {},
@@ -203,12 +210,13 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       }
     }
   },
-  selectEvent: async (eventId) => {
+  selectEvent: async (eventId, subcategoryPurpose = "default") => {
     set({
       flowLoading: true,
       flowError: null,
       flowSuccessMessage: null,
       selectedEvent: null,
+      selectedEventSubcategoryPurpose: subcategoryPurpose,
       eventCategories: [],
       subcategoriesByCategory: {},
     });
@@ -223,10 +231,12 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       const subcategoriesByCategory = await loadSubcategoriesByCategory(
         event.id,
         categories,
+        subcategoryPurpose,
       );
 
       set({
         selectedEvent: event,
+        selectedEventSubcategoryPurpose: subcategoryPurpose,
         eventCategories: categories,
         subcategoriesByCategory,
         flowLoading: false,
@@ -262,6 +272,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         const subcategoriesByCategory = await loadSubcategoriesByCategory(
           normalizedEventId,
           categories,
+          "default",
         );
         const grouped = categories.map((category) => ({
           category,

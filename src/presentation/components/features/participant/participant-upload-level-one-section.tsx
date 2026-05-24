@@ -19,7 +19,7 @@ export function ParticipantUploadLevelOneSection({
   eventId,
 }: ParticipantUploadLevelOneSectionProps) {
   const { eventCategories, subcategoriesByCategory, loading, error, eventName } =
-    useParticipantUploadEventContext(eventId);
+    useParticipantUploadEventContext(eventId, undefined, "upload");
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredItems = useMemo(() => {

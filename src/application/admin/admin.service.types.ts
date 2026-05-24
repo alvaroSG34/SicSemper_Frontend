@@ -2,6 +2,12 @@ import type {
   AdminClub,
   AdminDashboardData,
   AdminDashboardSummary,
+  AdminEventControlPage,
+  AdminEventControlSummary,
+  AdminEventModelDetail,
+  AdminEventModelRow,
+  AdminEventParticipantDetail,
+  AdminEventParticipantRow,
   AdminPermissionCode,
   AdminPermissionEntry,
   AdminNotificationsMutationResult,
@@ -21,6 +27,7 @@ import type {
   CreateEventPayload,
   CreateSubcategoryPayload,
   EventDeleteImpact,
+  EventControlModelSortOption,
   JudgeAssignmentScope,
   JudgePermissionCode,
   JudgePermissionEntry,
@@ -91,6 +98,32 @@ export interface AdminService {
   removeEventCategoryLink(eventCategoryId: string): Promise<void>;
   getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
   removeEvent(eventId: string): Promise<void>;
+  getEventControlSummary(eventId: string): Promise<AdminEventControlSummary>;
+  listEventControlParticipants(input: {
+    eventId: string;
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    userStatus?: "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
+    registrationStatus?: "ACTIVA" | "PENDIENTE" | "CANCELADA";
+    verified?: boolean;
+  }): Promise<AdminEventControlPage<AdminEventParticipantRow>>;
+  getEventControlParticipantDetail(
+    eventId: string,
+    userId: string,
+  ): Promise<AdminEventParticipantDetail>;
+  listEventControlModels(input: {
+    eventId: string;
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
+    sort?: EventControlModelSortOption;
+  }): Promise<AdminEventControlPage<AdminEventModelRow>>;
+  getEventControlModelDetail(
+    eventId: string,
+    modelId: string,
+  ): Promise<AdminEventModelDetail>;
   createCategory(payload: CreateCategoryPayload): Promise<CatalogCategory>;
   updateCategory(payload: UpdateCategoryPayload): Promise<CatalogCategory>;
   getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;

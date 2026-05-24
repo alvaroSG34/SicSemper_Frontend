@@ -1,49 +1,41 @@
 "use client";
 
 import { ParticipantDashboardShell } from "./participant-dashboard-shell";
-import { ParticipantShowcaseModelDetailSection } from "./participant-showcase-model-detail-section";
+import { ParticipantShowcaseLegacyScaleRedirect } from "./participant-showcase-legacy-scale-redirect";
 
-type ParticipantShowcaseModelDetailPageProps = {
+type ParticipantShowcaseLegacyScaleRedirectPageProps = {
   eventId: string;
   level1Id: string;
   finalCategoryId: string;
-  scaleId: string;
-  modelId: string;
   level1Name: string;
   level2Name: string | null;
   level2Id: string | null;
   finalCategoryName: string;
-  scaleLabel: string;
 };
 
-export function ParticipantShowcaseModelDetailPage({
+export function ParticipantShowcaseLegacyScaleRedirectPage({
   eventId,
   level1Id,
   finalCategoryId,
-  scaleId,
-  modelId,
   level1Name,
   level2Name,
   level2Id,
   finalCategoryName,
-  scaleLabel,
-}: ParticipantShowcaseModelDetailPageProps) {
+}: ParticipantShowcaseLegacyScaleRedirectPageProps) {
   return (
     <ParticipantDashboardShell activeSection="eventos">
       {() => (
-        <ParticipantShowcaseModelDetailSection
+        <ParticipantShowcaseLegacyScaleRedirect
           eventId={eventId}
           level1Id={level1Id}
           finalCategoryId={finalCategoryId}
-          scaleId={scaleId}
-          modelId={modelId}
           level1Name={level1Name}
           level2Name={level2Name}
           level2Id={level2Id}
           finalCategoryName={finalCategoryName}
-          scaleLabel={scaleLabel}
         />
       )}
     </ParticipantDashboardShell>
   );
 }
+

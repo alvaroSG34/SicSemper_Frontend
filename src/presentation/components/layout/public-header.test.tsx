@@ -42,4 +42,20 @@ describe("PublicHeader", () => {
     expect(brand.className).toContain("text-white");
     expect(brand.className).toContain("xl:text-[#0f172a]");
   });
+
+  it("hides role selector for logged-in users on landing", () => {
+    render(
+      <PublicHeader
+        isLandingPage
+        currentUserName="David"
+        availableRoles={["PARTICIPANTE", "JUEZ"]}
+        currentRole="PARTICIPANTE"
+        dashboardHref="/participante/inicio"
+      />,
+    );
+
+    expect(screen.queryByText("Rol")).toBeNull();
+    expect(screen.getByRole("link", { name: "MI PANEL" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "CERRAR SESIÓN" })).toBeTruthy();
+  });
 });

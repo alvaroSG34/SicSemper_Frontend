@@ -21,6 +21,7 @@ import {
 } from '@/core/utils/event-datetime';
 
 type EventModalMode = 'create' | 'edit';
+type EventModalTab = 'datos' | 'categorias' | 'escalas';
 
 type EventFormState = {
   organizerClubId: string;
@@ -122,7 +123,7 @@ export const useAdminEvents = ({
   const [eventSearch, setEventSearch] = useState('');
   const [eventStatusFilter, setEventStatusFilter] = useState<'TODOS' | CatalogEventStatus>('TODOS');
   const [eventModalMode, setEventModalMode] = useState<EventModalMode | null>(null);
-  const [eventModalStep, setEventModalStep] = useState<1 | 2 | 3>(1);
+  const [activeEventTab, setActiveEventTab] = useState<EventModalTab>('datos');
   const [eventModalSelectedLeafIds, setEventModalSelectedLeafIds] = useState<Set<string>>(
     new Set(),
   );
@@ -742,7 +743,7 @@ export const useAdminEvents = ({
       ...emptyEventForm,
       organizerClubId: clubs[0]?.id ?? '',
     });
-    setEventModalStep(1);
+    setActiveEventTab('datos');
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
     setEventModalScaleCategorySearch('');
@@ -765,7 +766,7 @@ export const useAdminEvents = ({
 
     setEventModalMode('edit');
     setEventModalTargetId(eventItem.id);
-    setEventModalStep(1);
+    setActiveEventTab('datos');
     setEventForm({
       organizerClubId: eventItem.organizerClubId ?? clubs[0]?.id ?? '',
       name: eventItem.name,
@@ -840,7 +841,7 @@ export const useAdminEvents = ({
     setEventModalMode(null);
     setEventModalTargetId(null);
     setEventForm(emptyEventForm);
-    setEventModalStep(1);
+    setActiveEventTab('datos');
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
     setEventModalScaleCategorySearch('');
@@ -880,17 +881,15 @@ export const useAdminEvents = ({
     }
   };
 
-  const handleSubmitEventModal = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const validateEventForm = useCallback(() => {
     if (clubs.length === 0) {
       setEventModalError('Primero debes crear un club para asignarlo como organizador del evento.');
-      return;
+      return false;
     }
 
     if (!eventForm.organizerClubId) {
       setEventModalError('Selecciona el club organizador del evento.');
-      return;
+      return false;
     }
 
     if (
@@ -903,7 +902,7 @@ export const useAdminEvents = ({
       !eventForm.description.trim()
     ) {
       setEventModalError('Completa todos los campos requeridos para guardar el evento.');
-      return;
+      return false;
     }
 
     const startTimestamp = toLaPazDateTimeTimestamp(eventForm.startDate, eventForm.startTime);
@@ -911,16 +910,21 @@ export const useAdminEvents = ({
 
     if (startTimestamp === null || endTimestamp === null) {
       setEventModalError('La fecha u hora ingresada no es valida.');
-      return;
+      return false;
     }
 
     if (startTimestamp > endTimestamp) {
       setEventModalError('La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.');
-      return;
+      return false;
     }
 
     setEventModalError(null);
-    setEventModalStep(2);
+    return true;
+  }, [clubs.length, eventForm]);
+
+  const handleSubmitEventModal = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    validateEventForm();
   };
 
   const handleFinalizeEventModal = async () => {
@@ -928,6 +932,10 @@ export const useAdminEvents = ({
       return;
     }
     if (eventModalMode === 'edit' && !eventModalTargetId) {
+      return;
+    }
+
+    if (!validateEventForm()) {
       return;
     }
 
@@ -1088,8 +1096,8 @@ export const useAdminEvents = ({
     openCreateEventModal,
     openEditEventModal,
     eventModalMode,
-    eventModalStep,
-    setEventModalStep,
+    activeEventTab,
+    setActiveEventTab,
     eventModalSelectedLeafIds,
     toggleCategorySelection,
     eventModalCategoryTree,

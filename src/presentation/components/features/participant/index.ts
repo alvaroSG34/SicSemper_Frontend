@@ -27,6 +27,9 @@ export { ParticipantShowcaseModelsSection } from "./participant-showcase-models-
 export { ParticipantShowcaseLevelOnePage } from "./participant-showcase-level-one-page";
 export { ParticipantShowcaseLevelTwoPage } from "./participant-showcase-level-two-page";
 export { ParticipantShowcaseLevelThreePage } from "./participant-showcase-level-three-page";
+export { ParticipantShowcaseScaleSelectionSection } from "./participant-showcase-scale-selection-section";
+export { ParticipantShowcaseScaleSelectionPage } from "./participant-showcase-scale-selection-page";
 export { ParticipantShowcaseModelsPage } from "./participant-showcase-models-page";
 export { ParticipantShowcaseModelDetailSection } from "./participant-showcase-model-detail-section";
 export { ParticipantShowcaseModelDetailPage } from "./participant-showcase-model-detail-page";
+export { ParticipantShowcaseLegacyScaleRedirectPage } from "./participant-showcase-legacy-scale-redirect-page";

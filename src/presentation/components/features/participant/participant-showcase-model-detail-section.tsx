@@ -11,11 +11,13 @@ type ParticipantShowcaseModelDetailSectionProps = {
   eventId: string;
   level1Id: string;
   finalCategoryId: string;
+  scaleId: string;
   modelId: string;
   level1Name: string;
   level2Name: string | null;
   level2Id: string | null;
   finalCategoryName: string;
+  scaleLabel: string;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-BO", {
@@ -60,17 +62,20 @@ export function ParticipantShowcaseModelDetailSection({
   eventId,
   level1Id,
   finalCategoryId,
+  scaleId,
   modelId,
   level1Name,
   level2Name,
   level2Id,
   finalCategoryName,
+  scaleLabel,
 }: ParticipantShowcaseModelDetailSectionProps) {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const { detail, loading, error } = useParticipantShowcaseModelDetail({
     eventId,
     finalCategoryId,
     modelId,
+    scaleId,
   });
 
   const backHref = useMemo(() => {
@@ -86,8 +91,9 @@ export function ParticipantShowcaseModelDetailSection({
     if (level2Id) {
       query.set("l2id", level2Id);
     }
+    query.set("scale", scaleLabel);
 
-    return `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}?${query.toString()}`;
+    return `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}/escala/${scaleId}?${query.toString()}`;
   }, [
     eventId,
     finalCategoryId,
@@ -96,6 +102,8 @@ export function ParticipantShowcaseModelDetailSection({
     level1Name,
     level2Id,
     level2Name,
+    scaleId,
+    scaleLabel,
   ]);
 
   const selectedImage: ParticipantShowcaseDetailMediaItem | null = useMemo(() => {

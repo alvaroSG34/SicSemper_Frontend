@@ -18,6 +18,8 @@ const adminErrorMessages: Record<string, string> = {
     "La jerarquia de categorias no permite ciclos entre padre e hijo.",
   EVENT_CATEGORY_ALREADY_EXISTS: "Esa categoria ya esta vinculada al evento.",
   JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
+  JUDGE_SELF_REVIEW_SCOPE_CONFLICT:
+    "No puedes asignar este alcance: el juez ya tiene maquetas propias dentro de esa categoria.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
   USER_ALREADY_ADMIN: "El usuario ya tiene el rol ADMIN.",
   USER_IS_NOT_ADMIN: "El usuario no tiene rol ADMIN.",

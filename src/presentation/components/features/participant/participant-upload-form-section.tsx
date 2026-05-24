@@ -57,6 +57,7 @@ export function ParticipantUploadFormSection({
   const { loading, error, eventName, scales } = useParticipantUploadEventContext(
     eventId,
     finalCategoryId,
+    "upload",
   );
   const submitModel = useParticipantStore((state) => state.submitModel);
   const flowError = useParticipantStore((state) => state.flowError);

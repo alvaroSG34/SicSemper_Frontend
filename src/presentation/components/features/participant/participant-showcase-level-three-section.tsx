@@ -99,15 +99,15 @@ export function ParticipantShowcaseLevelThreeSection({
           {filteredItems.map((item) => (
             <Link
               key={item.id}
-              href={`/participante/participantes/${eventId}/maquetas/${level1Id}/${item.id}?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(level2Name)}&l2id=${encodeURIComponent(level2Id)}&final=${encodeURIComponent(item.name)}`}
+              href={`/participante/participantes/${eventId}/maquetas/${level1Id}/${item.id}/escalas?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(level2Name)}&l2id=${encodeURIComponent(level2Id)}&final=${encodeURIComponent(item.name)}`}
               className="group rounded-2xl border border-[#2D2D2D] bg-[#151515] p-5 transition hover:border-[#5B68F1]/70"
             >
               <h3 className="text-lg font-semibold text-white">{item.name}</h3>
               <p className="mt-2 text-sm text-[#9E9E9E]">
-                Especialidad final para ver participantes y maquetas
+                Especialidad final para seleccionar escala y ver maquetas
               </p>
               <p className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#8BA3FF]">
-                Ver participantes
+                Elegir escala
                 <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
               </p>
             </Link>

@@ -2,6 +2,7 @@ import type { AdminService } from "@/application/admin/admin.service.types";
 import { adminCategoriesService } from "@/application/admin/services/admin-categories.service";
 import { adminClubsService } from "@/application/admin/services/admin-clubs.service";
 import { adminDashboardService } from "@/application/admin/services/admin-dashboard.service";
+import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
 import { adminEventsService } from "@/application/admin/services/admin-events.service";
 import { adminJudgesService } from "@/application/admin/services/admin-judges.service";
 import { adminLandingService } from "@/application/admin/services/admin-landing.service";
@@ -19,6 +20,7 @@ export const adminService: AdminService = {
   ...adminUploadsService,
   ...adminClubsService,
   ...adminUsersService,
+  ...adminEventControlService,
   ...adminEventsService,
   ...adminCategoriesService,
   ...adminScalesService,

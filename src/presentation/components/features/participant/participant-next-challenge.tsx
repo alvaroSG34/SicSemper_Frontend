@@ -77,6 +77,8 @@ export function ParticipantNextChallenge({
   isStartingUpload = false,
 }: ParticipantNextChallengeProps) {
   const shouldShowCategoryLine = !challenge.categoryLine.trim().toLowerCase().startsWith("club:");
+  const organizerLabel = challenge.organizer.trim();
+  const shouldShowOrganizer = Boolean(challenge.eventId && organizerLabel);
 
   const fallbackCountdown = useMemo<CountdownParts>(
     () => ({
@@ -136,7 +138,7 @@ export function ParticipantNextChallenge({
             {shouldShowCategoryLine ? <p className="text-base text-[#C9C9C9]">{challenge.categoryLine}</p> : null}
           </div>
 
-          <p className="text-base font-medium text-[#AFAFAF]">{challenge.organizer}</p>
+          {shouldShowOrganizer ? <p className="text-base font-medium text-[#AFAFAF]">{organizerLabel}</p> : null}
 
           <div className="flex flex-wrap items-center gap-3">
             {formattedStartDate ? (

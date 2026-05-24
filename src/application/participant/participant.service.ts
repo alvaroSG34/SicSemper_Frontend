@@ -82,6 +82,7 @@ export interface ParticipantService {
   getSubcategoriesForCategory(
     categoryId: string,
     eventId?: string,
+    purpose?: "upload",
   ): Promise<ParticipantSubcategoryOption[]>;
   getScales(): Promise<ParticipantScale[]>;
   getScalesForEventCategory(
@@ -118,6 +119,7 @@ export interface ParticipantService {
   getCategoryShowcase(input: {
     eventId: string;
     finalCategoryId: string;
+    scaleId: string;
     page?: number;
     pageSize?: number;
     search?: string;
@@ -127,6 +129,7 @@ export interface ParticipantService {
     eventId: string;
     finalCategoryId: string;
     modelId: string;
+    scaleId?: string;
   }): Promise<ParticipantShowcaseModelDetail>;
 }
 
@@ -152,6 +155,8 @@ const participantErrorMessages: Record<string, string> = {
   SUBCATEGORY_MUST_BE_LEAF:
     "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
+  JUDGE_ASSIGNED_TO_SUBCATEGORY_CONFLICT:
+    "No puedes concursar en esta subcategoria porque tienes una asignacion activa como juez.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
   EVENT_ACCESS_FORBIDDEN: "No tienes acceso a participantes para este evento.",
   CATEGORY_MUST_BE_LEAF: "Debes elegir una categoria final para ver maquetas.",
@@ -276,11 +281,18 @@ export const participantService: ParticipantService = {
       );
     }
   },
-  async getSubcategoriesForCategory(categoryId, eventId) {
+  async getSubcategoriesForCategory(categoryId, eventId, purpose) {
     try {
-      const query = eventId ? `?eventId=${encodeURIComponent(eventId)}` : "";
+      const searchParams = new URLSearchParams();
+      if (eventId) {
+        searchParams.set("eventId", eventId);
+      }
+      if (purpose) {
+        searchParams.set("purpose", purpose);
+      }
+      const query = searchParams.toString();
       return await apiRequest<ParticipantSubcategoryOption[]>(
-        `/participant/categories/${categoryId}/subcategories${query}`,
+        `/participant/categories/${categoryId}/subcategories${query ? `?${query}` : ""}`,
       );
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las subcategorias."));
@@ -447,6 +459,7 @@ export const participantService: ParticipantService = {
       if (input.sort) {
         searchParams.set("sort", input.sort);
       }
+      searchParams.set("scaleId", input.scaleId);
 
       const query = searchParams.toString();
       const path = query
@@ -460,8 +473,16 @@ export const participantService: ParticipantService = {
   },
   async getShowcaseModelDetail(input) {
     try {
+      const searchParams = new URLSearchParams();
+      if (input.scaleId) {
+        searchParams.set("scaleId", input.scaleId);
+      }
+      const query = searchParams.toString();
+      const path = query
+        ? `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}?${query}`
+        : `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}`;
       return await apiRequest<ParticipantShowcaseModelDetail>(
-        `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}`,
+        path,
       );
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));

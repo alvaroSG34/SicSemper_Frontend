@@ -8,10 +8,14 @@ import { useParticipantStore } from "@/presentation/stores";
 export const useParticipantUploadEventContext = (
   eventId: string,
   finalCategoryId?: string,
+  subcategoryPurpose: "default" | "upload" = "default",
 ) => {
   const normalizedEventId = eventId.trim();
   const normalizedFinalCategoryId = finalCategoryId?.trim() ?? "";
   const selectedEvent = useParticipantStore((state) => state.selectedEvent);
+  const selectedEventSubcategoryPurpose = useParticipantStore(
+    (state) => state.selectedEventSubcategoryPurpose,
+  );
   const eventCategories = useParticipantStore((state) => state.eventCategories);
   const subcategoriesByCategory = useParticipantStore((state) => state.subcategoriesByCategory);
   const exploreEvents = useParticipantStore((state) => state.exploreEvents);
@@ -22,7 +26,9 @@ export const useParticipantUploadEventContext = (
   const [scalesLoading, setScalesLoading] = useState(false);
   const [scalesError, setScalesError] = useState<string | null>(null);
 
-  const eventReady = selectedEvent?.id === normalizedEventId;
+  const eventReady =
+    selectedEvent?.id === normalizedEventId &&
+    selectedEventSubcategoryPurpose === subcategoryPurpose;
   const requestedEventIdRef = useRef<string | null>(null);
   const requestedScaleContextRef = useRef<string | null>(null);
 
@@ -45,8 +51,8 @@ export const useParticipantUploadEventContext = (
     }
 
     requestedEventIdRef.current = normalizedEventId;
-    void selectEvent(normalizedEventId);
-  }, [eventReady, normalizedEventId, selectEvent]);
+    void selectEvent(normalizedEventId, subcategoryPurpose);
+  }, [eventReady, normalizedEventId, selectEvent, subcategoryPurpose]);
 
   useEffect(() => {
     if (!eventReady || !normalizedFinalCategoryId) {
@@ -58,8 +64,10 @@ export const useParticipantUploadEventContext = (
       return;
     }
     requestedScaleContextRef.current = contextKey;
-    setScalesLoading(true);
-    setScalesError(null);
+    queueMicrotask(() => {
+      setScalesLoading(true);
+      setScalesError(null);
+    });
 
     void participantService
       .getScalesForEventCategory(normalizedEventId, normalizedFinalCategoryId)

@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
+import { ParticipantShowcaseScaleSelectionPage } from "@/presentation/components/features/participant";
 
-type ParticipanteShowcaseDetalleLegacyPageProps = {
+type ParticipanteShowcaseEscalasPageProps = {
   params: Promise<{
     eventId: string;
     level1Id: string;
     finalCategoryId: string;
-    modelId: string;
   }>;
   searchParams?: Promise<{
     l1?: string | string[];
@@ -18,10 +17,10 @@ type ParticipanteShowcaseDetalleLegacyPageProps = {
 const firstValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
 
-export default async function ParticipanteShowcaseDetalleLegacyPage({
+export default async function ParticipanteShowcaseEscalasPage({
   params,
   searchParams,
-}: ParticipanteShowcaseDetalleLegacyPageProps) {
+}: ParticipanteShowcaseEscalasPageProps) {
   const { eventId, level1Id, finalCategoryId } = await params;
   const resolvedSearchParams = (await searchParams) ?? {};
   const level1Name = firstValue(resolvedSearchParams.l1) ?? "Categoria";
@@ -29,19 +28,16 @@ export default async function ParticipanteShowcaseDetalleLegacyPage({
   const level2Id = firstValue(resolvedSearchParams.l2id) ?? null;
   const finalCategoryName = firstValue(resolvedSearchParams.final) ?? "Especialidad";
 
-  const query = new URLSearchParams({
-    l1: level1Name,
-    final: finalCategoryName,
-  });
-  if (level2Name) {
-    query.set("l2", level2Name);
-  }
-  if (level2Id) {
-    query.set("l2id", level2Id);
-  }
-
-  redirect(
-    `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}?${query.toString()}`,
+  return (
+    <ParticipantShowcaseScaleSelectionPage
+      eventId={eventId}
+      level1Id={level1Id}
+      finalCategoryId={finalCategoryId}
+      level1Name={level1Name}
+      level2Name={level2Name}
+      level2Id={level2Id}
+      finalCategoryName={finalCategoryName}
+    />
   );
 }
 

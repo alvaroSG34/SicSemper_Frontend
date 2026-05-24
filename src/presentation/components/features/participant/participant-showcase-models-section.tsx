@@ -5,16 +5,19 @@ import { useMemo } from "react";
 import { Medal, Search } from "lucide-react";
 import type { ParticipantShowcaseSortOption } from "@/domain/participant/participant.types";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
+import { useAuthStore } from "@/presentation/stores/auth.store";
 import { useParticipantShowcaseModels } from "./use-participant-showcase-models";
 
 type ParticipantShowcaseModelsSectionProps = {
   eventId: string;
   level1Id: string;
   finalCategoryId: string;
+  scaleId: string;
   level1Name: string;
   level2Name: string | null;
   level2Id: string | null;
   finalCategoryName: string;
+  scaleLabel: string;
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-BO", {
@@ -81,11 +84,14 @@ export function ParticipantShowcaseModelsSection({
   eventId,
   level1Id,
   finalCategoryId,
+  scaleId,
   level1Name,
   level2Name,
   level2Id,
   finalCategoryName,
+  scaleLabel,
 }: ParticipantShowcaseModelsSectionProps) {
+  const user = useAuthStore((state) => state.user);
   const {
     searchInput,
     setSearchInput,
@@ -102,16 +108,24 @@ export function ParticipantShowcaseModelsSection({
   } = useParticipantShowcaseModels({
     eventId,
     finalCategoryId,
+    scaleId,
   });
 
   const backHref = useMemo(
-    () =>
-      level2Name && level2Id
-        ? `/participante/participantes/${eventId}/nivel-3/${level1Id}/${level2Id}?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(level2Name)}`
-        : finalCategoryId === level1Id
-          ? `/participante/participantes/${eventId}/nivel-1`
-          : `/participante/participantes/${eventId}/nivel-2/${level1Id}?l1=${encodeURIComponent(level1Name)}`,
-    [eventId, finalCategoryId, level1Id, level1Name, level2Id, level2Name],
+    () => {
+      const query = new URLSearchParams({
+        l1: level1Name,
+        final: finalCategoryName,
+      });
+      if (level2Name) {
+        query.set("l2", level2Name);
+      }
+      if (level2Id) {
+        query.set("l2id", level2Id);
+      }
+      return `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}/escalas?${query.toString()}`;
+    },
+    [eventId, finalCategoryId, finalCategoryName, level1Id, level1Name, level2Id, level2Name],
   );
   const detailQuery = useMemo(() => {
     const query = new URLSearchParams({
@@ -126,9 +140,10 @@ export function ParticipantShowcaseModelsSection({
     if (level2Id) {
       query.set("l2id", level2Id);
     }
+    query.set("scale", scaleLabel);
 
     return query.toString();
-  }, [finalCategoryName, level1Name, level2Id, level2Name]);
+  }, [finalCategoryName, level1Name, level2Id, level2Name, scaleLabel]);
 
   const hasMore = page < totalPages;
 
@@ -145,6 +160,8 @@ export function ParticipantShowcaseModelsSection({
             </>
           ) : null}
           <span className="font-semibold text-[#8BA3FF]">{finalCategoryName}</span>
+          <span className="mx-2 text-[#5A5A5A]">{">"}</span>
+          <span className="font-semibold text-[#8BA3FF]">{scaleLabel}</span>
         </p>
         <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">Explorar Maquetas</h2>
 
@@ -208,6 +225,7 @@ export function ParticipantShowcaseModelsSection({
           ) : (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
               {items.map((item) => {
+                const isOwnModel = Boolean(user?.id) && item.participantUserId === user?.id;
                 const scoreValue = item.finalScore;
                 const hasScore =
                   item.status === "CALIFICADA" && typeof scoreValue === "number";
@@ -215,7 +233,7 @@ export function ParticipantShowcaseModelsSection({
                   ? `${formatScore(scoreValue)} pts`
                   : "Sin calificar";
                 const medalStyle = getMedalStyleByRank(item.scoreRankGlobal);
-                const detailHref = `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}/detalle/${item.id}?${detailQuery}`;
+                const detailHref = `/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}/escala/${scaleId}/detalle/${item.id}?${detailQuery}`;
 
                 return (
                   <Link
@@ -242,13 +260,23 @@ export function ParticipantShowcaseModelsSection({
                         </div>
                       )}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
-                      {medalStyle ? (
-                        <span
-                          title={medalStyle.label}
-                          aria-label={medalStyle.label}
-                          className={`absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_6px_16px_rgba(0,0,0,0.42)] ${medalStyle.className}`}
-                        >
-                          <Medal className="h-5 w-5" />
+                      {medalStyle && typeof item.scoreRankGlobal === "number" ? (
+                        <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+                          <span
+                            title={medalStyle.label}
+                            aria-label={medalStyle.label}
+                            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border shadow-[0_6px_16px_rgba(0,0,0,0.42)] ${medalStyle.className}`}
+                          >
+                            <Medal className="h-5 w-5" />
+                          </span>
+                          <span className="rounded-full border border-white/20 bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            #{item.scoreRankGlobal}
+                          </span>
+                        </div>
+                      ) : null}
+                      {isOwnModel ? (
+                        <span className="absolute left-3 top-3 inline-flex rounded-full border border-[#4E5CF7] bg-[#1F2A70]/85 px-2.5 py-1 text-[11px] font-semibold text-[#DCE1FF]">
+                          Tu maqueta
                         </span>
                       ) : null}
                     </div>

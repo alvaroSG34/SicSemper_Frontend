@@ -23,7 +23,7 @@ export function ParticipantUploadLevelTwoSection({
   level1Name,
 }: ParticipantUploadLevelTwoSectionProps) {
   const { subcategoriesByCategory, loading, error } =
-    useParticipantUploadEventContext(eventId);
+    useParticipantUploadEventContext(eventId, undefined, "upload");
   const [searchTerm, setSearchTerm] = useState("");
 
   const level2Items = useMemo(

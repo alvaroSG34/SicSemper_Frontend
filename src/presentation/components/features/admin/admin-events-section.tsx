@@ -1,5 +1,6 @@
 import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { CalendarDays, Check, ChevronRight, Clock3, Layers, Search } from 'lucide-react';
 import type {
   AdminClub,
@@ -73,6 +74,7 @@ export function AdminEventsSection({
   canReadJudgeAssignments,
   canManageJudgeAssignments,
 }: AdminEventsSectionProps) {
+  const router = useRouter();
   const startDateInputRef = useRef<HTMLInputElement | null>(null);
   const startTimeInputRef = useRef<HTMLInputElement | null>(null);
   const endDateInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,8 +102,8 @@ export function AdminEventsSection({
     openCreateEventModal,
     openEditEventModal,
     eventModalMode,
-    eventModalStep,
-    setEventModalStep,
+    activeEventTab,
+    setActiveEventTab,
     eventModalSelectedLeafIds,
     toggleCategorySelection,
     eventModalCategoryTree,
@@ -135,7 +137,6 @@ export function AdminEventsSection({
     eventImageFileInputRef,
     isEventImageUploading,
     handleEventImageFileChange,
-    handleSubmitEventModal,
     isEventModalPending,
     eventModalCategoryRemovalImpact,
     handleFinalizeEventModal,
@@ -251,6 +252,23 @@ export function AdminEventsSection({
   const isManagingEventReady = Boolean(managedEvent && selectedEventId === managedEvent.id);
   const isAssignmentPending = pendingAssignmentAction === `judge-assignment:sync:${selectedEventId}`;
 
+  useEffect(() => {
+    if (!eventModalMode) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeEventModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [closeEventModal, eventModalMode]);
+
   return (
     <>
       <section id="eventos" className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
@@ -326,6 +344,14 @@ export function AdminEventsSection({
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 md:mt-0">
+                  <button
+                    type="button"
+                    disabled={loading || isDeleting}
+                    onClick={() => router.push(`/admin/eventos/${item.id}/control`)}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                  >
+                    Centro de control
+                  </button>
                   {canReadJudgeAssignments ? (
                     <button
                       type="button"
@@ -458,20 +484,55 @@ export function AdminEventsSection({
                 <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
                   {eventModalMode === 'create' ? 'Crear evento' : 'Editar evento'}
                 </h4>
-                <p className="mt-0.5 text-xs text-[#9C9C9C]">Paso {eventModalStep} de 3</p>
               </div>
               <button
                 type="button"
                 onClick={closeEventModal}
                 disabled={isEventModalPending}
-                className="inline-flex h-8 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D1D1D1]"
+                className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D1D1D1] disabled:opacity-50"
               >
                 Cerrar
               </button>
             </div>
 
-            {eventModalStep === 1 ? (
-              <form onSubmit={(event) => void handleSubmitEventModal(event)} className="grid gap-3 md:grid-cols-2">
+            <div className="mb-5 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveEventTab('datos')}
+                className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
+                  activeEventTab === 'datos'
+                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
+                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                }`}
+              >
+                Datos
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveEventTab('categorias')}
+                className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
+                  activeEventTab === 'categorias'
+                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
+                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                }`}
+              >
+                Categorias
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveEventTab('escalas')}
+                className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
+                  activeEventTab === 'escalas'
+                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
+                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                }`}
+              >
+                Escalas
+              </button>
+            </div>
+
+            {activeEventTab === 'datos' ? (
+              <div className="grid gap-3 md:grid-cols-2">
                 <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                   Club organizador
                   <select
@@ -714,23 +775,10 @@ export function AdminEventsSection({
                   />
                 </label>
 
-                {eventModalError ? (
-                  <p className="rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5] md:col-span-2">
-                    {eventModalError}
-                  </p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white md:col-span-2"
-                >
-                  {isEventModalPending ? 'Guardando...' : 'Siguiente'}
-                </button>
-              </form>
+              </div>
             ) : null}
 
-            {eventModalStep === 2 ? (
+            {activeEventTab === 'categorias' ? (
               <div>
                 <p className="mb-4 text-sm text-[#AAAAAA]">
                   Selecciona exactamente las categorias disponibles. Puedes marcar padres para seleccionar o desmarcar todo su descendiente.
@@ -799,34 +847,10 @@ export function AdminEventsSection({
                   </div>
                 )}
 
-                {eventModalError ? (
-                  <p className="mt-3 rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5]">
-                    {eventModalError}
-                  </p>
-                ) : null}
-
-                <div className="mt-4 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={isEventModalPending}
-                    onClick={() => setEventModalStep(1)}
-                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-sm font-semibold text-white"
-                  >
-                    Atras
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
-                    onClick={() => setEventModalStep(3)}
-                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#5B68F1] text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    Siguiente
-                  </button>
-                </div>
               </div>
             ) : null}
 
-            {eventModalStep === 3 ? (
+            {activeEventTab === 'escalas' ? (
               <div>
                 <div className="overflow-hidden rounded-xl border border-[#2D2D2D] bg-[#0D0D0F]">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1E1E23] px-4 py-4">
@@ -1081,38 +1105,31 @@ export function AdminEventsSection({
                   </div>
                 </div>
 
-                {eventModalError ? (
-                  <p className="mt-3 rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5]">
-                    {eventModalError}
-                  </p>
-                ) : null}
-
-                <div className="mt-4 flex gap-2">
-                  <button
-                    type="button"
-                    disabled={isEventModalPending}
-                    onClick={() => setEventModalStep(2)}
-                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-sm font-semibold text-white"
-                  >
-                    Atras
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
-                    onClick={() => void handleFinalizeWithGuard()}
-                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#5B68F1] text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    {isEventModalPending
-                      ? eventModalMode === 'create'
-                        ? 'Creando...'
-                        : 'Guardando...'
-                      : eventModalMode === 'create'
-                        ? 'Crear evento'
-                        : 'Guardar cambios'}
-                  </button>
-                </div>
               </div>
             ) : null}
+
+            {eventModalError ? (
+              <p className="mt-3 rounded-lg border border-[#7f1d1d] bg-[#7f1d1d]/20 px-3 py-2 text-xs text-[#fca5a5]">
+                {eventModalError}
+              </p>
+            ) : null}
+
+            <div className="mt-5 border-t border-[#2D2D2D] pt-3">
+              <button
+                type="button"
+                disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
+                onClick={() => void handleFinalizeWithGuard()}
+                className="inline-flex h-11 w-full min-w-0 items-center justify-center rounded-xl bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {isEventModalPending
+                  ? eventModalMode === 'create'
+                    ? 'Creando...'
+                    : 'Guardando...'
+                  : eventModalMode === 'create'
+                    ? 'Crear evento'
+                    : 'Guardar cambios'}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

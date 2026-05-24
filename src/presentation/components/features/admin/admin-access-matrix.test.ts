@@ -81,6 +81,7 @@ describe('admin-access-matrix', () => {
       'jueces',
       'clubes',
       'categorias',
+      'escalas',
       'admins',
       'permisos',
       'landing',

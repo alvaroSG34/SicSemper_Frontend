@@ -13,9 +13,16 @@ import { AdminEventsSection } from './admin-events-section';
 
 const mockUseAdminEvents = vi.fn();
 const mockUseAdminJudgeAssignments = vi.fn();
+const pushMock = vi.fn();
 
 vi.mock('next/image', () => ({
   default: ({ alt }: { alt: string }) => <span>{alt}</span>,
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: pushMock,
+  }),
 }));
 
 vi.mock('./use-admin-events', () => ({
@@ -71,8 +78,8 @@ const buildAdminEventsHookReturn = () => ({
   openCreateEventModal: vi.fn(),
   openEditEventModal: vi.fn(),
   eventModalMode: null,
-  eventModalStep: 1 as const,
-  setEventModalStep: vi.fn(),
+  activeEventTab: 'datos' as const,
+  setActiveEventTab: vi.fn(),
   eventModalSelectedLeafIds: new Set<string>(),
   toggleCategorySelection: vi.fn(),
   eventModalCategoryTree: [],
@@ -187,5 +194,46 @@ describe('AdminEventsSection', () => {
 
     expect(screen.queryByRole('button', { name: 'Gestionar jueces' })).toBeNull();
     expect(screen.queryByText('Gestionar jueces por evento')).toBeNull();
+  });
+
+  it('navigates to event control page', () => {
+    renderSection(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Centro de control' }));
+
+    expect(pushMock).toHaveBeenCalledWith('/admin/eventos/event-1/control');
+  });
+
+  it('renders event modal with mini tabs and without wizard buttons', () => {
+    mockUseAdminEvents.mockReturnValue({
+      ...buildAdminEventsHookReturn(),
+      eventModalMode: 'edit',
+      activeEventTab: 'categorias',
+    });
+
+    renderSection(true);
+
+    expect(screen.getByRole('button', { name: 'Datos' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Categorias' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Escalas' })).toBeTruthy();
+    expect(screen.queryByText(/Paso \d de 3/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Atras' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Siguiente' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeTruthy();
+  });
+
+  it('closes event modal with Escape key', () => {
+    const closeEventModal = vi.fn();
+    mockUseAdminEvents.mockReturnValue({
+      ...buildAdminEventsHookReturn(),
+      eventModalMode: 'edit',
+      closeEventModal,
+    });
+
+    renderSection(true);
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(closeEventModal).toHaveBeenCalledTimes(1);
   });
 });

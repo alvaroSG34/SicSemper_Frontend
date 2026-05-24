@@ -7,20 +7,24 @@ type ParticipantShowcaseModelsPageProps = {
   eventId: string;
   level1Id: string;
   finalCategoryId: string;
+  scaleId: string;
   level1Name: string;
   level2Name: string | null;
   level2Id: string | null;
   finalCategoryName: string;
+  scaleLabel: string;
 };
 
 export function ParticipantShowcaseModelsPage({
   eventId,
   level1Id,
   finalCategoryId,
+  scaleId,
   level1Name,
   level2Name,
   level2Id,
   finalCategoryName,
+  scaleLabel,
 }: ParticipantShowcaseModelsPageProps) {
   return (
     <ParticipantDashboardShell activeSection="eventos">
@@ -29,10 +33,12 @@ export function ParticipantShowcaseModelsPage({
           eventId={eventId}
           level1Id={level1Id}
           finalCategoryId={finalCategoryId}
+          scaleId={scaleId}
           level1Name={level1Name}
           level2Name={level2Name}
           level2Id={level2Id}
           finalCategoryName={finalCategoryName}
+          scaleLabel={scaleLabel}
         />
       )}
     </ParticipantDashboardShell>

@@ -201,7 +201,7 @@ export function PublicHeader({
 
         {loggedIn ? (
           <div className="hidden items-center gap-3 lg:flex">
-            {availableRoles.length > 1 && currentRole ? (
+            {!isLandingPage && availableRoles.length > 1 && currentRole ? (
               <label className="flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-3 py-2 text-xs text-white">
                 <span className="font-semibold opacity-90">Rol</span>
                 <select

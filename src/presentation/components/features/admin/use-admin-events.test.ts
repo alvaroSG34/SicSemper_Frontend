@@ -387,7 +387,7 @@ describe('useAdminEvents', () => {
       } as unknown as FormEvent<HTMLFormElement>);
     });
 
-    expect(result.current.eventModalStep).toBe(1);
+    expect(result.current.activeEventTab).toBe('datos');
     expect(result.current.eventModalError).toBe(
       'La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.',
     );
