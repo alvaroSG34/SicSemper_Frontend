@@ -6,6 +6,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import { CITIES_BY_COUNTRY, COUNTRY_OPTIONS } from "@/core/constants";
+import type { UserRole } from "@/domain/user/user.types";
 import { AutoPublicHeader } from "@/presentation/components/layout";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useAuthStore } from "@/presentation/stores";
@@ -50,6 +51,12 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ciPattern = /^[0-9A-Za-z-]{5,20}$/;
 const phonePattern = /^\+?[0-9\s-]{6,20}$/;
 const registerDraftStorageKey = "nombre.register.draft.v1";
+const dashboardRouteByRole: Record<UserRole, string> = {
+  PARTICIPANTE: "/participante/inicio",
+  JUEZ: "/juez/inicio",
+  ADMIN: "/admin/inicio",
+  SUPERADMIN: "/admin/inicio",
+};
 
 type PasswordStrength = {
   label: string;
@@ -145,6 +152,10 @@ const getFirstInvalidField = (fieldErrors: FieldErrors): FieldName | null => {
 export default function RegisterPage() {
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
+  const initializeSession = useAuthStore((state) => state.initializeSession);
+  const initialized = useAuthStore((state) => state.initialized);
+  const user = useAuthStore((state) => state.user);
+  const currentRole = useAuthStore((state) => state.currentRole);
 
   const [form, setForm] = useState<RegisterFormFields>(initialFormFields);
   const [clubs, setClubs] = useState<RegisterClubOption[]>([]);
@@ -191,6 +202,19 @@ export default function RegisterPage() {
       element.focus();
     }
   };
+
+  useEffect(() => {
+    if (!initialized) {
+      void initializeSession();
+      return;
+    }
+
+    if (user) {
+      const fallbackRole = user.roles[0] ?? null;
+      const nextRole = currentRole ?? fallbackRole;
+      router.replace(nextRole ? dashboardRouteByRole[nextRole] : "/");
+    }
+  }, [currentRole, initializeSession, initialized, router, user]);
 
   useEffect(() => {
     try {

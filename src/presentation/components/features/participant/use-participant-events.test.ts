@@ -4,6 +4,7 @@ import { useParticipantEvents } from "./use-participant-events";
 
 const selectEvent = vi.fn<Promise<boolean>, [string]>();
 const loadEventCategoriesForDetail = vi.fn<Promise<void>, [string]>();
+const loadExploreEvents = vi.fn<Promise<void>, [{ force?: boolean }?]>();
 const getMyRegisteredEventIds = vi.fn();
 const getEventDetailForParticipant = vi.fn();
 
@@ -34,6 +35,7 @@ vi.mock("@/presentation/stores/participant-events.slice", () => ({
     categoriesLoadingByEventId: {},
     categoriesErrorByEventId: {},
     flowLoading: false,
+    loadExploreEvents,
     selectEvent,
     loadEventCategoriesForDetail,
   }),
@@ -49,6 +51,7 @@ vi.mock("@/application/participant/participant.service", () => ({
 describe("useParticipantEvents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    loadExploreEvents.mockResolvedValue(undefined);
     getMyRegisteredEventIds.mockResolvedValue({ eventIds: ["event-1"] });
     getEventDetailForParticipant.mockResolvedValue(events[0]);
   });
@@ -93,5 +96,17 @@ describe("useParticipantEvents", () => {
     });
 
     expect(onStartUpload).not.toHaveBeenCalled();
+  });
+
+  it("refresca eventos y eventos registrados con recarga forzada", async () => {
+    const onStartUpload = vi.fn();
+    const { result } = renderHook(() => useParticipantEvents({ onStartUpload }));
+
+    await act(async () => {
+      await result.current.refreshEvents();
+    });
+
+    expect(loadExploreEvents).toHaveBeenCalledWith({ force: true });
+    expect(getMyRegisteredEventIds).toHaveBeenCalled();
   });
 });

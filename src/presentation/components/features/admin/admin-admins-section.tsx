@@ -125,7 +125,7 @@ export function AdminAdminsSection({
                           onClick={() => void handleDemoteAdmin(candidate.id, candidate.name)}
                           className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white"
                         >
-                          {isDemoting ? 'Procesando...' : 'Demover'}
+                          {isDemoting ? 'Procesando...' : 'Remover rol ADMIN'}
                         </button>
                       ) : null}
                     </div>

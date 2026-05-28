@@ -67,11 +67,19 @@ export type JudgeAssignmentScope = {
 
 export type SystemAlert = {
   id: Identifier;
+  type?: string;
+  signature?: string;
   title: string;
   detail: string;
   severity: AlertSeverity;
   status: AlertStatus;
+  occurrenceCount?: number;
+  firstTriggeredAt?: string;
+  lastTriggeredAt?: string;
+  resolvedAt?: string | null;
+  metadata?: Record<string, unknown> | null;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export type ActivityLogItem = {
@@ -79,6 +87,42 @@ export type ActivityLogItem = {
   title: string;
   detail: string;
   createdAt: string;
+};
+
+export type AuditLogResult = "SUCCESS" | "FAILED" | "ERROR";
+
+export type AuditLogListItem = {
+  id: Identifier;
+  createdAt: string;
+  title: string;
+  detail: string;
+  action: string | null;
+  module: string | null;
+  result: string | null;
+  entityType: string | null;
+  entityId: string | null;
+  actorRole: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  actor: {
+    id: Identifier;
+    name: string;
+    email: string;
+  } | null;
+};
+
+export type AuditLogDetailItem = AuditLogListItem & {
+  previousData: Record<string, unknown> | null;
+  newData: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+};
+
+export type AuditLogListResponse = {
+  items: AuditLogListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
 };
 
 export type AdminKpis = {
@@ -158,13 +202,50 @@ export type EventControlModelSortOption =
 export type AdminEventControlSummary = {
   eventId: Identifier;
   eventName: string;
+  eventStatus: CatalogEventStatus;
+  startDate: string | null;
+  endDate: string | null;
+  organizerClubName: string | null;
   registrationsCount: number;
   uniqueParticipantsCount: number;
+  verifiedParticipantsCount: number;
+  unverifiedParticipantsCount: number;
+  suspendedParticipantsCount: number;
+  participantsWithModelsCount: number;
+  participantsWithoutModelsCount: number;
   modelsCount: number;
   modelsEnviadasCount: number;
   modelsEnRevisionCount: number;
   modelsCalificadasCount: number;
+  pendingReviewModelsCount: number;
   averageFinalScore: number | null;
+  qualifiedModelsRate: number;
+  judgeReviewsSubmittedCount: number;
+  judgeReviewsDraftCount: number;
+  topSegmentsByScore: Array<{
+    eventCategoryId: Identifier;
+    finalCategoryId: Identifier;
+    categoryLabel: string;
+    scaleId: Identifier;
+    scaleValue: string;
+    modelsCount: number;
+    averageFinalScore: number | null;
+  }>;
+  topSegmentsByVolume: Array<{
+    eventCategoryId: Identifier;
+    finalCategoryId: Identifier;
+    categoryLabel: string;
+    scaleId: Identifier;
+    scaleValue: string;
+    modelsCount: number;
+    averageFinalScore: number | null;
+  }>;
+  recentActivity: Array<{
+    type: "REGISTRATION_CREATED" | "MODEL_CREATED" | "JUDGE_REVIEW_SUBMITTED";
+    timestamp: string;
+    actorName: string;
+    detail: string;
+  }>;
 };
 
 export type AdminEventControlPage<TItem> = {

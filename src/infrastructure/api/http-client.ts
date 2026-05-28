@@ -49,6 +49,24 @@ const getCodeFromPayload = (payload: ErrorPayload): string | null => {
   return null;
 };
 
+const getBrowserCookie = (name: string): string | null => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const cookies = document.cookie.split("; ");
+  for (const cookie of cookies) {
+    const [key, ...valueParts] = cookie.split("=");
+    if (key !== name) {
+      continue;
+    }
+
+    return decodeURIComponent(valueParts.join("="));
+  }
+
+  return null;
+};
+
 const getMessageFromPayload = (payload: ErrorPayload, statusCode: number) => {
   if (Array.isArray(payload.message)) {
     return payload.message.join(" ");
@@ -92,8 +110,15 @@ const runRefresh = async () => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
+        const csrfToken = getBrowserCookie("ss_csrf");
+        const headers = new Headers();
+        if (csrfToken) {
+          headers.set("x-csrf-token", csrfToken);
+        }
+
         const response = await fetch(getUrl("/auth/refresh"), {
           method: "POST",
+          headers,
           credentials: "include",
         });
 
@@ -116,13 +141,21 @@ const sendRequest = async (
 ): Promise<unknown> => {
   const isFormDataBody = options.body instanceof FormData;
   const headers = new Headers(options.headers);
+  const method = options.method ?? "GET";
+  const isMutation = method !== "GET";
 
   if (!headers.has("Content-Type") && options.body !== undefined && !isFormDataBody) {
     headers.set("Content-Type", "application/json");
   }
+  if (isMutation && !headers.has("x-csrf-token")) {
+    const csrfToken = getBrowserCookie("ss_csrf");
+    if (csrfToken) {
+      headers.set("x-csrf-token", csrfToken);
+    }
+  }
 
   const response = await fetch(getUrl(path), {
-    method: options.method ?? "GET",
+    method,
     headers,
     body:
       options.body === undefined

@@ -279,6 +279,20 @@ export type ParticipantRegisteredEvents = {
   eventIds: Identifier[];
 };
 
+export type ParticipantShowcaseTreeNode = {
+  id: Identifier;
+  name: string;
+  parentId: Identifier | null;
+  hasModels: boolean;
+  children: Identifier[];
+};
+
+export type ParticipantShowcaseTreeResponse = {
+  eventId: Identifier;
+  rootIds: Identifier[];
+  nodes: ParticipantShowcaseTreeNode[];
+};
+
 export type ParticipantShowcaseParticipant = {
   userId: Identifier;
   name: string;

@@ -21,6 +21,7 @@ const adminErrorMessages: Record<string, string> = {
   JUDGE_SELF_REVIEW_SCOPE_CONFLICT:
     "No puedes asignar este alcance: el juez ya tiene maquetas propias dentro de esa categoria.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
+  PERMISSION_NOT_FOUND: "El permiso solicitado no existe o ya no esta disponible.",
   USER_ALREADY_ADMIN: "El usuario ya tiene el rol ADMIN.",
   USER_IS_NOT_ADMIN: "El usuario no tiene rol ADMIN.",
   NOTIFICATION_NOT_FOUND: "La notificacion ya no esta disponible para este usuario.",
@@ -40,6 +41,7 @@ const adminErrorMessages: Record<string, string> = {
   USER_IS_NOT_PARTICIPANT:
     "Solo se puede actualizar verificacion en cuentas de participante.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
+  AUDIT_LOG_NOT_FOUND: "No se encontro el registro de bitacora solicitado.",
 };
 
 export const toErrorMessage = (error: unknown, fallback: string) => {

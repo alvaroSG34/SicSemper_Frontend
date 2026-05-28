@@ -11,6 +11,7 @@ export type ParticipantEventsSlice = {
   categoriesLoadingByEventId: Record<string, boolean>;
   categoriesErrorByEventId: Record<string, string | null>;
   flowLoading: boolean;
+  loadExploreEvents: (options?: { force?: boolean }) => Promise<void>;
   selectEvent: (eventId: string) => Promise<boolean>;
   loadEventCategoriesForDetail: (eventId: string) => Promise<void>;
 };
@@ -22,6 +23,7 @@ export const useParticipantEventsSlice = (): ParticipantEventsSlice => {
   const categoriesLoadingByEventId = useParticipantStore((state) => state.categoriesLoadingByEventId);
   const categoriesErrorByEventId = useParticipantStore((state) => state.categoriesErrorByEventId);
   const flowLoading = useParticipantStore((state) => state.flowLoading);
+  const loadExploreEvents = useParticipantStore((state) => state.loadExploreEvents);
   const selectEvent = useParticipantStore((state) => state.selectEvent);
   const loadEventCategoriesForDetail = useParticipantStore((state) => state.loadEventCategoriesForDetail);
 
@@ -32,6 +34,7 @@ export const useParticipantEventsSlice = (): ParticipantEventsSlice => {
     categoriesLoadingByEventId,
     categoriesErrorByEventId,
     flowLoading,
+    loadExploreEvents,
     selectEvent,
     loadEventCategoriesForDetail,
   };

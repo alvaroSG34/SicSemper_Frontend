@@ -5,8 +5,6 @@ import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
-import { useParticipantShowcaseCategoryAvailability } from "./use-participant-showcase-category-availability";
-import { hasModelsInSubtree } from "./participant-showcase-tree";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -24,32 +22,35 @@ export function ParticipantShowcaseLevelTwoSection({
   level1Id,
   level1Name,
 }: ParticipantShowcaseLevelTwoSectionProps) {
-  const { subcategoriesByCategory, loading, error } =
+  const { showcaseTree, loading, error, retryEventContext } =
     useParticipantUploadEventContext(eventId);
-  const {
-    categoryIdSet,
-    loading: availabilityLoading,
-    error: availabilityError,
-  } = useParticipantShowcaseCategoryAvailability(eventId);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const level2Items = useMemo(
-    () => subcategoriesByCategory[level1Id] ?? [],
-    [level1Id, subcategoriesByCategory],
+  const showcaseNodes = useMemo(
+    () => new Map(showcaseTree?.nodes.map((node) => [node.id, node]) ?? []),
+    [showcaseTree],
   );
-  const filteredItems = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const visibleItems = level2Items.filter((item) =>
-      hasModelsInSubtree(item.id, subcategoriesByCategory, categoryIdSet),
-    );
-    if (!normalizedSearch) {
-      return visibleItems;
+  const level2Items = useMemo(() => {
+    const level1Node = showcaseNodes.get(level1Id);
+    if (!level1Node) {
+      return [];
     }
 
-    return visibleItems.filter((item) =>
+    return level1Node.children
+      .map((childId) => showcaseNodes.get(childId))
+      .filter((node): node is NonNullable<typeof node> => Boolean(node));
+  }, [level1Id, showcaseNodes]);
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return level2Items;
+    }
+
+    return level2Items.filter((item) =>
       item.name.toLowerCase().includes(normalizedSearch),
     );
-  }, [categoryIdSet, level2Items, searchTerm, subcategoriesByCategory]);
+  }, [level2Items, searchTerm]);
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
@@ -78,25 +79,21 @@ export function ParticipantShowcaseLevelTwoSection({
         </p>
       ) : null}
       {error ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {error}
-        </p>
+        <div className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3">
+          <p className="text-sm text-[#FFB4B4]">{error}</p>
+          <button
+            type="button"
+            onClick={() => void retryEventContext()}
+            className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border border-[#8B1D1D] px-3 text-xs font-semibold text-[#FFD0D0] transition hover:border-[#A22B2B]"
+          >
+            Reintentar
+          </button>
+        </div>
       ) : null}
-      {availabilityError ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {availabilityError}
-        </p>
-      ) : null}
-      {availabilityLoading ? (
-        <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
-          Validando categorias con maquetas...
-        </p>
-      ) : null}
-
-      {!loading && !error && !availabilityLoading && !availabilityError ? (
+      {!loading && !error ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => {
-            const isLeaf = (subcategoriesByCategory[item.id] ?? []).length === 0;
+            const isLeaf = item.children.length === 0;
             const href = isLeaf
               ? `/participante/participantes/${eventId}/maquetas/${level1Id}/${item.id}?l1=${encodeURIComponent(level1Name)}&final=${encodeURIComponent(item.name)}`
               : `/participante/participantes/${eventId}/nivel-3/${level1Id}/${item.id}?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(item.name)}`;
@@ -123,15 +120,13 @@ export function ParticipantShowcaseLevelTwoSection({
         </div>
       ) : null}
 
-      {!loading && !error && !availabilityLoading && !availabilityError && filteredItems.length === 0 ? (
+      {!loading && !error && filteredItems.length === 0 ? (
         <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
           Esta categoria no tiene subcategorias con maquetas inscritas.
         </p>
       ) : null}
       {!loading &&
       !error &&
-      !availabilityLoading &&
-      !availabilityError &&
       level2Items.length > 0 &&
       filteredItems.length === 0 &&
       searchTerm.trim() ? (

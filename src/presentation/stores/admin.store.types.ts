@@ -1,6 +1,8 @@
 import type {
   AdminDashboardData,
   AdminDashboardSummary,
+  AuditLogDetailItem,
+  AuditLogListItem,
   AdminPermissionCode,
   AdminPermissionEntry,
   AssignJudgeScopePayload,
@@ -14,6 +16,18 @@ import type {
   JudgePermissionEntry,
 } from "@/domain/admin/admin.types";
 import type { User } from "@/domain/user/user.types";
+
+export type AdminBitacoraFilters = {
+  actor?: string;
+  actorUserId?: string;
+  module?: string;
+  action?: string;
+  result?: "SUCCESS" | "FAILED" | "ERROR";
+  ipAddress?: string;
+  query?: string;
+  startDate?: string;
+  endDate?: string;
+};
 
 export type AdminStoreState = {
   users: User[];
@@ -140,4 +154,20 @@ export type AdminStoreState = {
     code: JudgePermissionCode,
     grantedDirectly: boolean,
   ) => Promise<void>;
+  bitacoraItems: AuditLogListItem[];
+  bitacoraTotal: number;
+  bitacoraPage: number;
+  bitacoraPageSize: number;
+  bitacoraHasMore: boolean;
+  bitacoraFilters: AdminBitacoraFilters;
+  bitacoraLoading: boolean;
+  bitacoraError: string | null;
+  bitacoraSelectedId: string | null;
+  bitacoraSelectedItem: AuditLogDetailItem | null;
+  bitacoraDetailLoading: boolean;
+  setBitacoraFilters: (filters: Partial<AdminBitacoraFilters>) => void;
+  setBitacoraPage: (page: number) => void;
+  setBitacoraPageSize: (pageSize: number) => void;
+  loadBitacora: () => Promise<void>;
+  selectBitacoraItem: (id: string | null) => Promise<void>;
 };

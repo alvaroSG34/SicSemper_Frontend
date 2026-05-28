@@ -9,7 +9,7 @@ export type AdminSectionId =
   | "admins"
   | "permisos"
   | "landing"
-  | "ajustes";
+  | "bitacora";
 
 type CrudPermissionSet = {
   create: boolean;
@@ -29,6 +29,9 @@ type ModuleAccessMap = {
   judgeAssignments: CrudPermissionSet;
   judgePermissions: CrudPermissionSet;
   adminPermissions: CrudPermissionSet;
+  bitacora: {
+    read: boolean;
+  };
 };
 
 export type AdminAccessMatrix = {
@@ -70,6 +73,9 @@ export const createAdminAccessMatrix = (
     judgeAssignments: buildCrud(granted, "ADMIN_JUDGE_ASSIGNMENTS"),
     judgePermissions: buildCrud(granted, "ADMIN_JUDGE_PERMISSIONS"),
     adminPermissions: buildCrud(granted, "ADMIN_ADMIN_PERMISSIONS"),
+    bitacora: {
+      read: hasPermission(granted, "ADMIN_BITACORA_READ"),
+    },
   };
   const canReadJudgesSection =
     moduleAccess.judgeAssignments.read || moduleAccess.judgePermissions.read;
@@ -87,7 +93,7 @@ export const createAdminAccessMatrix = (
       admins: isSuperadmin && moduleAccess.adminPermissions.read,
       permisos: isSuperadmin && moduleAccess.adminPermissions.read,
       landing: isSuperadmin,
-      ajustes: true,
+      bitacora: moduleAccess.bitacora.read,
     },
     module: moduleAccess,
     canReadJudgesSection,
@@ -108,7 +114,7 @@ export const listAvailableAdminSections = (
     "admins",
     "permisos",
     "landing",
-    "ajustes",
+    "bitacora",
   ];
 
   return ordered.filter((section) => matrix.section[section]);
@@ -127,7 +133,7 @@ export const emptyAdminAccessMatrix = (): AdminAccessMatrix => ({
     admins: false,
     permisos: false,
     landing: false,
-    ajustes: true,
+    bitacora: false,
   },
   module: {
     users: noCrud(),
@@ -138,6 +144,9 @@ export const emptyAdminAccessMatrix = (): AdminAccessMatrix => ({
     judgeAssignments: noCrud(),
     judgePermissions: noCrud(),
     adminPermissions: noCrud(),
+    bitacora: {
+      read: false,
+    },
   },
   canReadJudgesSection: false,
 });

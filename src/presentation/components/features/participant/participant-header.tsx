@@ -18,15 +18,15 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
   const hasPhoto = Boolean(profile.photoUrl?.trim());
 
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
+    <header className="flex items-center justify-between gap-3 md:gap-6">
+      <div className="min-w-0 flex-1">
+        <h1 className={`${outfit.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}>
           Hola, {profile.displayName}
         </h1>
-        <p className="text-sm text-[#AAAAAA]">{profile.subtitle}</p>
+        <p className="hidden text-sm text-[#AAAAAA] md:block">{profile.subtitle}</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
+      <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
         {profile.verified ? (
           <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">

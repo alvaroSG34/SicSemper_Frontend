@@ -48,6 +48,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
         onOpenParticipantsByEvent={vi.fn()}
       />,
@@ -80,6 +81,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={onStartUpload}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={onGoToMyModelsByEvent}
         onOpenParticipantsByEvent={onOpenParticipantsByEvent}
       />,
@@ -107,6 +109,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
         onOpenParticipantsByEvent={vi.fn()}
       />,
@@ -146,6 +149,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
         onOpenParticipantsByEvent={onOpenParticipantsByEvent}
       />,
@@ -187,6 +191,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={onStartUpload}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
         onOpenParticipantsByEvent={vi.fn()}
       />,
@@ -212,6 +217,7 @@ describe("ParticipantEventsExplorer", () => {
         registeredEventIdsLoading={false}
         onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
         onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
         onOpenParticipantsByEvent={vi.fn()}
       />,
@@ -221,5 +227,29 @@ describe("ParticipantEventsExplorer", () => {
     fireEvent.keyDown(card, { key: "Enter" });
 
     expect(await screen.findByText("Detalle del evento")).toBeTruthy();
+  });
+
+  it("refreshes events from empty state", async () => {
+    const onRefresh = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <ParticipantEventsExplorer
+        events={[]}
+        selectedEventId={null}
+        categoriesByEventId={{}}
+        categoriesLoadingByEventId={{}}
+        categoriesErrorByEventId={{}}
+        registeredEventIdSet={new Set()}
+        registeredEventIdsLoading={false}
+        onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
+        onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={onRefresh}
+        onGoToMyModelsByEvent={vi.fn()}
+        onOpenParticipantsByEvent={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Refrescar" }));
+    await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
   });
 });

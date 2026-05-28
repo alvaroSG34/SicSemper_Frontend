@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
-import { ArrowLeft, Eye, FileText, Image as ImageIcon, ShieldCheck, ShieldX } from "lucide-react";
+import { ArrowLeft, Eye, FileText, Image as ImageIcon, Medal, ShieldCheck, ShieldX } from "lucide-react";
 import { createAdminAccessMatrix } from "@/presentation/components/features/admin/admin-access-matrix";
 import { useAdminEventControl } from "@/presentation/components/features/admin/use-admin-event-control";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
@@ -40,6 +40,23 @@ const formatScore = (value: number | null) => {
     return "-";
   }
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
+};
+
+const formatPercent = (value: number | null | undefined) => {
+  if (typeof value !== "number") {
+    return "0.00%";
+  }
+  return `${value.toFixed(2)}%`;
+};
+
+const formatActivityType = (type: "REGISTRATION_CREATED" | "MODEL_CREATED" | "JUDGE_REVIEW_SUBMITTED") => {
+  if (type === "REGISTRATION_CREATED") {
+    return "Inscripción";
+  }
+  if (type === "MODEL_CREATED") {
+    return "Maqueta";
+  }
+  return "Evaluación";
 };
 
 export function AdminEventControlPage({ eventId }: { eventId: string }) {
@@ -186,7 +203,8 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
         </div>
 
         {activeTab === "resumen" ? (
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <>
+          <section className="hidden">
             <article className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4">
               <p className="text-xs text-[#9C9C9C]">Inscripciones</p>
               <p className="mt-2 text-3xl font-semibold text-white">
@@ -217,6 +235,144 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
               </p>
             </article>
           </section>
+
+          <section className="grid gap-4 xl:grid-cols-2">
+            <article className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4">
+              <p className="text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">Salud del evento</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Estado</p>
+                  <p className="mt-1 text-lg font-semibold text-white">{summary?.eventStatus ?? "-"}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Organizador</p>
+                  <p className="mt-1 text-sm font-semibold text-white">{summary?.organizerClubName ?? "-"}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Inicio</p>
+                  <p className="mt-1 text-sm font-semibold text-white">{formatDateTime(summary?.startDate)}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Fin</p>
+                  <p className="mt-1 text-sm font-semibold text-white">{formatDateTime(summary?.endDate)}</p>
+                </div>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Verificados</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.verifiedParticipantsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Sin verificar</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.unverifiedParticipantsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Suspendidos</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.suspendedParticipantsCount ?? 0}</p>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4">
+              <p className="text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">Embudo operativo</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Inscripciones</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">{summary?.registrationsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Participantes únicos</p>
+                  <p className="mt-1 text-2xl font-semibold text-white">{summary?.uniqueParticipantsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Con maquetas</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.participantsWithModelsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Sin maquetas</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.participantsWithoutModelsCount ?? 0}</p>
+                </div>
+              </div>
+              <div className="mt-3 rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                <p className="text-[11px] text-[#9C9C9C]">Maquetas</p>
+                <p className="mt-1 text-2xl font-semibold text-white">{summary?.modelsCount ?? 0}</p>
+                <p className="mt-1 text-xs text-[#9C9C9C]">
+                  ENVIADA {summary?.modelsEnviadasCount ?? 0} · EN_REVISION {summary?.modelsEnRevisionCount ?? 0} · CALIFICADA {summary?.modelsCalificadasCount ?? 0}
+                </p>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Tasa de calificación</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{formatPercent(summary?.qualifiedModelsRate)}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Pendientes de revisión</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.pendingReviewModelsCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Reviews enviadas</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.judgeReviewsSubmittedCount ?? 0}</p>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Reviews draft</p>
+                  <p className="mt-1 text-xl font-semibold text-white">{summary?.judgeReviewsDraftCount ?? 0}</p>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4">
+              <p className="text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">Podio operativo por segmento</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Top por puntaje</p>
+                  <div className="mt-2 space-y-2">
+                    {summary?.topSegmentsByScore.length ? summary.topSegmentsByScore.map((segment, index) => (
+                      <div key={`${segment.eventCategoryId}-${segment.scaleId}`} className="rounded-lg border border-[#2A2A2A] bg-[#141414] p-2">
+                        <p className="flex items-center gap-2 text-xs font-semibold text-white">
+                          <Medal className="h-3.5 w-3.5 text-[#F6C453]" />
+                          #{index + 1} · {segment.categoryLabel} · {segment.scaleValue}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                          Promedio {formatScore(segment.averageFinalScore)} · {segment.modelsCount} maqueta(s)
+                        </p>
+                      </div>
+                    )) : <p className="text-xs text-[#9C9C9C]">No hay segmentos calificados todavía.</p>}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                  <p className="text-[11px] text-[#9C9C9C]">Top por volumen</p>
+                  <div className="mt-2 space-y-2">
+                    {summary?.topSegmentsByVolume.length ? summary.topSegmentsByVolume.map((segment, index) => (
+                      <div key={`${segment.eventCategoryId}-${segment.scaleId}`} className="rounded-lg border border-[#2A2A2A] bg-[#141414] p-2">
+                        <p className="text-xs font-semibold text-white">
+                          #{index + 1} · {segment.categoryLabel} · {segment.scaleValue}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                          {segment.modelsCount} maqueta(s) · Promedio {formatScore(segment.averageFinalScore)}
+                        </p>
+                      </div>
+                    )) : <p className="text-xs text-[#9C9C9C]">No hay maquetas registradas todavía.</p>}
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4">
+              <p className="text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">Actividad reciente</p>
+              <div className="mt-3 space-y-2">
+                {summary?.recentActivity.length ? summary.recentActivity.map((item, index) => (
+                  <div key={`${item.type}-${item.timestamp}-${index}`} className="rounded-xl border border-[#2A2A2A] bg-[#101010] p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-semibold text-white">{formatActivityType(item.type)} · {item.actorName}</p>
+                      <span className="text-[11px] text-[#9C9C9C]">{formatDateTime(item.timestamp)}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-[#BDBDBD]">{item.detail}</p>
+                  </div>
+                )) : <p className="text-xs text-[#9C9C9C]">Sin actividad reciente para este evento.</p>}
+              </div>
+            </article>
+          </section>
+          </>
         ) : null}
 
         {activeTab === "participantes" ? (

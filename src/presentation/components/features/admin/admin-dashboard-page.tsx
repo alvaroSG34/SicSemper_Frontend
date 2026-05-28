@@ -3,26 +3,27 @@
 import Link from "next/link";
 import { Outfit } from "next/font/google";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ArrowRight,
   BadgeCheck,
   ChevronDown,
-  ClipboardList,
   Crown,
   FolderTree,
   Home,
   ImageIcon,
   LogOut,
+  Menu,
   Settings,
   Ruler,
   Shield,
   Trophy,
   UserCog,
   Users,
+  X,
 } from "lucide-react";
-import { useEffect, useMemo, type ComponentType } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { Skeleton } from "@/presentation/components/ui";
 import type { User } from "@/domain/user/user.types";
@@ -36,6 +37,7 @@ import { AdminAdminsSection } from "@/presentation/components/features/admin/adm
 import { AdminAdminPermissionsManager } from "@/presentation/components/features/admin/admin-admin-permissions-manager";
 import { AdminPermissionsSection } from "@/presentation/components/features/admin/admin-permissions-section";
 import { AdminLandingSection } from "@/presentation/components/features/admin/admin-landing-section";
+import { AdminBitacoraSection } from "@/presentation/components/features/admin/admin-bitacora-section";
 import { AdminNotificationsBell } from "@/presentation/components/features/admin/admin-notifications-bell";
 import {
   createAdminAccessMatrix,
@@ -80,7 +82,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "landing", label: "Landing", icon: ImageIcon },
   { id: "categorias", label: "Categorias", icon: FolderTree },
   { id: "escalas", label: "Escalas", icon: Ruler },
-  { id: "ajustes", label: "Ajustes", icon: Settings },
+  { id: "bitacora", label: "Bitacora", icon: Settings },
 ];
 
 function AdminDashboardLoading() {
@@ -139,6 +141,7 @@ export function AdminDashboardPage({
   isAdminPermissionManagerVisible = false,
   activePermissionAdminId = null,
 }: AdminDashboardPageProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
@@ -153,6 +156,8 @@ export function AdminDashboardPage({
   const loadSummary = useAdminStore((state) => state.loadSummary);
   const loadDashboard = useAdminStore((state) => state.loadDashboard);
   const clearError = useAdminStore((state) => state.clearError);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
 
   const isSuperadmin = currentRole === "SUPERADMIN" || Boolean(user?.roles.includes("SUPERADMIN"));
   const effectivePermissions = useMemo(
@@ -166,7 +171,7 @@ export function AdminDashboardPage({
   const availableSections = useMemo(() => listAvailableAdminSections(adminAccess), [adminAccess]);
   const firstAvailableSection = availableSections[0] ?? "inicio";
   const sectionRequiresDashboardData =
-    activeSection !== "inicio" && activeSection !== "ajustes" && activeSection !== "landing";
+    activeSection !== "inicio" && activeSection !== "bitacora" && activeSection !== "landing";
   const permissionsResolved = sectionRequiresDashboardData ? dashboard !== null : summary !== null || dashboard !== null;
 
   useEffect(() => {
@@ -233,7 +238,6 @@ export function AdminDashboardPage({
   const catalog = dashboard?.catalog;
   const assignments = useMemo(() => dashboard?.assignments ?? [], [dashboard?.assignments]);
   const alerts = dashboard?.alerts ?? summary?.alerts ?? [];
-  const activity = dashboard?.activity ?? summary?.activity ?? [];
   const clubs = useMemo(() => dashboard?.clubs ?? [], [dashboard?.clubs]);
   const permissions = useMemo(() => dashboard?.permissions?.items ?? [], [dashboard?.permissions?.items]);
   const kpis = dashboard?.kpis ?? summary?.kpis;
@@ -250,6 +254,18 @@ export function AdminDashboardPage({
         })),
     [activeSection, adminAccess],
   );
+  const activeSectionLabel =
+    visibleSidebarItems.find((item) => item.id === activeSection)?.label ?? "Inicio";
+  const isMobileMenuVisible = mobileMenuOpen && mobileMenuPath === pathname;
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const openMobileMenu = () => {
+    setMobileMenuPath(pathname);
+    setMobileMenuOpen(true);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -303,37 +319,98 @@ export function AdminDashboardPage({
 
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
             <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
-              <div className="flex items-center gap-3">
-                <ChevronDown className="h-4 w-4 text-white" />
-                <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
-              </div>
-              <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                {visibleSidebarItems.map((item) => (
-                  <Link
-                    key={`mobile-${item.id}`}
-                    href={adminSectionRouteById[item.id]}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${
-                      item.active
-                        ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
-                        : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
-                    }`}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <ChevronDown className="h-4 w-4 text-white" />
+                  <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
+                  <button
+                    type="button"
+                    aria-label="Abrir menu de navegacion"
+                    onClick={openMobileMenu}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
                   >
-                    <item.icon className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
+                    <Menu className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <header id="inicio" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-              <div className="flex flex-col gap-1">
-                <h1 className={`${outfit.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
+            {isMobileMenuVisible ? (
+              <div className="fixed inset-0 z-[70] xl:hidden">
+                <button
+                  type="button"
+                  aria-label="Cerrar menu"
+                  onClick={closeMobileMenu}
+                  className="absolute inset-0 bg-black/70"
+                />
+                <aside className="relative h-full w-[86%] max-w-[320px] border-r border-[#2A2A2A] bg-[#0A0A0A] px-5 py-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <ChevronDown className="h-4 w-4 text-white" />
+                      <span className="text-lg font-bold text-white">IPMS BOLIVIA</span>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Cerrar menu de navegacion"
+                      onClick={closeMobileMenu}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <nav className="mt-6 flex flex-col gap-2">
+                    {visibleSidebarItems.map((item) => (
+                      <Link
+                        key={`mobile-drawer-${item.id}`}
+                        href={adminSectionRouteById[item.id]}
+                        onClick={closeMobileMenu}
+                        className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium ${
+                          item.active
+                            ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
+                            : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </nav>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMobileMenu();
+                      void handleLogout();
+                    }}
+                    className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-2 text-sm font-medium text-[#AAAAAA]"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar sesion
+                  </button>
+                </aside>
+              </div>
+            ) : null}
+
+            <header
+              id="inicio"
+              className="flex items-center justify-between gap-3 md:gap-6"
+            >
+              <div className="min-w-0 flex-1">
+                <h1
+                  className={`${outfit.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}
+                >
                   Hola, Admin {user?.name?.split(" ")[0] ?? "IPMS BOLIVIA"}
                 </h1>
-                <p className="text-sm text-[#AAAAAA]">Centro de control operativo de competencias de modelismo</p>
+                <p className="hidden text-sm text-[#AAAAAA] md:block">
+                  Centro de control operativo de competencias de modelismo
+                </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
+              <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
                 <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">
                     <BadgeCheck className="h-3.5 w-3.5" />
@@ -585,52 +662,8 @@ export function AdminDashboardPage({
               <AdminLandingSection headingClassName={outfit.className} />
             ) : null}
 
-            {activeSection === "ajustes" ? (
-              <section className="grid w-full grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-8">
-                <article className="rounded-3xl bg-[#121212] p-5 sm:p-6 xl:p-8">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className={`${outfit.className} text-[20px] font-semibold text-white`}>
-                      Actividad reciente
-                    </h3>
-                    <ClipboardList className="h-5 w-5 text-[#5B68F1]" />
-                  </div>
-
-                  <div className="space-y-3">
-                    {activity.slice(0, 8).map((item) => (
-                      <div key={item.id} className="rounded-xl bg-[#1A1A1A] p-4">
-                        <p className="text-sm font-semibold text-white">{item.title}</p>
-                        <p className="mt-1 text-[13px] text-[#A0A0A0]">{item.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-
-                <article id="ajustes" className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <h3 className={`${outfit.className} text-[20px] font-semibold text-white`}>
-                      Alertas operativas
-                    </h3>
-                    <AlertTriangle className="h-5 w-5 text-[#F15BB5]" />
-                  </div>
-
-                  <div className="space-y-3">
-                    {alerts.map((alert) => (
-                      <div key={alert.id} className="rounded-xl bg-[#1A1A1A] p-4">
-                        <p className="text-sm font-semibold text-white">{alert.title}</p>
-                        <p className="mt-1 text-[13px] text-[#A0A0A0]">{alert.detail}</p>
-                        <div className="mt-2 flex items-center gap-2 text-[11px]">
-                          <span className="rounded-full border border-[#352A2A] bg-[#251919] px-2 py-1 text-[#FCA5A5]">
-                            Severidad {alert.severity}
-                          </span>
-                          <span className="rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-[#C9D3FF]">
-                            {alert.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              </section>
+            {activeSection === "bitacora" ? (
+              <AdminBitacoraSection headingClassName={outfit.className} alerts={alerts} />
             ) : null}
             {!isAdminPermissionManagerVisible ? (
               <footer className="pb-6 text-xs text-[#777777]">

@@ -27,6 +27,8 @@ type ParticipantEventsExplorerProps = {
   registeredEventIdsLoading: boolean;
   onLoadEventCategories: (eventId: string) => Promise<void>;
   onStartUpload: (eventId: string) => Promise<boolean>;
+  onRefresh: () => Promise<void>;
+  canUploadModels?: boolean;
   onGoToMyModelsByEvent: (eventId: string) => void;
   onOpenParticipantsByEvent: (eventId: string) => void;
 };
@@ -43,13 +45,15 @@ export function ParticipantEventsExplorer({
   registeredEventIdsLoading,
   onLoadEventCategories,
   onStartUpload,
+  onRefresh,
+  canUploadModels = true,
   onGoToMyModelsByEvent,
   onOpenParticipantsByEvent,
 }: ParticipantEventsExplorerProps) {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<"available" | "past">("available");
-  const [renderedAt] = useState(() => Date.now());
+  const [refreshing, setRefreshing] = useState(false);
 
   const visibleEvents = activeFilter === "past" ? pastEvents : events;
 
@@ -87,7 +91,7 @@ export function ParticipantEventsExplorer({
 
   const isPastEvent = (endDate: string) => {
     const parsedDate = new Date(endDate);
-    return Number.isFinite(parsedDate.getTime()) && parsedDate.getTime() < renderedAt;
+    return Number.isFinite(parsedDate.getTime()) && parsedDate.getTime() < Date.now();
   };
 
   const handleStartUpload = async (eventId: string) => {
@@ -96,11 +100,28 @@ export function ParticipantEventsExplorer({
     }
 
     setUploadingEventId(eventId);
-    const wasSelected = await onStartUpload(eventId);
-    setUploadingEventId(null);
+    let wasSelected = false;
+    try {
+      wasSelected = await onStartUpload(eventId);
+    } finally {
+      setUploadingEventId(null);
+    }
 
     if (wasSelected) {
       setDetailEventId(null);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (refreshing) {
+      return;
+    }
+
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -135,6 +156,11 @@ export function ParticipantEventsExplorer({
         <span>{activeFilter === "past" ? "Eventos pasados" : "Disponibles"}</span>
         <span>{visibleEvents.length}</span>
       </div>
+      {!canUploadModels ? (
+        <div className="mb-4 rounded-xl border border-[#f59e0b]/40 bg-[#7c2d12]/20 px-3 py-2 text-xs text-[#fdba74]">
+          Tu perfil aun no esta verificado. Puedes explorar eventos, pero no subir maquetas.
+        </div>
+      ) : null}
 
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -167,9 +193,10 @@ export function ParticipantEventsExplorer({
           <button
             type="button"
             className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-[#343434] px-3 text-xs font-semibold text-[#E5E5E5] transition hover:border-[#4A4A4A]"
-            onClick={() => undefined}
+            onClick={() => void handleRefresh()}
+            disabled={refreshing}
           >
-            Refrescar
+            {refreshing ? "Actualizando..." : "Refrescar"}
           </button>
         </div>
       ) : null}
@@ -182,9 +209,13 @@ export function ParticipantEventsExplorer({
             const imageUrl = event.imageUrl?.trim();
             const isRegistered = registeredEventIdSet.has(event.id);
             const eventUploadLocked = activeFilter === "past" || isPastEvent(event.endDate);
-            const isUploadButtonDisabled = Boolean(uploadingEventId) || eventUploadLocked;
+            const verificationLocked = !canUploadModels;
+            const isUploadButtonDisabled =
+              Boolean(uploadingEventId) || eventUploadLocked || verificationLocked;
             const uploadButtonLabel = eventUploadLocked
               ? "Evento finalizado"
+              : verificationLocked
+                ? "Verificacion requerida"
               : isUploading
                 ? "Cargando..."
                 : "Subir maqueta";

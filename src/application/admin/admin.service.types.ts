@@ -2,6 +2,8 @@ import type {
   AdminClub,
   AdminDashboardData,
   AdminDashboardSummary,
+  AuditLogDetailItem,
+  AuditLogListResponse,
   AdminEventControlPage,
   AdminEventControlSummary,
   AdminEventModelDetail,
@@ -154,4 +156,18 @@ export interface AdminService {
   markNotificationAsRead(notificationId: string): Promise<AdminNotificationsMutationResult>;
   markAllNotificationsAsRead(): Promise<AdminNotificationsMutationResult>;
   deleteNotification(notificationId: string): Promise<AdminNotificationsMutationResult>;
+  listBitacora(input?: {
+    page?: number;
+    pageSize?: number;
+    actor?: string;
+    actorUserId?: string;
+    module?: string;
+    action?: string;
+    result?: "SUCCESS" | "FAILED" | "ERROR";
+    ipAddress?: string;
+    query?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<AuditLogListResponse>;
+  getBitacoraItem(id: string): Promise<AuditLogDetailItem>;
 }

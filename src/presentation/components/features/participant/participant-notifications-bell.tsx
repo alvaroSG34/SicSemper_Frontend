@@ -106,7 +106,7 @@ export function ParticipantNotificationsBell() {
         <div
           role="dialog"
           aria-label="Notificaciones de participante"
-          className="absolute right-0 top-12 z-50 w-[min(92vw,360px)] rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-3 shadow-[0_20px_80px_rgba(0,0,0,0.45)]"
+          className="fixed left-3 right-3 top-[88px] z-50 w-auto rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-3 shadow-[0_20px_80px_rgba(0,0,0,0.45)] md:absolute md:right-0 md:left-auto md:top-12 md:w-[360px]"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#222222] px-2 pb-2">
             <div>

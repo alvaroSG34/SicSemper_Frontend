@@ -1,5 +1,6 @@
 import type { AdminService } from "@/application/admin/admin.service.types";
 import { adminCategoriesService } from "@/application/admin/services/admin-categories.service";
+import { adminBitacoraService } from "@/application/admin/services/admin-bitacora.service";
 import { adminClubsService } from "@/application/admin/services/admin-clubs.service";
 import { adminDashboardService } from "@/application/admin/services/admin-dashboard.service";
 import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
@@ -16,6 +17,7 @@ export type { AdminService } from "@/application/admin/admin.service.types";
 
 export const adminService: AdminService = {
   ...adminDashboardService,
+  ...adminBitacoraService,
   ...adminLandingService,
   ...adminUploadsService,
   ...adminClubsService,

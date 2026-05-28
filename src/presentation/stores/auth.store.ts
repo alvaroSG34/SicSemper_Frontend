@@ -14,7 +14,7 @@ type AuthStoreState = {
   initializing: boolean;
   hydrateSession: (session: { user: User; currentRole: UserRole | null } | null) => void;
   initializeSession: () => Promise<void>;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<RegisterError | null>;
   logout: () => Promise<void>;
   switchRole: (role: UserRole) => Promise<void>;
@@ -67,8 +67,8 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       });
     }
   },
-  login: async (email, password) => {
-    const user = await authService.login(email, password);
+  login: async (email, password, rememberMe = true) => {
+    const user = await authService.login(email, password, rememberMe);
 
     if (!user) {
       set({ user: null, currentRole: null, initialized: true, initializing: false });

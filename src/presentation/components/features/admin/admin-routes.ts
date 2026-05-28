@@ -11,7 +11,7 @@ export const adminSectionRouteById: Record<AdminSectionId, string> = {
   admins: "/admin/admins",
   permisos: "/admin/permisos",
   landing: "/admin/landing",
-  ajustes: "/admin/ajustes",
+  bitacora: "/admin/bitacora",
 };
 
 export const adminDefaultRoute = adminSectionRouteById.inicio;

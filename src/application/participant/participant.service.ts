@@ -11,6 +11,7 @@ import type {
   ParticipantNotificationsMutationResult,
   ParticipantNotificationsPageResponse,
   ParticipantRegisteredEvents,
+  ParticipantShowcaseTreeResponse,
   ParticipantScale,
   ParticipantShowcaseSortOption,
   ParticipantSubcategoryOption,
@@ -79,6 +80,7 @@ export interface ParticipantService {
   getEventDetailForParticipant(eventId: string): Promise<ParticipantEventDetail | null>;
   getCategoriesForEvent(eventId: string): Promise<ParticipantCategoryOption[]>;
   getEventCategoryIdsWithModels(eventId: string): Promise<{ categoryIds: string[] }>;
+  getShowcaseTree(eventId: string): Promise<ParticipantShowcaseTreeResponse>;
   getSubcategoriesForCategory(
     categoryId: string,
     eventId?: string,
@@ -157,6 +159,8 @@ const participantErrorMessages: Record<string, string> = {
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
   JUDGE_ASSIGNED_TO_SUBCATEGORY_CONFLICT:
     "No puedes concursar en esta subcategoria porque tienes una asignacion activa como juez.",
+  PARTICIPANT_VERIFICATION_REQUIRED:
+    "Debes verificar tu perfil para subir o registrar maquetas.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
   EVENT_ACCESS_FORBIDDEN: "No tienes acceso a participantes para este evento.",
   CATEGORY_MUST_BE_LEAF: "Debes elegir una categoria final para ver maquetas.",
@@ -303,6 +307,17 @@ export const participantService: ParticipantService = {
       return await apiRequest<BackendParticipantScale[]>("/participant/scales");
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las escalas."));
+    }
+  },
+  async getShowcaseTree(eventId) {
+    try {
+      return await apiRequest<ParticipantShowcaseTreeResponse>(
+        `/participant/events/${eventId}/showcase-tree`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudo cargar el arbol de categorias del evento."),
+      );
     }
   },
   async getScalesForEventCategory(eventId, finalCategoryId) {

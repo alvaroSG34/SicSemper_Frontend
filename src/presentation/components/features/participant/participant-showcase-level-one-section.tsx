@@ -5,8 +5,6 @@ import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
-import { useParticipantShowcaseCategoryAvailability } from "./use-participant-showcase-category-availability";
-import { hasModelsInSubtree } from "./participant-showcase-tree";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -20,20 +18,21 @@ type ParticipantShowcaseLevelOneSectionProps = {
 export function ParticipantShowcaseLevelOneSection({
   eventId,
 }: ParticipantShowcaseLevelOneSectionProps) {
-  const { eventCategories, subcategoriesByCategory, loading, error, eventName } =
+  const { showcaseTree, loading, error, eventName, retryEventContext } =
     useParticipantUploadEventContext(eventId);
-  const {
-    categoryIdSet,
-    loading: availabilityLoading,
-    error: availabilityError,
-  } = useParticipantShowcaseCategoryAvailability(eventId);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const showcaseNodes = useMemo(
+    () => new Map(showcaseTree?.nodes.map((node) => [node.id, node]) ?? []),
+    [showcaseTree],
+  );
 
   const filteredItems = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
-    const visibleItems = eventCategories.filter((item) =>
-      hasModelsInSubtree(item.id, subcategoriesByCategory, categoryIdSet),
-    );
+    const visibleItems = (showcaseTree?.rootIds ?? [])
+      .map((rootId) => showcaseNodes.get(rootId))
+      .filter((node): node is NonNullable<typeof node> => Boolean(node));
+
     if (!normalizedSearch) {
       return visibleItems;
     }
@@ -41,7 +40,7 @@ export function ParticipantShowcaseLevelOneSection({
     return visibleItems.filter((item) =>
       item.name.toLowerCase().includes(normalizedSearch),
     );
-  }, [categoryIdSet, eventCategories, searchTerm, subcategoriesByCategory]);
+  }, [searchTerm, showcaseNodes, showcaseTree]);
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
@@ -70,25 +69,22 @@ export function ParticipantShowcaseLevelOneSection({
         </p>
       ) : null}
       {error ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {error}
-        </p>
-      ) : null}
-      {availabilityError ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {availabilityError}
-        </p>
-      ) : null}
-      {availabilityLoading ? (
-        <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
-          Validando categorias con maquetas...
-        </p>
+        <div className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3">
+          <p className="text-sm text-[#FFB4B4]">{error}</p>
+          <button
+            type="button"
+            onClick={() => void retryEventContext()}
+            className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border border-[#8B1D1D] px-3 text-xs font-semibold text-[#FFD0D0] transition hover:border-[#A22B2B]"
+          >
+            Reintentar
+          </button>
+        </div>
       ) : null}
 
-      {!loading && !error && !availabilityLoading && !availabilityError ? (
+      {!loading && !error ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => {
-            const isLeaf = (subcategoriesByCategory[item.id] ?? []).length === 0;
+            const isLeaf = item.children.length === 0;
             const href = isLeaf
               ? `/participante/participantes/${eventId}/maquetas/${item.id}/${item.id}?l1=${encodeURIComponent(item.name)}&final=${encodeURIComponent(item.name)}`
               : `/participante/participantes/${eventId}/nivel-2/${item.id}?l1=${encodeURIComponent(item.name)}`;
@@ -115,16 +111,14 @@ export function ParticipantShowcaseLevelOneSection({
         </div>
       ) : null}
 
-      {!loading && !error && !availabilityLoading && !availabilityError && filteredItems.length === 0 ? (
+      {!loading && !error && filteredItems.length === 0 ? (
         <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
           Este evento no tiene categorias con maquetas inscritas.
         </p>
       ) : null}
       {!loading &&
       !error &&
-      !availabilityLoading &&
-      !availabilityError &&
-      eventCategories.length > 0 &&
+      (showcaseTree?.rootIds.length ?? 0) > 0 &&
       filteredItems.length === 0 &&
       searchTerm.trim() ? (
         <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">

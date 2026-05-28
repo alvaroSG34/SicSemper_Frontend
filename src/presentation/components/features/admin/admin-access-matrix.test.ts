@@ -8,7 +8,7 @@ describe('admin-access-matrix', () => {
   it('shows only base sections when read permissions are missing', () => {
     const matrix = createAdminAccessMatrix([], false);
 
-    expect(listAvailableAdminSections(matrix)).toEqual(['inicio', 'ajustes']);
+    expect(listAvailableAdminSections(matrix)).toEqual(['inicio']);
     expect(matrix.section.clubes).toBe(false);
     expect(matrix.module.clubs.read).toBe(false);
   });
@@ -70,6 +70,7 @@ describe('admin-access-matrix', () => {
         'ADMIN_ADMIN_PERMISSIONS_READ',
         'ADMIN_ADMIN_PERMISSIONS_UPDATE',
         'ADMIN_ADMIN_PERMISSIONS_DELETE',
+        'ADMIN_BITACORA_READ',
       ],
       true,
     );
@@ -82,11 +83,11 @@ describe('admin-access-matrix', () => {
       'clubes',
       'categorias',
       'escalas',
-      'admins',
-      'permisos',
-      'landing',
-      'ajustes',
-    ]);
+        'admins',
+        'permisos',
+        'landing',
+        'bitacora',
+      ]);
     expect(matrix.module.events.delete).toBe(true);
     expect(matrix.module.clubs.create).toBe(true);
   });

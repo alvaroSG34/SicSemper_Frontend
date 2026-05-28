@@ -42,7 +42,7 @@ describe("admin-notifications.mapper", () => {
           severity: "ALTA",
           title: "Alerta",
           detail: "Detalle",
-          targetPath: "/admin/ajustes",
+          targetPath: "/admin/bitacora",
           metadata: null,
           createdAt: "2026-04-09T12:00:00.000Z",
           isRead: true,

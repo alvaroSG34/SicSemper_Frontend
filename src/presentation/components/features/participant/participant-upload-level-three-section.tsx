@@ -26,8 +26,8 @@ export function ParticipantUploadLevelThreeSection({
   level1Name,
   level2Name,
 }: ParticipantUploadLevelThreeSectionProps) {
-  const { subcategoriesByCategory, loading, error } =
-    useParticipantUploadEventContext(eventId, undefined, "upload");
+  const { subcategoriesByCategory, loading, error, retryEventContext } =
+    useParticipantUploadEventContext(eventId, undefined, "upload", [level2Id]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const level3Items = useMemo(
@@ -72,9 +72,16 @@ export function ParticipantUploadLevelThreeSection({
         </p>
       ) : null}
       {error ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {error}
-        </p>
+        <div className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3">
+          <p className="text-sm text-[#FFB4B4]">{error}</p>
+          <button
+            type="button"
+            onClick={() => void retryEventContext()}
+            className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border border-[#8B1D1D] px-3 text-xs font-semibold text-[#FFD0D0] transition hover:border-[#A22B2B]"
+          >
+            Reintentar
+          </button>
+        </div>
       ) : null}
 
       {!loading && !error ? (

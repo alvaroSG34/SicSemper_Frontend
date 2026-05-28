@@ -5,7 +5,6 @@ import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
-import { useParticipantShowcaseCategoryAvailability } from "./use-participant-showcase-category-availability";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -27,30 +26,35 @@ export function ParticipantShowcaseLevelThreeSection({
   level1Name,
   level2Name,
 }: ParticipantShowcaseLevelThreeSectionProps) {
-  const { subcategoriesByCategory, loading, error } =
+  const { showcaseTree, loading, error, retryEventContext } =
     useParticipantUploadEventContext(eventId);
-  const {
-    categoryIdSet,
-    loading: availabilityLoading,
-    error: availabilityError,
-  } = useParticipantShowcaseCategoryAvailability(eventId);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const level3Items = useMemo(
-    () => subcategoriesByCategory[level2Id] ?? [],
-    [level2Id, subcategoriesByCategory],
+  const showcaseNodes = useMemo(
+    () => new Map(showcaseTree?.nodes.map((node) => [node.id, node]) ?? []),
+    [showcaseTree],
   );
-  const filteredItems = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const visibleItems = level3Items.filter((item) => categoryIdSet.has(item.id));
-    if (!normalizedSearch) {
-      return visibleItems;
+  const level3Items = useMemo(() => {
+    const level2Node = showcaseNodes.get(level2Id);
+    if (!level2Node) {
+      return [];
     }
 
-    return visibleItems.filter((item) =>
+    return level2Node.children
+      .map((childId) => showcaseNodes.get(childId))
+      .filter((node): node is NonNullable<typeof node> => Boolean(node));
+  }, [level2Id, showcaseNodes]);
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return level3Items;
+    }
+
+    return level3Items.filter((item) =>
       item.name.toLowerCase().includes(normalizedSearch),
     );
-  }, [categoryIdSet, level3Items, searchTerm]);
+  }, [level3Items, searchTerm]);
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
@@ -79,22 +83,18 @@ export function ParticipantShowcaseLevelThreeSection({
         </p>
       ) : null}
       {error ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {error}
-        </p>
+        <div className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3">
+          <p className="text-sm text-[#FFB4B4]">{error}</p>
+          <button
+            type="button"
+            onClick={() => void retryEventContext()}
+            className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border border-[#8B1D1D] px-3 text-xs font-semibold text-[#FFD0D0] transition hover:border-[#A22B2B]"
+          >
+            Reintentar
+          </button>
+        </div>
       ) : null}
-      {availabilityError ? (
-        <p className="mt-6 rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          {availabilityError}
-        </p>
-      ) : null}
-      {availabilityLoading ? (
-        <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
-          Validando categorias con maquetas...
-        </p>
-      ) : null}
-
-      {!loading && !error && !availabilityLoading && !availabilityError ? (
+      {!loading && !error ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => (
             <Link
@@ -115,15 +115,13 @@ export function ParticipantShowcaseLevelThreeSection({
         </div>
       ) : null}
 
-      {!loading && !error && !availabilityLoading && !availabilityError && filteredItems.length === 0 ? (
+      {!loading && !error && filteredItems.length === 0 ? (
         <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
           Esta subcategoria no tiene especialidades finales con maquetas inscritas.
         </p>
       ) : null}
       {!loading &&
       !error &&
-      !availabilityLoading &&
-      !availabilityError &&
       level3Items.length > 0 &&
       filteredItems.length === 0 &&
       searchTerm.trim() ? (

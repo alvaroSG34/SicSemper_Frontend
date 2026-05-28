@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Outfit } from "next/font/google";
-import { Check, Eye, LockKeyhole, Mail, Sparkles, Zap } from "lucide-react";
+import { Check, Eye, EyeOff, LockKeyhole, Mail, Sparkles, Zap } from "lucide-react";
 import type { UserRole } from "@/domain/user/user.types";
 import { AutoPublicHeader } from "@/presentation/components/layout";
 import { useAuthStore } from "@/presentation/stores";
@@ -78,20 +78,28 @@ function LeftPanel() {
 type RightPanelProps = {
   email: string;
   password: string;
+  rememberMe: boolean;
+  showPassword: boolean;
   isSubmitting: boolean;
   errorMessage: string | null;
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
+  onRememberMeChange: (value: boolean) => void;
+  onToggleShowPassword: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 };
 
 function RightPanel({
   email,
   password,
+  rememberMe,
+  showPassword,
   isSubmitting,
   errorMessage,
   onEmailChange,
   onPasswordChange,
+  onRememberMeChange,
+  onToggleShowPassword,
   onSubmit,
 }: RightPanelProps) {
   return (
@@ -142,7 +150,7 @@ function RightPanel({
                   <LockKeyhole className="h-[18px] w-[18px] text-[#666666]" />
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => onPasswordChange(event.target.value)}
                     placeholder="••••••••"
@@ -151,20 +159,41 @@ function RightPanel({
                     autoComplete="current-password"
                   />
                 </div>
-                <Eye className="h-[18px] w-[18px] text-[#666666]" />
+                <button
+                  type="button"
+                  onClick={onToggleShowPassword}
+                  className="inline-flex items-center justify-center rounded-md p-1 text-[#666666] transition hover:text-[#c9c9c9]"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-[18px] w-[18px]" />
+                  ) : (
+                    <Eye className="h-[18px] w-[18px]" />
+                  )}
+                </button>
               </div>
             </div>
 
             <div className="flex items-center justify-between gap-3">
               <label className="flex items-center gap-2 text-sm text-[#999999]">
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0f0f0f] text-sm font-bold text-[#5865f2]">
-                  <Check className="h-3.5 w-3.5" />
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => onRememberMeChange(event.target.checked)}
+                    className="sr-only"
+                    aria-label="Recordarme"
+                  />
+                  <Check className={`h-3.5 w-3.5 ${rememberMe ? "opacity-100" : "opacity-0"}`} />
                 </span>
                 Recordarme
               </label>
-              <button type="button" className="text-sm font-semibold text-[#5865f2]">
+              <Link
+                href="/recuperar-contrasena"
+                className="text-sm font-semibold text-[#5865f2]"
+              >
                 ¿Olvidaste tu contraseña?
-              </button>
+              </Link>
             </div>
 
             {errorMessage ? (
@@ -197,11 +226,28 @@ function RightPanel({
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const initializeSession = useAuthStore((state) => state.initializeSession);
+  const initialized = useAuthStore((state) => state.initialized);
+  const user = useAuthStore((state) => state.user);
+  const currentRole = useAuthStore((state) => state.currentRole);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!initialized) {
+      void initializeSession();
+      return;
+    }
+
+    if (user) {
+      router.replace(getDashboardRoute(currentRole ?? user.roles[0] ?? null));
+    }
+  }, [currentRole, initializeSession, initialized, router, user]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -214,7 +260,7 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     try {
-      const loggedIn = await login(email, password);
+      const loggedIn = await login(email, password, rememberMe);
 
       if (!loggedIn) {
         setErrorMessage("Credenciales inválidas. Verifica tu correo y contraseña.");
@@ -240,10 +286,14 @@ export default function LoginPage() {
           <RightPanel
             email={email}
             password={password}
+            rememberMe={rememberMe}
+            showPassword={showPassword}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
             onEmailChange={setEmail}
             onPasswordChange={setPassword}
+            onRememberMeChange={setRememberMe}
+            onToggleShowPassword={() => setShowPassword((prev) => !prev)}
             onSubmit={handleSubmit}
           />
         </div>

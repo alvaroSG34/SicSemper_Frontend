@@ -2,6 +2,7 @@
 
 import { ParticipantEventsExplorer } from "./participant-events-explorer";
 import { useParticipantEvents } from "./use-participant-events";
+import { useAuthStore } from "@/presentation/stores";
 
 type ParticipantEventsSectionProps = {
   onStartUpload: (eventId: string) => void;
@@ -14,6 +15,7 @@ export function ParticipantEventsSection({
   onGoToMyModelsByEvent,
   onOpenParticipantsByEvent,
 }: ParticipantEventsSectionProps) {
+  const isParticipantVerified = useAuthStore((state) => state.user?.verified ?? false);
   const {
     exploreEvents,
     pastEvents,
@@ -26,6 +28,7 @@ export function ParticipantEventsSection({
     registeredEventIdsLoading,
     loadEventCategoriesForDetail,
     handleStartUpload,
+    refreshEvents,
   } = useParticipantEvents({ onStartUpload });
 
   return (
@@ -42,6 +45,8 @@ export function ParticipantEventsSection({
         registeredEventIdsLoading={registeredEventIdsLoading}
         onLoadEventCategories={loadEventCategoriesForDetail}
         onStartUpload={handleStartUpload}
+        onRefresh={refreshEvents}
+        canUploadModels={isParticipantVerified}
         onGoToMyModelsByEvent={onGoToMyModelsByEvent}
         onOpenParticipantsByEvent={onOpenParticipantsByEvent}
       />

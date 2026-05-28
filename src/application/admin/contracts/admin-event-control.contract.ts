@@ -1,13 +1,46 @@
+export type ApiAdminEventControlSummarySegment = {
+  eventCategoryId: string;
+  finalCategoryId: string;
+  categoryLabel: string;
+  scaleId: string;
+  scaleValue: string;
+  modelsCount: number;
+  averageFinalScore: number | null;
+};
+
+export type ApiAdminEventControlSummaryActivity = {
+  type: "REGISTRATION_CREATED" | "MODEL_CREATED" | "JUDGE_REVIEW_SUBMITTED";
+  timestamp: string;
+  actorName: string;
+  detail: string;
+};
+
 export type ApiAdminEventControlSummary = {
   eventId: string;
   eventName: string;
+  eventStatus: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
+  startDate: string | null;
+  endDate: string | null;
+  organizerClubName: string | null;
   registrationsCount: number;
   uniqueParticipantsCount: number;
+  verifiedParticipantsCount: number;
+  unverifiedParticipantsCount: number;
+  suspendedParticipantsCount: number;
+  participantsWithModelsCount: number;
+  participantsWithoutModelsCount: number;
   modelsCount: number;
   modelsEnviadasCount: number;
   modelsEnRevisionCount: number;
   modelsCalificadasCount: number;
+  pendingReviewModelsCount: number;
   averageFinalScore: number | null;
+  qualifiedModelsRate: number;
+  judgeReviewsSubmittedCount: number;
+  judgeReviewsDraftCount: number;
+  topSegmentsByScore: ApiAdminEventControlSummarySegment[];
+  topSegmentsByVolume: ApiAdminEventControlSummarySegment[];
+  recentActivity: ApiAdminEventControlSummaryActivity[];
 };
 
 export type ApiAdminEventControlPage<TItem> = {
@@ -143,4 +176,3 @@ export type ApiAdminEventControlModelDetail = {
     }>;
   };
 };
-

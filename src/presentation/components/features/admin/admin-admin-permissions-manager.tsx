@@ -1,19 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { AdminPermissionEntry } from '@/domain/admin/admin.types';
-import type { User } from '@/domain/user/user.types';
-import { useAdminAccessControlSlice } from '@/presentation/stores/admin-access-control.slice';
-import { useAdminStore } from '@/presentation/stores/admin.store';
+import { useEffect, useMemo, useState } from "react";
+import type { AdminPermissionEntry } from "@/domain/admin/admin.types";
+import type { User } from "@/domain/user/user.types";
+import { useAdminAccessControlSlice } from "@/presentation/stores/admin-access-control.slice";
+import { useAdminStore } from "@/presentation/stores/admin.store";
 
-type CrudAction = 'CREATE' | 'READ' | 'UPDATE' | 'DELETE';
+type CrudAction = "CREATE" | "READ" | "UPDATE" | "DELETE";
+type SpecialPermissionDomain = "ADMIN" | "JUDGE" | "PARTICIPANT" | "AUTH" | "OTHERS";
 type AdminModuleKey =
-  | 'USERS'
-  | 'CLUBS'
-  | 'EVENTS'
-  | 'CATEGORIES'
-  | 'EVENT_CATEGORIES'
-  | 'JUDGE_ASSIGNMENTS'
-  | 'JUDGE_PERMISSIONS'
-  | 'ADMIN_PERMISSIONS';
+  | "USERS"
+  | "CLUBS"
+  | "EVENTS"
+  | "CATEGORIES"
+  | "EVENT_CATEGORIES"
+  | "JUDGE_ASSIGNMENTS"
+  | "JUDGE_PERMISSIONS"
+  | "ADMIN_PERMISSIONS";
 
 type AdminPermissionManagerProps = {
   headingClassName: string;
@@ -25,24 +26,38 @@ type AdminPermissionManagerProps = {
   canManageAdminPermissions: boolean;
 };
 
-const CRUD_ACTIONS: readonly CrudAction[] = ['CREATE', 'READ', 'UPDATE', 'DELETE'];
+const CRUD_ACTIONS: readonly CrudAction[] = ["CREATE", "READ", "UPDATE", "DELETE"];
 
 const MODULES: readonly { key: AdminModuleKey; label: string; description: string }[] = [
-  { key: 'USERS', label: 'Users', description: 'Gestión de usuarios ADMIN/PARTICIPANTE/JUEZ' },
-  { key: 'CLUBS', label: 'Clubs', description: 'Altas, consultas y bajas de clubes' },
-  { key: 'EVENTS', label: 'Events', description: 'Operación completa de eventos' },
-  { key: 'CATEGORIES', label: 'Categories', description: 'Mantenimiento de categorías' },
-  { key: 'EVENT_CATEGORIES', label: 'EventCategories', description: 'Vínculos evento-categoría' },
-  { key: 'JUDGE_ASSIGNMENTS', label: 'JudgeAssignments', description: 'Asignaciones de jueces' },
-  { key: 'JUDGE_PERMISSIONS', label: 'JudgePermissions', description: 'Permisos de jueces' },
+  { key: "USERS", label: "Users", description: "Gestion de usuarios ADMIN/PARTICIPANTE/JUEZ" },
+  { key: "CLUBS", label: "Clubs", description: "Altas, consultas y bajas de clubes" },
+  { key: "EVENTS", label: "Events", description: "Operacion completa de eventos" },
+  { key: "CATEGORIES", label: "Categories", description: "Mantenimiento de categorias" },
+  { key: "EVENT_CATEGORIES", label: "EventCategories", description: "Vinculos evento-categoria" },
+  { key: "JUDGE_ASSIGNMENTS", label: "JudgeAssignments", description: "Asignaciones de jueces" },
+  { key: "JUDGE_PERMISSIONS", label: "JudgePermissions", description: "Permisos de jueces" },
+  { key: "ADMIN_PERMISSIONS", label: "AdminPermissions", description: "Permisos de administradores" },
 ];
 
 const ACTION_LABEL: Record<CrudAction, string> = {
-  CREATE: 'Crear',
-  READ: 'Ver',
-  UPDATE: 'Editar',
-  DELETE: 'Eliminar',
+  CREATE: "Crear",
+  READ: "Ver",
+  UPDATE: "Editar",
+  DELETE: "Eliminar",
 };
+
+const SPECIAL_DOMAIN_LABEL: Record<SpecialPermissionDomain, string> = {
+  ADMIN: "Admin",
+  JUDGE: "Judge",
+  PARTICIPANT: "Participant",
+  AUTH: "Auth",
+  OTHERS: "Otros",
+};
+
+const CRITICAL_READ_PERMISSION_CODES = new Set<string>([
+  "ADMIN_DASHBOARD_READ",
+  "ADMIN_ADMIN_PERMISSIONS_READ",
+]);
 
 const isCrudPermissionForModule = (
   code: string,
@@ -64,6 +79,34 @@ const isCrudPermissionForModule = (
   return { module: moduleKey, action };
 };
 
+const getSpecialPermissionDomain = (code: string): SpecialPermissionDomain => {
+  if (code.startsWith("ADMIN_")) {
+    return "ADMIN";
+  }
+  if (code.startsWith("JUDGE_")) {
+    return "JUDGE";
+  }
+  if (code.startsWith("PARTICIPANT_")) {
+    return "PARTICIPANT";
+  }
+  if (code.startsWith("AUTH_")) {
+    return "AUTH";
+  }
+  return "OTHERS";
+};
+
+const getRevokeWarningMessage = (permissionCode: string): string | null => {
+  if (CRITICAL_READ_PERMISSION_CODES.has(permissionCode)) {
+    return `Vas a desactivar ${permissionCode}. Esta accion puede bloquear funciones clave del panel. Deseas continuar?`;
+  }
+
+  if (permissionCode.endsWith("_READ")) {
+    return `Vas a desactivar ${permissionCode}. Esta accion puede ocultar secciones completas para este admin. Deseas continuar?`;
+  }
+
+  return null;
+};
+
 export function AdminAdminPermissionsManager({
   headingClassName,
   users,
@@ -82,15 +125,15 @@ export function AdminAdminPermissionsManager({
   } = useAdminAccessControlSlice();
   const clearError = useAdminStore((state) => state.clearError);
 
-  const [adminSearch, setAdminSearch] = useState('');
-  const [selectedModule, setSelectedModule] = useState<AdminModuleKey>('USERS');
+  const [adminSearch, setAdminSearch] = useState("");
+  const [selectedModule, setSelectedModule] = useState<AdminModuleKey>("USERS");
   const [bulkActionKey, setBulkActionKey] = useState<string | null>(null);
 
   const adminUsers = useMemo(
     () =>
       users.filter(
         (candidate) =>
-          candidate.roles.includes('ADMIN') && !candidate.roles.includes('SUPERADMIN'),
+          candidate.roles.includes("ADMIN") && !candidate.roles.includes("SUPERADMIN"),
       ),
     [users],
   );
@@ -116,7 +159,11 @@ export function AdminAdminPermissionsManager({
       return;
     }
 
-    if (selectedAdminId && !adminUsers.some((candidate) => candidate.id === selectedAdminId) && adminUsers.length > 0) {
+    if (
+      selectedAdminId &&
+      !adminUsers.some((candidate) => candidate.id === selectedAdminId) &&
+      adminUsers.length > 0
+    ) {
       onSelectAdmin(adminUsers[0].id);
     }
   }, [adminUsers, onSelectAdmin, selectedAdminId]);
@@ -155,6 +202,30 @@ export function AdminAdminPermissionsManager({
     return initial;
   }, [selectedEntries]);
 
+  const specialPermissionsByDomain = useMemo(() => {
+    const grouped: Record<SpecialPermissionDomain, AdminPermissionEntry[]> = {
+      ADMIN: [],
+      JUDGE: [],
+      PARTICIPANT: [],
+      AUTH: [],
+      OTHERS: [],
+    };
+
+    for (const entry of selectedEntries) {
+      if (isCrudPermissionForModule(entry.code)) {
+        continue;
+      }
+
+      grouped[getSpecialPermissionDomain(entry.code)].push(entry);
+    }
+
+    for (const domain of Object.keys(grouped) as SpecialPermissionDomain[]) {
+      grouped[domain].sort((left, right) => left.code.localeCompare(right.code));
+    }
+
+    return grouped;
+  }, [selectedEntries]);
+
   const activeModuleConfig = MODULES.find((module) => module.key === selectedModule) ?? MODULES[0];
   const activeModuleEntries = permissionsByModule[activeModuleConfig.key];
   const activeModuleValues = CRUD_ACTIONS
@@ -163,6 +234,10 @@ export function AdminAdminPermissionsManager({
 
   const selectedAdminError = selectedAdmin ? adminPermissionsError[selectedAdmin.id] : null;
   const selectedAdminLoading = selectedAdmin ? adminPermissionsLoading[selectedAdmin.id] : false;
+  const specialPermissionsCount = Object.values(specialPermissionsByDomain).reduce(
+    (total, entries) => total + entries.length,
+    0,
+  );
 
   const runToggle = async (entry: AdminPermissionEntry) => {
     if (!selectedAdmin) {
@@ -170,6 +245,13 @@ export function AdminAdminPermissionsManager({
     }
 
     const shouldRevoke = entry.granted;
+    if (shouldRevoke) {
+      const warningMessage = getRevokeWarningMessage(entry.code);
+      if (warningMessage && !window.confirm(warningMessage)) {
+        return;
+      }
+    }
+
     clearError();
     await toggleAdminPermission(selectedAdmin.id, entry.code, shouldRevoke);
   };
@@ -199,6 +281,18 @@ export function AdminAdminPermissionsManager({
       return;
     }
 
+    const hasReadPermissionEnabled = activeModuleValues.some(
+      (entry) => entry.code.endsWith("_READ") && entry.granted,
+    );
+    if (
+      hasReadPermissionEnabled &&
+      !window.confirm(
+        `Vas a desactivar permisos de lectura del modulo ${activeModuleConfig.label}. Esto puede ocultar ese modulo para el admin. Deseas continuar?`,
+      )
+    ) {
+      return;
+    }
+
     const key = `${selectedAdmin.id}:${activeModuleConfig.key}:deactivate-all`;
     setBulkActionKey(key);
     clearError();
@@ -219,7 +313,7 @@ export function AdminAdminPermissionsManager({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className={`${headingClassName} text-[20px] font-semibold text-white`}>Gestor de permisos de ADMIN</h3>
-          <p className="text-xs text-[#9C9C9C]">Vista dedicada sin scroll para edición por módulo y CRUD</p>
+          <p className="text-xs text-[#9C9C9C]">Vista dedicada para edicion por modulo y permisos especiales</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -242,7 +336,7 @@ export function AdminAdminPermissionsManager({
             className="mb-2 h-9 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-xs text-white outline-none"
           />
           <select
-            value={selectedAdmin?.id ?? ''}
+            value={selectedAdmin?.id ?? ""}
             onChange={(event) => onSelectAdmin(event.target.value)}
             className="h-10 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
           >
@@ -258,7 +352,10 @@ export function AdminAdminPermissionsManager({
             <div className="mt-3 rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
               <p className="text-sm font-semibold text-white">{selectedAdmin.name}</p>
               <p className="text-xs text-[#9C9C9C]">{selectedAdmin.email}</p>
-              <p className="mt-2 text-[11px] text-[#AFAFAF]">{activeModuleValues.length} permiso(s) CRUD en módulo activo</p>
+              <p className="mt-2 text-[11px] text-[#AFAFAF]">
+                {activeModuleValues.length} permiso(s) CRUD en modulo activo
+              </p>
+              <p className="mt-1 text-[11px] text-[#AFAFAF]">{specialPermissionsCount} permiso(s) especiales</p>
             </div>
           ) : (
             <p className="mt-3 rounded-xl border border-[#2D2D2D] bg-[#171717] p-3 text-xs text-[#9C9C9C]">
@@ -268,7 +365,7 @@ export function AdminAdminPermissionsManager({
         </article>
 
         <article className="rounded-2xl border border-[#2D2D2D] bg-[#121212] p-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[1.2px] text-[#AFAFAF]">Módulos</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[1.2px] text-[#AFAFAF]">Modulos</p>
           <div className="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
             {MODULES.map((module) => {
               const moduleEntries = permissionsByModule[module.key];
@@ -284,8 +381,8 @@ export function AdminAdminPermissionsManager({
                   onClick={() => setSelectedModule(module.key)}
                   className={`rounded-lg border px-3 py-2 text-left text-xs ${
                     isActive
-                      ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#DDE2FF]'
-                      : 'border-[#2D2D2D] bg-[#171717] text-[#BDBDBD]'
+                      ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)] text-[#DDE2FF]"
+                      : "border-[#2D2D2D] bg-[#171717] text-[#BDBDBD]"
                   }`}
                 >
                   <p className="font-semibold">{module.label}</p>
@@ -313,7 +410,7 @@ export function AdminAdminPermissionsManager({
                 onClick={() => void runGrantAllCrud()}
                 className="inline-flex h-8 items-center justify-center rounded-md border border-[#14532d] bg-[#0B2318] px-2.5 text-[11px] font-semibold text-[#9EE6B5] disabled:opacity-50"
               >
-                {bulkActionKey?.endsWith('grant-all') ? 'Aplicando...' : 'Activar todo CRUD'}
+                {bulkActionKey?.endsWith("grant-all") ? "Aplicando..." : "Activar todo CRUD"}
               </button>
               <button
                 type="button"
@@ -327,7 +424,7 @@ export function AdminAdminPermissionsManager({
                 onClick={() => void runDeactivateAllCrud()}
                 className="inline-flex h-8 items-center justify-center rounded-md border border-[#7f1d1d] bg-[#3A1414] px-2.5 text-[11px] font-semibold text-[#F6B2B2] disabled:opacity-50"
               >
-                {bulkActionKey?.endsWith('deactivate-all') ? 'Aplicando...' : 'Desactivar todo CRUD'}
+                {bulkActionKey?.endsWith("deactivate-all") ? "Aplicando..." : "Desactivar todo CRUD"}
               </button>
             </div>
           </div>
@@ -343,66 +440,129 @@ export function AdminAdminPermissionsManager({
               Cargando permisos del administrador...
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {CRUD_ACTIONS.map((action) => {
-                const entry = activeModuleEntries[action];
-                if (!entry) {
+            <div className="space-y-3">
+              {activeModuleValues.length === 0 ? (
+                <p className="rounded-xl border border-[#2D2D2D] bg-[#171717] px-4 py-3 text-sm text-[#9C9C9C]">
+                  No hay permisos CRUD para este modulo.
+                </p>
+              ) : null}
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {CRUD_ACTIONS.map((action) => {
+                  const entry = activeModuleEntries[action];
+                  if (!entry) {
+                    return (
+                      <article key={action} className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
+                        <p className="text-[11px] font-semibold tracking-[1.2px] text-[#9C9C9C]">
+                          {ACTION_LABEL[action]}
+                        </p>
+                        <p className="mt-2 text-xs text-[#8E8E8E]">Sin permiso mapeado para esta accion</p>
+                      </article>
+                    );
+                  }
+
+                  const actionKey = `admin-perm:toggle:${selectedAdmin?.id}:${entry.code}`;
+                  const isToggling = Boolean(adminPermissionsLoading[actionKey]);
+                  const isEnabled = entry.granted;
+
                   return (
-                    <article key={action} className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
-                      <p className="text-[11px] font-semibold tracking-[1.2px] text-[#9C9C9C]">
-                        {ACTION_LABEL[action]}
+                    <article key={entry.code} className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
+                      <p className="text-[11px] font-semibold tracking-[1.2px] text-[#AFAFAF]">
+                        {ACTION_LABEL[action]} · {entry.code}
                       </p>
-                      <p className="mt-2 text-xs text-[#8E8E8E]">Sin permiso mapeado para esta acción</p>
+                      <p className="mt-1 text-xs text-[#9C9C9C]">
+                        {entry.description?.trim() || "Sin descripcion disponible para este permiso"}
+                      </p>
+                      <button
+                        type="button"
+                        disabled={!canManageAdminPermissions || isToggling || loading || !selectedAdmin}
+                        onClick={() => void runToggle(entry)}
+                        aria-pressed={isEnabled}
+                        className="mt-3 inline-flex h-8 min-w-[170px] items-center justify-between rounded-md border border-[#2D2D2D] bg-[#101010] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        <span>{isToggling ? "Procesando..." : isEnabled ? "Activado" : "Desactivado"}</span>
+                        <span
+                          className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${
+                            isEnabled ? "bg-[#10B981]" : "bg-[#3A3A3A]"
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-3 w-3 rounded-full bg-white transition-transform ${
+                              isEnabled ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </span>
+                      </button>
                     </article>
                   );
-                }
+                })}
+              </div>
 
-                const actionKey = `admin-perm:toggle:${selectedAdmin?.id}:${entry.code}`;
-                const isToggling = Boolean(adminPermissionsLoading[actionKey]);
-                const isEnabled = entry.granted;
+              <article className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-white">Permisos especiales (no CRUD)</p>
+                  <span className="text-[11px] text-[#9C9C9C]">{specialPermissionsCount} total</span>
+                </div>
 
-                return (
-                  <article key={entry.code} className="rounded-xl border border-[#2D2D2D] bg-[#171717] p-3">
-                    <p className="text-[11px] font-semibold tracking-[1.2px] text-[#AFAFAF]">
-                      {ACTION_LABEL[action]} · {entry.code}
-                    </p>
-                    <p className="mt-1 text-xs text-[#9C9C9C]">
-                      {entry.description?.trim() || 'Sin descripcion disponible para este permiso'}
-                    </p>
-                    <button
-                      type="button"
-                      disabled={
-                        !canManageAdminPermissions ||
-                        isToggling ||
-                        loading ||
-                        !selectedAdmin
+                {specialPermissionsCount === 0 ? (
+                  <p className="rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-xs text-[#8E8E8E]">
+                    No hay permisos especiales para este administrador.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {(Object.keys(specialPermissionsByDomain) as SpecialPermissionDomain[]).map((domain) => {
+                      const entries = specialPermissionsByDomain[domain];
+                      if (entries.length === 0) {
+                        return null;
                       }
-                      onClick={() => void runToggle(entry)}
-                      aria-pressed={isEnabled}
-                      className="mt-3 inline-flex h-8 min-w-[170px] items-center justify-between rounded-md border border-[#2D2D2D] bg-[#101010] px-3 text-xs font-semibold text-white disabled:opacity-50"
-                    >
-                      <span>
-                        {isToggling
-                          ? 'Procesando...'
-                          : isEnabled
-                            ? 'Activado'
-                            : 'Desactivado'}
-                      </span>
-                      <span
-                        className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${
-                          isEnabled ? 'bg-[#10B981]' : 'bg-[#3A3A3A]'
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-3 w-3 rounded-full bg-white transition-transform ${
-                            isEnabled ? 'translate-x-4' : 'translate-x-0.5'
-                          }`}
-                        />
-                      </span>
-                    </button>
-                  </article>
-                );
-              })}
+
+                      return (
+                        <section key={domain} className="rounded-lg border border-[#2D2D2D] bg-[#101010] p-3">
+                          <p className="text-[11px] font-semibold tracking-[1.2px] text-[#AFAFAF]">
+                            {SPECIAL_DOMAIN_LABEL[domain]} ({entries.length})
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {entries.map((entry) => {
+                              const actionKey = `admin-perm:toggle:${selectedAdmin?.id}:${entry.code}`;
+                              const isToggling = Boolean(adminPermissionsLoading[actionKey]);
+                              const isEnabled = entry.granted;
+
+                              return (
+                                <article key={entry.code} className="rounded-md border border-[#2D2D2D] bg-[#171717] p-2.5">
+                                  <p className="text-[11px] font-semibold text-[#D7D7D7]">{entry.code}</p>
+                                  <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                                    {entry.description?.trim() || "Sin descripcion disponible para este permiso"}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    disabled={!canManageAdminPermissions || isToggling || loading || !selectedAdmin}
+                                    onClick={() => void runToggle(entry)}
+                                    aria-pressed={isEnabled}
+                                    className="mt-2 inline-flex h-8 min-w-[170px] items-center justify-between rounded-md border border-[#2D2D2D] bg-[#0E0E0E] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                                  >
+                                    <span>{isToggling ? "Procesando..." : isEnabled ? "Activado" : "Desactivado"}</span>
+                                    <span
+                                      className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors ${
+                                        isEnabled ? "bg-[#10B981]" : "bg-[#3A3A3A]"
+                                      }`}
+                                    >
+                                      <span
+                                        className={`inline-block h-3 w-3 rounded-full bg-white transition-transform ${
+                                          isEnabled ? "translate-x-4" : "translate-x-0.5"
+                                        }`}
+                                      />
+                                    </span>
+                                  </button>
+                                </article>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
             </div>
           )}
         </article>

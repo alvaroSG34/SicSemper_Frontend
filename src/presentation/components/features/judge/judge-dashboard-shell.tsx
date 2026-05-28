@@ -8,8 +8,10 @@ import {
   ChevronDown,
   Home,
   LogOut,
+  Menu,
   Settings,
   CalendarDays,
+  X,
 } from "lucide-react";
 import { DashboardRoleSwitch } from "@/presentation/components/layout";
 import { Skeleton } from "@/presentation/components/ui";
@@ -118,6 +120,8 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [initialLoadRequested, setInitialLoadRequested] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
 
   useEffect(() => {
     if (!dashboard && !loading && !initialLoadRequested) {
@@ -134,6 +138,16 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
     const active = judgeNavItems.find((item) => isItemActive(pathname, item.href));
     return active?.label ?? "Inicio";
   }, [pathname]);
+  const isMobileMenuVisible = mobileMenuOpen && mobileMenuPath === pathname;
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const openMobileMenu = () => {
+    setMobileMenuPath(pathname);
+    setMobileMenuOpen(true);
+  };
 
   const handleLogout = async () => {
     try {
@@ -205,19 +219,97 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
                   <ChevronDown className="h-4 w-4 text-white" />
                   <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
                 </div>
-                <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
+                  <button
+                    type="button"
+                    aria-label="Abrir menu de navegacion"
+                    onClick={openMobileMenu}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
+                  >
+                    <Menu className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-              <div className="flex flex-col gap-1">
-                <h1 className={`${judgeHeadingFont.className} text-[30px] leading-none font-bold text-white md:text-[32px]`}>
+            {isMobileMenuVisible ? (
+              <div className="fixed inset-0 z-[70] xl:hidden">
+                <button
+                  type="button"
+                  aria-label="Cerrar menu"
+                  onClick={closeMobileMenu}
+                  className="absolute inset-0 bg-black/70"
+                />
+                <aside className="relative h-full w-[86%] max-w-[320px] border-r border-[#2A2A2A] bg-[#0A0A0A] px-5 py-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <ChevronDown className="h-4 w-4 text-white" />
+                      <span className="text-lg font-bold text-white">IPMS BOLIVIA</span>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Cerrar menu de navegacion"
+                      onClick={closeMobileMenu}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <nav className="mt-6 flex flex-col gap-2">
+                    {judgeNavItems.map((item) => {
+                      const active =
+                        isItemActive(pathname, item.href) ||
+                        (item.id === "eventos" &&
+                          (pathname === "/juez/calificar" || pathname.startsWith("/juez/calificar/")));
+                      return (
+                        <Link
+                          key={`mobile-drawer:${item.id}`}
+                          href={item.href}
+                          onClick={closeMobileMenu}
+                          className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium ${
+                            active
+                              ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
+                              : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </nav>
+
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={() => {
+                      closeMobileMenu();
+                      void handleLogout();
+                    }}
+                    className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-2 text-sm font-medium text-[#AAAAAA] disabled:opacity-40"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar sesion
+                  </button>
+                </aside>
+              </div>
+            ) : null}
+
+            <header className="flex items-center justify-between gap-3 md:gap-6">
+              <div className="min-w-0 flex-1">
+                <h1
+                  className={`${judgeHeadingFont.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}
+                >
                   Hola, {profile?.displayName ?? "Juez"}
                 </h1>
-                <p className="text-sm text-[#AAAAAA]">Panel operativo de revision de maquetas asignadas</p>
+                <p className="hidden text-sm text-[#AAAAAA] md:block">
+                  Panel operativo de revision de maquetas asignadas
+                </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6">
+              <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
                 <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">
                     <BadgeCheck className="h-3.5 w-3.5" />
@@ -234,31 +326,6 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
                 </div>
               </div>
             </header>
-
-            <nav className="xl:hidden">
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {judgeNavItems.map((item) => {
-                  const active =
-                    isItemActive(pathname, item.href) ||
-                    (item.id === "eventos" &&
-                      (pathname === "/juez/calificar" || pathname.startsWith("/juez/calificar/")));
-                  return (
-                    <Link
-                      key={`mobile:${item.id}`}
-                      href={item.href}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap ${
-                        active
-                          ? "border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-[#C8CEFF]"
-                          : "border-[#2D2D2D] bg-[#111111] text-[#AAAAAA]"
-                      }`}
-                    >
-                      <item.icon className="h-3.5 w-3.5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </nav>
 
             {error ? (
               <div className="rounded-xl border border-[#ef4444]/40 bg-[#7f1d1d]/30 px-4 py-3 text-sm text-[#fca5a5]">

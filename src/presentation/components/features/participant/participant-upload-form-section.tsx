@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { UploadCloud } from "lucide-react";
 import { Outfit } from "next/font/google";
-import { useParticipantStore } from "@/presentation/stores";
+import { useAuthStore, useParticipantStore } from "@/presentation/stores";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
 
 const outfit = Outfit({
@@ -63,6 +63,7 @@ export function ParticipantUploadFormSection({
   const flowError = useParticipantStore((state) => state.flowError);
   const flowSuccessMessage = useParticipantStore((state) => state.flowSuccessMessage);
   const clearFlowState = useParticipantStore((state) => state.clearFlowState);
+  const isParticipantVerified = useAuthStore((state) => state.user?.verified ?? false);
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -162,6 +163,10 @@ export function ParticipantUploadFormSection({
     if (!userId.trim()) {
       return;
     }
+    if (!isParticipantVerified) {
+      setFileError("Debes verificar tu perfil para registrar y subir maquetas.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -255,6 +260,11 @@ export function ParticipantUploadFormSection({
         <span className="text-[#6E6E6E]">/</span>{" "}
         <span className="font-semibold text-[#DCDCDC]">{finalCategoryName}</span>
       </p>
+      {!isParticipantVerified ? (
+        <p className="mt-4 rounded-lg border border-[#f59e0b]/40 bg-[#7c2d12]/20 px-4 py-3 text-sm text-[#fdba74]">
+          Debes tener el perfil verificado para subir o registrar maquetas.
+        </p>
+      ) : null}
 
       {isSubmitted ? (
         <div className="mt-6 rounded-2xl border border-[#2A2F3A] bg-[#1A1E2B] p-5">
@@ -351,6 +361,7 @@ export function ParticipantUploadFormSection({
                 type="file"
                 accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
                 multiple
+                disabled={!isParticipantVerified}
                 className="hidden"
                 onChange={(event) => {
                   const nextFiles = Array.from(event.target.files ?? []);
@@ -387,7 +398,7 @@ export function ParticipantUploadFormSection({
             </Link>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isParticipantVerified}
               className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? "Enviando..." : "Enviar maqueta"}
