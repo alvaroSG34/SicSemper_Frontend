@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  ArrowRight,
   BadgeCheck,
   ChevronDown,
   Crown,

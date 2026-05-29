@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { adminService } from "@/application/admin/admin.service";
+import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
 import type {
   AdminEventControlSummary,
   AdminEventModelDetail,
@@ -85,12 +85,12 @@ export const useAdminEventControl = ({
   const [loadingTieBreak, setLoadingTieBreak] = useState(false);
 
   const loadSummary = useCallback(async () => {
-    const nextSummary = await adminService.getEventControlSummary(eventId);
+    const nextSummary = await adminEventControlService.getEventControlSummary(eventId);
     setSummary(nextSummary);
   }, [eventId]);
 
   const loadParticipants = useCallback(async () => {
-    const response = await adminService.listEventControlParticipants({
+    const response = await adminEventControlService.listEventControlParticipants({
       eventId,
       page: participantsPage,
       pageSize: participantsPageSize,
@@ -108,7 +108,7 @@ export const useAdminEventControl = ({
   }, [eventId, participantsFilters, participantsPage, participantsPageSize]);
 
   const loadModels = useCallback(async () => {
-    const response = await adminService.listEventControlModels({
+    const response = await adminEventControlService.listEventControlModels({
       eventId,
       page: modelsPage,
       pageSize: modelsPageSize,
@@ -172,7 +172,7 @@ export const useAdminEventControl = ({
       setPendingAction(`participant:detail:${userId}`);
       setError(null);
       try {
-        const detail = await adminService.getEventControlParticipantDetail(eventId, userId);
+        const detail = await adminEventControlService.getEventControlParticipantDetail(eventId, userId);
         setSelectedParticipantDetail(detail);
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : "No se pudo cargar el detalle del participante.");
@@ -188,7 +188,7 @@ export const useAdminEventControl = ({
       setPendingAction(`model:detail:${modelId}`);
       setError(null);
       try {
-        const detail = await adminService.getEventControlModelDetail(eventId, modelId);
+        const detail = await adminEventControlService.getEventControlModelDetail(eventId, modelId);
         setSelectedModelDetail(detail);
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : "No se pudo cargar el detalle de la maqueta.");
@@ -204,7 +204,7 @@ export const useAdminEventControl = ({
       setLoadingTieBreak(true);
       setError(null);
       try {
-        const state = await adminService.getEventPodiumTieBreakCandidates({
+        const state = await adminEventControlService.getEventPodiumTieBreakCandidates({
           eventId,
           finalCategoryId: context.finalCategoryId,
           scaleId: context.scaleId,
@@ -266,7 +266,7 @@ export const useAdminEventControl = ({
     setPendingAction("podium-tiebreak:save");
     setError(null);
     try {
-      const nextState = await adminService.setEventPodiumTieBreak({
+      const nextState = await adminEventControlService.setEventPodiumTieBreak({
         eventId,
         finalCategoryId: selectedTieBreakContext.finalCategoryId,
         scaleId: selectedTieBreakContext.scaleId,
@@ -300,7 +300,7 @@ export const useAdminEventControl = ({
     setPendingAction("podium-tiebreak:clear");
     setError(null);
     try {
-      const nextState = await adminService.clearEventPodiumTieBreak({
+      const nextState = await adminEventControlService.clearEventPodiumTieBreak({
         eventId,
         finalCategoryId: selectedTieBreakContext.finalCategoryId,
         scaleId: selectedTieBreakContext.scaleId,
@@ -329,7 +329,7 @@ export const useAdminEventControl = ({
         await action();
         await refreshParticipantsAndSummary();
         if (selectedParticipantDetail) {
-          const detail = await adminService.getEventControlParticipantDetail(
+          const detail = await adminEventControlService.getEventControlParticipantDetail(
             eventId,
             selectedParticipantDetail.user.id,
           );

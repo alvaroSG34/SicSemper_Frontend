@@ -52,6 +52,7 @@ export const useParticipantUploadEventContext = (
   const exploreEvents = useParticipantStore((state) => state.exploreEvents);
   const flowError = useParticipantStore((state) => state.flowError);
   const selectEvent = useParticipantStore((state) => state.selectEvent);
+  const loadExploreEvents = useParticipantStore((state) => state.loadExploreEvents);
   const ensureSubcategoryBranches = useParticipantStore(
     (state) => state.ensureSubcategoryBranches,
   );
@@ -149,26 +150,43 @@ export const useParticipantUploadEventContext = (
     if (requestedScaleContextRef.current === contextKey) {
       return;
     }
-    requestedScaleContextRef.current = contextKey;
-    setScalesLoading(true);
-    setScalesError(null);
 
-    void participantService
-      .getScalesForEventCategory(normalizedEventId, normalizedFinalCategoryId)
-      .then((response) => {
-        setScales(response);
-      })
-      .catch((error: unknown) => {
-        setScalesError(
-          error instanceof Error
-            ? error.message
-            : "No se pudieron cargar las escalas permitidas.",
+    let cancelled = false;
+    requestedScaleContextRef.current = contextKey;
+
+    const run = async () => {
+      setScalesLoading(true);
+      setScalesError(null);
+
+      try {
+        const response = await participantService.getScalesForEventCategory(
+          normalizedEventId,
+          normalizedFinalCategoryId,
         );
-        setScales([]);
-      })
-      .finally(() => {
-        setScalesLoading(false);
-      });
+        if (!cancelled) {
+          setScales(response);
+        }
+      } catch (error: unknown) {
+        if (!cancelled) {
+          setScalesError(
+            error instanceof Error
+              ? error.message
+              : "No se pudieron cargar las escalas permitidas.",
+          );
+          setScales([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setScalesLoading(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
   }, [eventReady, normalizedEventId, normalizedFinalCategoryId]);
 
   const retryEventContext = useCallback(() => {
@@ -181,8 +199,9 @@ export const useParticipantUploadEventContext = (
     setScales([]);
     setScalesError(null);
 
+    void loadExploreEvents({ force: true });
     void selectEvent(normalizedEventId, subcategoryPurpose);
-  }, [normalizedEventId, selectEvent, subcategoryPurpose]);
+  }, [loadExploreEvents, normalizedEventId, selectEvent, subcategoryPurpose]);
 
   const eventName = useMemo(() => {
     if (selectedEvent?.id === normalizedEventId) {
