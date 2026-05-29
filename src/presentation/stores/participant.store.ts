@@ -324,6 +324,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       return;
     }
 
+
     if (!exploreRequest) {
       set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
       exploreRequest = participantService
@@ -339,10 +340,12 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       set((currentState) => ({
         exploreEvents: events,
         selectedEvent:
-          currentState.selectedEvent &&
-          events.some((event) => event.id === currentState.selectedEvent?.id)
+          events.length === 0
             ? currentState.selectedEvent
-            : null,
+            : currentState.selectedEvent &&
+                events.some((event) => event.id === currentState.selectedEvent?.id)
+              ? currentState.selectedEvent
+              : null,
         flowLoading: false,
         flowError: null,
       }));
@@ -366,6 +369,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       });
       return false;
     }
+
 
     set({
       flowLoading: true,
@@ -394,6 +398,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       if (!event) {
         throw new Error("No se encontro el evento seleccionado.");
       }
+
 
       const contextKey = buildSubcategoryContextKey(
         event.id,
@@ -461,7 +466,6 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         flowLoading: false,
         flowError: getErrorMessage(error),
       });
-
       return false;
     }
   },

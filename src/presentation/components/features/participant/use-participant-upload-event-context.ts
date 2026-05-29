@@ -55,7 +55,6 @@ export const useParticipantUploadEventContext = (
   const ensureSubcategoryBranches = useParticipantStore(
     (state) => state.ensureSubcategoryBranches,
   );
-  const loadExploreEvents = useParticipantStore((state) => state.loadExploreEvents);
   const [scales, setScales] = useState<ParticipantScale[]>([]);
   const [scalesLoading, setScalesLoading] = useState(false);
   const [scalesError, setScalesError] = useState<string | null>(null);
@@ -99,10 +98,6 @@ export const useParticipantUploadEventContext = (
         .find((message): message is string => Boolean(message && message.trim())) ?? null
     );
   }, [normalizedVisibleParentIds, subcategoryBranchErrorByContext, subcategoryContextKey]);
-
-  useEffect(() => {
-    void loadExploreEvents();
-  }, [loadExploreEvents]);
 
   useEffect(() => {
     if (!normalizedEventId) {
@@ -188,9 +183,8 @@ export const useParticipantUploadEventContext = (
     setScales([]);
     setScalesError(null);
 
-    void loadExploreEvents({ force: true });
     void selectEvent(normalizedEventId, subcategoryPurpose);
-  }, [loadExploreEvents, normalizedEventId, selectEvent, subcategoryPurpose]);
+  }, [normalizedEventId, selectEvent, subcategoryPurpose]);
 
   const eventName = useMemo(() => {
     if (selectedEvent?.id === normalizedEventId) {
