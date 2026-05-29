@@ -514,7 +514,7 @@ export function JudgeReviewPage({
           ) : (
             <p className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#1F5B3A] bg-[#123425] px-4 py-3 text-sm font-semibold text-[#9AF4C0]">
               <CheckCircle2 className="h-4 w-4" />
-              Calificacion enviada (solo lectura)
+              Calificacion enviada
             </p>
           )}
         </div>

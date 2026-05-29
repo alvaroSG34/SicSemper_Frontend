@@ -316,7 +316,7 @@ export function ParticipantShowcaseModelDetailSection({
               <p className="text-6xl font-bold text-white">
                 {scoreFormatter(detail.scoring.finalScore)}
               </p>
-              <p className="mt-1 text-sm text-[#9C9C9C]">de 100 puntos</p>
+              
             </div>
           </section>
 

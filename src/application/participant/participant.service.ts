@@ -162,7 +162,7 @@ const participantErrorMessages: Record<string, string> = {
   PARTICIPANT_VERIFICATION_REQUIRED:
     "Debes verificar tu perfil para subir o registrar maquetas.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
-  EVENT_ACCESS_FORBIDDEN: "No tienes acceso a participantes para este evento.",
+  EVENT_ACCESS_FORBIDDEN: "Sube una maqueta al evento para poder ver todos los participantes",
   CATEGORY_MUST_BE_LEAF: "Debes elegir una categoria final para ver maquetas.",
   MODEL_NOT_FOUND: "No se encontro la maqueta seleccionada.",
   MODEL_ACCESS_FORBIDDEN: "No puedes visualizar esa maqueta.",

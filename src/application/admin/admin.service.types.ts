@@ -8,6 +8,8 @@ import type {
   AdminEventControlSummary,
   AdminEventModelDetail,
   AdminEventModelRow,
+  AdminPodiumTieBreakDecisionInput,
+  AdminPodiumTieBreakState,
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
   AdminPermissionCode,
@@ -126,6 +128,17 @@ export interface AdminService {
     eventId: string,
     modelId: string,
   ): Promise<AdminEventModelDetail>;
+  getEventPodiumTieBreakCandidates(input: {
+    eventId: string;
+    finalCategoryId: string;
+    scaleId: string;
+  }): Promise<AdminPodiumTieBreakState>;
+  setEventPodiumTieBreak(input: AdminPodiumTieBreakDecisionInput): Promise<AdminPodiumTieBreakState>;
+  clearEventPodiumTieBreak(input: {
+    eventId: string;
+    finalCategoryId: string;
+    scaleId: string;
+  }): Promise<AdminPodiumTieBreakState>;
   createCategory(payload: CreateCategoryPayload): Promise<CatalogCategory>;
   updateCategory(payload: UpdateCategoryPayload): Promise<CatalogCategory>;
   getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;

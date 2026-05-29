@@ -325,6 +325,8 @@ export type ParticipantShowcaseModelsPage = {
   page: number;
   pageSize: number;
   totalPages: number;
+  manualTieBreakApplied: boolean;
+  manualTieBreakLabel: string | null;
 };
 
 export type ParticipantCategoryShowcase = {

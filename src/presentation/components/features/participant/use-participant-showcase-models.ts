@@ -26,6 +26,8 @@ export const useParticipantShowcaseModels = ({
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [manualTieBreakApplied, setManualTieBreakApplied] = useState(false);
+  const [manualTieBreakLabel, setManualTieBreakLabel] = useState<string | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +77,8 @@ export const useParticipantShowcaseModels = ({
         setPage(response.models.page);
         setTotal(response.models.total);
         setTotalPages(response.models.totalPages);
+        setManualTieBreakApplied(response.models.manualTieBreakApplied);
+        setManualTieBreakLabel(response.models.manualTieBreakLabel);
       } catch (requestError) {
         if (requestCounterRef.current !== requestId) {
           return;
@@ -117,6 +121,8 @@ export const useParticipantShowcaseModels = ({
     page,
     total,
     totalPages,
+    manualTieBreakApplied,
+    manualTieBreakLabel,
     loadingInitial,
     loadingMore,
     error,

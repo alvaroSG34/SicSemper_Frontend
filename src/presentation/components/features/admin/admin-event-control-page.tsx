@@ -85,6 +85,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
   );
   const canReadEventControl = access.module.events.read;
   const canManageUsers = access.module.users.update;
+  const canManagePodiumTieBreak = isSuperadmin;
 
   const {
     loading,
@@ -115,10 +116,72 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     selectedModelDetail,
     setSelectedModelDetail,
     openModelDetail,
+    selectedTieBreakContext,
+    selectTieBreakContext,
+    podiumTieBreakState,
+    podiumTieBreakOrder,
+    loadingTieBreak,
+    moveTieBreakCandidate,
+    savePodiumTieBreak,
+    clearPodiumTieBreak,
   } = useAdminEventControl({
     eventId,
     canManageUsers,
+    canManagePodiumTieBreak,
   });
+
+  const tieBreakContextOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: Array<{ finalCategoryId: string; scaleId: string; label: string }> = [];
+    const pushOption = (input: {
+      finalCategoryId?: string;
+      scaleId?: string;
+      categoryLabel?: string;
+      scaleValue?: string;
+    }) => {
+      if (!input.finalCategoryId || !input.scaleId) {
+        return;
+      }
+      const key = `${input.finalCategoryId}:${input.scaleId}`;
+      if (seen.has(key)) {
+        return;
+      }
+      seen.add(key);
+      options.push({
+        finalCategoryId: input.finalCategoryId,
+        scaleId: input.scaleId,
+        label: `${input.categoryLabel ?? "Categoria"} · ${input.scaleValue ?? "Escala"}`,
+      });
+    };
+
+    models.forEach((row) => {
+      pushOption({
+        finalCategoryId: row.finalCategoryId,
+        scaleId: row.scaleId,
+        categoryLabel: row.categoryLabel,
+        scaleValue: row.scaleValue,
+      });
+    });
+
+    summary?.topSegmentsByScore.forEach((segment) => {
+      pushOption({
+        finalCategoryId: segment.finalCategoryId,
+        scaleId: segment.scaleId,
+        categoryLabel: segment.categoryLabel,
+        scaleValue: segment.scaleValue,
+      });
+    });
+    summary?.topSegmentsByVolume.forEach((segment) => {
+      pushOption({
+        finalCategoryId: segment.finalCategoryId,
+        scaleId: segment.scaleId,
+        categoryLabel: segment.categoryLabel,
+        scaleValue: segment.scaleValue,
+      });
+    });
+
+    return options;
+  }, [models, summary]);
 
   if (!canReadEventControl) {
     return (
@@ -556,6 +619,159 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
 
         {activeTab === "maquetas" ? (
           <section className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4 sm:p-5">
+            <div className="mb-5 rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Desempate de podio</p>
+                  <p className="mt-1 text-xs text-[#9C9C9C]">
+                    Define orden manual solo cuando hay empate que impacta top 3.
+                  </p>
+                </div>
+                {!canManagePodiumTieBreak ? (
+                  <span className="rounded-full border border-[#2D2D2D] px-2 py-1 text-[11px] text-[#BDBDBD]">
+                    Solo lectura
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                <select
+                  value={
+                    selectedTieBreakContext
+                      ? `${selectedTieBreakContext.finalCategoryId}:${selectedTieBreakContext.scaleId}`
+                      : ""
+                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (!value) {
+                      void selectTieBreakContext(null);
+                      return;
+                    }
+                    const [finalCategoryId, scaleId] = value.split(":");
+                    if (!finalCategoryId || !scaleId) {
+                      return;
+                    }
+                    void selectTieBreakContext({ finalCategoryId, scaleId });
+                  }}
+                  className="h-10 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-sm text-white outline-none"
+                >
+                  <option value="">Selecciona categoria y escala</option>
+                  {tieBreakContextOptions.map((option) => (
+                    <option
+                      key={`${option.finalCategoryId}:${option.scaleId}`}
+                      value={`${option.finalCategoryId}:${option.scaleId}`}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {selectedTieBreakContext ? (
+                  <button
+                    type="button"
+                    onClick={() => void selectTieBreakContext(selectedTieBreakContext)}
+                    className="h-10 rounded-lg border border-[#2D2D2D] px-3 text-sm text-white"
+                  >
+                    Actualizar
+                  </button>
+                ) : null}
+              </div>
+              {tieBreakContextOptions.length === 0 ? (
+                <p className="mt-2 text-xs text-[#9C9C9C]">
+                  No hay categorias/escalas disponibles para desempate en este evento.
+                </p>
+              ) : null}
+
+              {loadingTieBreak ? (
+                <p className="mt-3 text-xs text-[#9C9C9C]">Cargando candidatos...</p>
+              ) : null}
+
+              {podiumTieBreakState ? (
+                <div className="mt-3 space-y-3">
+                  {podiumTieBreakState.locked ? (
+                    <p className="rounded-lg border border-[#8B1D1D] bg-[#451414] px-3 py-2 text-xs text-[#FFB4B4]">
+                      El evento esta finalizado. El desempate queda bloqueado.
+                    </p>
+                  ) : null}
+                  {podiumTieBreakState.candidates.length === 0 ? (
+                    <p className="rounded-lg border border-[#2D2D2D] bg-[#141414] px-3 py-2 text-xs text-[#9C9C9C]">
+                      No hay empate en podio para este contexto.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        {podiumTieBreakOrder
+                          .map((modelId) =>
+                            podiumTieBreakState.candidates.find((candidate) => candidate.modelId === modelId),
+                          )
+                          .filter((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate))
+                          .map((candidate, index) => (
+                            <div
+                              key={candidate.modelId}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#2D2D2D] bg-[#141414] px-3 py-2"
+                            >
+                              <div>
+                                <p className="text-xs font-semibold text-white">
+                                  {index + 1}. {candidate.nombreModelo}
+                                </p>
+                                <p className="text-[11px] text-[#9C9C9C]">
+                                  {candidate.participantName} · Puntaje {formatScore(candidate.finalScore)} ·
+                                  Auto #{candidate.automaticRank}
+                                </p>
+                              </div>
+                              {canManagePodiumTieBreak && !podiumTieBreakState.locked ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => moveTieBreakCandidate(candidate.modelId, "up")}
+                                    className="h-8 rounded-lg border border-[#2D2D2D] px-2 text-xs text-white"
+                                  >
+                                    Subir
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => moveTieBreakCandidate(candidate.modelId, "down")}
+                                    className="h-8 rounded-lg border border-[#2D2D2D] px-2 text-xs text-white"
+                                  >
+                                    Bajar
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={
+                            !canManagePodiumTieBreak ||
+                            podiumTieBreakState.locked ||
+                            pendingAction === "podium-tiebreak:save"
+                          }
+                          onClick={() => void savePodiumTieBreak()}
+                          className="h-9 rounded-lg border border-[#0B8F5D] bg-[#0F6C47] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                        >
+                          Guardar desempate
+                        </button>
+                        <button
+                          type="button"
+                          disabled={
+                            !canManagePodiumTieBreak ||
+                            podiumTieBreakState.locked ||
+                            pendingAction === "podium-tiebreak:clear"
+                          }
+                          onClick={() => void clearPodiumTieBreak()}
+                          className="h-9 rounded-lg border border-[#8B1D1D] bg-[#4C1515] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                        >
+                          Volver a automatico
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               <input
                 value={modelsFilters.search}

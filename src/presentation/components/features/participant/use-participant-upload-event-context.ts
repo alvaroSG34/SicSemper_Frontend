@@ -150,10 +150,8 @@ export const useParticipantUploadEventContext = (
       return;
     }
     requestedScaleContextRef.current = contextKey;
-    queueMicrotask(() => {
-      setScalesLoading(true);
-      setScalesError(null);
-    });
+    setScalesLoading(true);
+    setScalesError(null);
 
     void participantService
       .getScalesForEventCategory(normalizedEventId, normalizedFinalCategoryId)
@@ -232,4 +230,3 @@ export const useParticipantUploadEventContext = (
     retryEventContext,
   };
 };
-

@@ -1,4 +1,8 @@
 import type { JudgePermissionEntry } from '@/domain/admin/admin.types';
+import {
+  getJudgePermissionDescription,
+  getJudgePermissionLabel,
+} from './judge-permission-catalog';
 
 type JudgePermissionModalState = {
   userId: string;
@@ -42,7 +46,7 @@ export function AdminJudgePermissionsModal({
             <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
               Permisos de juez: {modal.userName}
             </h4>
-            <p className="mt-0.5 text-xs text-[#9C9C9C]">Permisos asignables al rol JUEZ</p>
+            <p className="mt-0.5 text-xs text-[#9C9C9C]">Permisos disponibles para el rol de juez</p>
           </div>
           <button
             type="button"
@@ -57,7 +61,7 @@ export function AdminJudgePermissionsModal({
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Buscar por codigo"
+            placeholder="Buscar permiso"
             className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
           />
         
@@ -78,11 +82,22 @@ export function AdminJudgePermissionsModal({
             {entries.map((entry) => {
               const actionKey = `perm:toggle:${modal.userId}:${entry.code}`;
               const isToggling = Boolean(loadingMap[actionKey]);
+              const canRevokeDirectly = entry.grantedDirectly;
+              const canGrantDirectly = !entry.grantedByRole && !entry.grantedDirectly;
+              const canToggleDirectPermission = canRevokeDirectly || canGrantDirectly;
               return (
                 <article key={entry.code} className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-[11px] font-semibold tracking-[1.2px] text-[#9C9C9C]">{entry.code}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {getJudgePermissionLabel(entry.code)}
+                      </p>
+                      <p className="mt-1 text-[11px] text-[#9C9C9C]">
+                        {getJudgePermissionDescription(entry.code)}
+                      </p>
+                      <p className="mt-1 text-[10px] font-semibold tracking-[1.2px] text-[#6f6f6f]">
+                        {entry.code}
+                      </p>
                       <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                         {entry.grantedByRole ? (
                           <span className="rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-[#C9D3FF]">
@@ -103,19 +118,32 @@ export function AdminJudgePermissionsModal({
                     </div>
                     <button
                       type="button"
-                      disabled={isToggling || !canManageJudgePermissions}
-                      onClick={() => void onToggle(entry)}
+                      disabled={
+                        isToggling ||
+                        !canManageJudgePermissions ||
+                        !canToggleDirectPermission
+                      }
+                      onClick={() => {
+                        if (!canToggleDirectPermission) {
+                          return;
+                        }
+                        void onToggle(entry);
+                      }}
                       className={`inline-flex h-9 min-w-[140px] items-center justify-center rounded-lg px-3 text-xs font-semibold ${
-                        entry.grantedDirectly
+                        canRevokeDirectly
                           ? 'bg-[#4B1F2A] text-white'
-                          : 'bg-[#14532d] text-white'
+                          : canGrantDirectly
+                            ? 'bg-[#14532d] text-white'
+                            : 'border border-[#2D2D2D] bg-[#1A1A1A] text-[#9C9C9C]'
                       }`}
                     >
                       {isToggling
                         ? 'Procesando...'
-                        : entry.grantedDirectly
+                        : canRevokeDirectly
                           ? 'Revocar directo'
-                          : 'Otorgar directo'}
+                          : canGrantDirectly
+                            ? 'Otorgar directo'
+                            : 'Heredado por rol'}
                     </button>
                   </div>
                 </article>

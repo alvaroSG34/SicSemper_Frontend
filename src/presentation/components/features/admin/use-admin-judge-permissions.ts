@@ -3,6 +3,7 @@ import type { JudgePermissionEntry } from '@/domain/admin/admin.types';
 import type { User } from '@/domain/user/user.types';
 import { useAdminStore } from '@/presentation/stores/admin.store';
 import { useAdminAccessControlSlice } from '@/presentation/stores/admin-access-control.slice';
+import { getJudgePermissionSearchText } from './judge-permission-catalog';
 
 type JudgePermissionModalState = {
   userId: string;
@@ -38,7 +39,7 @@ export const useAdminJudgePermissions = () => {
     }
 
     return activeJudgePermissionEntries.filter((entry) =>
-      `${entry.code} ${entry.granted ? 'granted' : 'revoked'}`
+      `${getJudgePermissionSearchText(entry.code)} ${entry.granted ? 'otorgado' : 'no otorgado'}`
         .toLowerCase()
         .includes(query),
     );

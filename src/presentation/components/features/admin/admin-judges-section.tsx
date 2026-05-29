@@ -59,7 +59,6 @@ export function AdminJudgesSection({
     judgeSearch,
     setJudgeSearch,
     filteredJudgeUsers,
-    judgeAssignmentCount,
     addJudgeModalOpen,
     openAddJudgeModal,
     closeAddJudgeModal,
@@ -142,7 +141,6 @@ export function AdminJudgesSection({
 
       <div className="space-y-3">
         {filteredJudgeUsers.map((judge) => {
-          const assignmentsCount = judgeAssignmentCount.get(judge.id) ?? 0;
           const isRemovingJudge = pendingAction === `user:judge:${judge.id}`;
           return (
             <article
@@ -154,9 +152,6 @@ export function AdminJudgesSection({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{judge.name}</p>
                   <p className="truncate text-xs text-[#8D8D8D]">{judge.email}</p>
-                  <p className="mt-1 text-[11px] text-[#9C9C9C]">
-                    {assignmentsCount} alcance(s) asignado(s)
-                  </p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:justify-end">
@@ -167,7 +162,7 @@ export function AdminJudgesSection({
                     onClick={() => void handleToggleJudgeRole(judge.id, true)}
                     className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white disabled:opacity-50"
                   >
-                    {isRemovingJudge ? 'Procesando...' : 'Quitar rol JUEZ'}
+                    {isRemovingJudge ? 'Procesando...' : 'Quitar Rol'}
                   </button>
                 ) : null}
                 {canReadJudgePermissions ? (

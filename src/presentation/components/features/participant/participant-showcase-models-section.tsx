@@ -101,6 +101,8 @@ export function ParticipantShowcaseModelsSection({
     page,
     total,
     totalPages,
+    manualTieBreakApplied,
+    manualTieBreakLabel,
     loadingInitial,
     loadingMore,
     error,
@@ -164,6 +166,11 @@ export function ParticipantShowcaseModelsSection({
           <span className="font-semibold text-[#8BA3FF]">{scaleLabel}</span>
         </p>
         <h2 className="mt-4 text-3xl font-bold text-white sm:text-4xl">Explorar Maquetas</h2>
+        {manualTieBreakApplied ? (
+          <p className="mt-2 inline-flex rounded-full border border-[#2D2D2D] bg-[#1A1A1A] px-3 py-1 text-xs text-[#CFCFCF]">
+            {manualTieBreakLabel ?? "Desempate definido por comite"}
+          </p>
+        ) : null}
 
         <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <label className="relative flex items-center">

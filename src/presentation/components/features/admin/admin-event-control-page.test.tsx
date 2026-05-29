@@ -100,6 +100,14 @@ describe("AdminEventControlPage", () => {
       selectedModelDetail: null,
       setSelectedModelDetail: vi.fn(),
       openModelDetail: vi.fn(),
+      selectedTieBreakContext: null,
+      selectTieBreakContext: vi.fn(),
+      podiumTieBreakState: null,
+      podiumTieBreakOrder: [],
+      loadingTieBreak: false,
+      moveTieBreakCandidate: vi.fn(),
+      savePodiumTieBreak: vi.fn(),
+      clearPodiumTieBreak: vi.fn(),
     });
   });
 
@@ -113,4 +121,3 @@ describe("AdminEventControlPage", () => {
     expect(screen.getByText("Sin actividad reciente para este evento.")).toBeTruthy();
   });
 });
-

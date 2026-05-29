@@ -59,7 +59,7 @@ function LeftPanel() {
                 <h2 className={`${outfit.className} text-[24px] font-semibold text-[#1E293B]`}>
                   Participa y unete
                 </h2>
-                <p className="text-sm text-[#64748B]">Accede al panel del eve</p>
+                <p className="text-sm text-[#64748B]">Accede al panel del evento</p>
               </div>
             </div>
 

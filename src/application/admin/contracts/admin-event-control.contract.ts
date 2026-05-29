@@ -112,6 +112,7 @@ export type ApiAdminEventControlModelRow = {
   eventCategoryId: string;
   finalCategoryId: string;
   categoryLabel: string;
+  scaleId?: string;
   scaleValue: string;
 };
 
@@ -175,4 +176,31 @@ export type ApiAdminEventControlModelDetail = {
       submittedAt: string | null;
     }>;
   };
+};
+
+export type ApiAdminPodiumTieBreakCandidate = {
+  modelId: string;
+  nombreModelo: string;
+  codigo: string;
+  participantName: string;
+  finalScore: number;
+  automaticRank: number;
+};
+
+export type ApiAdminPodiumTieBreakState = {
+  eventId: string;
+  finalCategoryId: string;
+  scaleId: string;
+  eventStatus: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
+  locked: boolean;
+  tieGroups: Array<{
+    baseRank: number;
+    modelIds: string[];
+  }>;
+  candidates: ApiAdminPodiumTieBreakCandidate[];
+  manualDecision: {
+    orderedModelIds: string[];
+    updatedAt: string;
+    updatedByUserId: string;
+  } | null;
 };

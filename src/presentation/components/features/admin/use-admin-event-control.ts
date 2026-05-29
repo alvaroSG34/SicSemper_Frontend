@@ -6,6 +6,7 @@ import type {
   AdminEventControlSummary,
   AdminEventModelDetail,
   AdminEventModelRow,
+  AdminPodiumTieBreakState,
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
   EventControlModelSortOption,
@@ -30,9 +31,11 @@ type ModelsFilterState = {
 export const useAdminEventControl = ({
   eventId,
   canManageUsers,
+  canManagePodiumTieBreak,
 }: {
   eventId: string;
   canManageUsers: boolean;
+  canManagePodiumTieBreak: boolean;
 }) => {
   const banParticipant = useAdminStore((state) => state.banParticipant);
   const unbanParticipant = useAdminStore((state) => state.unbanParticipant);
@@ -71,6 +74,15 @@ export const useAdminEventControl = ({
   const [selectedModelDetail, setSelectedModelDetail] = useState<AdminEventModelDetail | null>(
     null,
   );
+  const [selectedTieBreakContext, setSelectedTieBreakContext] = useState<{
+    finalCategoryId: string;
+    scaleId: string;
+  } | null>(null);
+  const [podiumTieBreakState, setPodiumTieBreakState] = useState<AdminPodiumTieBreakState | null>(
+    null,
+  );
+  const [podiumTieBreakOrder, setPodiumTieBreakOrder] = useState<string[]>([]);
+  const [loadingTieBreak, setLoadingTieBreak] = useState(false);
 
   const loadSummary = useCallback(async () => {
     const nextSummary = await adminService.getEventControlSummary(eventId);
@@ -187,6 +199,125 @@ export const useAdminEventControl = ({
     [eventId],
   );
 
+  const loadPodiumTieBreakState = useCallback(
+    async (context: { finalCategoryId: string; scaleId: string }) => {
+      setLoadingTieBreak(true);
+      setError(null);
+      try {
+        const state = await adminService.getEventPodiumTieBreakCandidates({
+          eventId,
+          finalCategoryId: context.finalCategoryId,
+          scaleId: context.scaleId,
+        });
+        setPodiumTieBreakState(state);
+        const defaultOrder =
+          state.manualDecision?.orderedModelIds.length
+            ? state.manualDecision.orderedModelIds
+            : state.candidates.map((entry) => entry.modelId);
+        setPodiumTieBreakOrder(defaultOrder);
+      } catch (nextError) {
+        setError(
+          nextError instanceof Error
+            ? nextError.message
+            : "No se pudo cargar el desempate de podio.",
+        );
+      } finally {
+        setLoadingTieBreak(false);
+      }
+    },
+    [eventId],
+  );
+
+  const selectTieBreakContext = useCallback(
+    async (context: { finalCategoryId: string; scaleId: string } | null) => {
+      setSelectedTieBreakContext(context);
+      if (!context) {
+        setPodiumTieBreakState(null);
+        setPodiumTieBreakOrder([]);
+        return;
+      }
+      await loadPodiumTieBreakState(context);
+    },
+    [loadPodiumTieBreakState],
+  );
+
+  const moveTieBreakCandidate = useCallback((modelId: string, direction: "up" | "down") => {
+    setPodiumTieBreakOrder((current) => {
+      const index = current.findIndex((entry) => entry === modelId);
+      if (index < 0) {
+        return current;
+      }
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      const [entry] = next.splice(index, 1);
+      next.splice(targetIndex, 0, entry);
+      return next;
+    });
+  }, []);
+
+  const savePodiumTieBreak = useCallback(async () => {
+    if (!canManagePodiumTieBreak || !selectedTieBreakContext) {
+      return;
+    }
+
+    setPendingAction("podium-tiebreak:save");
+    setError(null);
+    try {
+      const nextState = await adminService.setEventPodiumTieBreak({
+        eventId,
+        finalCategoryId: selectedTieBreakContext.finalCategoryId,
+        scaleId: selectedTieBreakContext.scaleId,
+        orderedModelIds: podiumTieBreakOrder,
+      });
+      setPodiumTieBreakState(nextState);
+      setPodiumTieBreakOrder(
+        nextState.manualDecision?.orderedModelIds ?? podiumTieBreakOrder,
+      );
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "No se pudo guardar el desempate manual.",
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  }, [
+    canManagePodiumTieBreak,
+    eventId,
+    podiumTieBreakOrder,
+    selectedTieBreakContext,
+  ]);
+
+  const clearPodiumTieBreak = useCallback(async () => {
+    if (!canManagePodiumTieBreak || !selectedTieBreakContext) {
+      return;
+    }
+
+    setPendingAction("podium-tiebreak:clear");
+    setError(null);
+    try {
+      const nextState = await adminService.clearEventPodiumTieBreak({
+        eventId,
+        finalCategoryId: selectedTieBreakContext.finalCategoryId,
+        scaleId: selectedTieBreakContext.scaleId,
+      });
+      setPodiumTieBreakState(nextState);
+      setPodiumTieBreakOrder(nextState.candidates.map((entry) => entry.modelId));
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "No se pudo restaurar el ranking automatico.",
+      );
+    } finally {
+      setPendingAction(null);
+    }
+  }, [canManagePodiumTieBreak, eventId, selectedTieBreakContext]);
+
   const runUserMutation = useCallback(
     async (actionKey: string, action: () => Promise<void>) => {
       if (!canManageUsers) {
@@ -282,6 +413,14 @@ export const useAdminEventControl = ({
     selectedModelDetail,
     setSelectedModelDetail,
     openModelDetail,
+    selectedTieBreakContext,
+    selectTieBreakContext,
+    podiumTieBreakState,
+    podiumTieBreakOrder,
+    loadingTieBreak,
+    moveTieBreakCandidate,
+    savePodiumTieBreak,
+    clearPodiumTieBreak,
     refreshAll,
   };
 };

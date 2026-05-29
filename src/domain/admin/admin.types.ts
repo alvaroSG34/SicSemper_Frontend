@@ -317,6 +317,7 @@ export type AdminEventModelRow = {
   eventCategoryId: Identifier;
   finalCategoryId: Identifier;
   categoryLabel: string;
+  scaleId?: Identifier;
   scaleValue: string;
 };
 
@@ -380,6 +381,40 @@ export type AdminEventModelDetail = {
       submittedAt: string | null;
     }>;
   };
+};
+
+export type AdminPodiumTieBreakCandidate = {
+  modelId: Identifier;
+  nombreModelo: string;
+  codigo: string;
+  participantName: string;
+  finalScore: number;
+  automaticRank: number;
+};
+
+export type AdminPodiumTieBreakState = {
+  eventId: Identifier;
+  finalCategoryId: Identifier;
+  scaleId: Identifier;
+  eventStatus: CatalogEventStatus;
+  locked: boolean;
+  tieGroups: Array<{
+    baseRank: number;
+    modelIds: Identifier[];
+  }>;
+  candidates: AdminPodiumTieBreakCandidate[];
+  manualDecision: {
+    orderedModelIds: Identifier[];
+    updatedAt: string;
+    updatedByUserId: Identifier;
+  } | null;
+};
+
+export type AdminPodiumTieBreakDecisionInput = {
+  eventId: Identifier;
+  finalCategoryId: Identifier;
+  scaleId: Identifier;
+  orderedModelIds: Identifier[];
 };
 
 export type ClubDeleteImpact = {

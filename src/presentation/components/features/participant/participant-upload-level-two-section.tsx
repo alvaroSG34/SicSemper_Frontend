@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
+import { useParticipantStore } from "@/presentation/stores";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -22,6 +23,9 @@ export function ParticipantUploadLevelTwoSection({
   level1Id,
   level1Name,
 }: ParticipantUploadLevelTwoSectionProps) {
+  const ensureSubcategoryBranches = useParticipantStore(
+    (state) => state.ensureSubcategoryBranches,
+  );
   const { subcategoriesByCategory, loading, error, retryEventContext } =
     useParticipantUploadEventContext(eventId, undefined, "upload", [level1Id]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,6 +44,26 @@ export function ParticipantUploadLevelTwoSection({
       item.name.toLowerCase().includes(normalizedSearch),
     );
   }, [level2Items, searchTerm]);
+
+  const level2BranchParentIds = useMemo(
+    () =>
+      level2Items
+        .map((item) => item.id.trim())
+        .filter((itemId) => itemId.length > 0),
+    [level2Items],
+  );
+
+  useEffect(() => {
+    if (level2BranchParentIds.length === 0) {
+      return;
+    }
+
+    void ensureSubcategoryBranches({
+      eventId,
+      parentCategoryIds: level2BranchParentIds,
+      purpose: "upload",
+    });
+  }, [ensureSubcategoryBranches, eventId, level2BranchParentIds]);
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
@@ -83,7 +107,12 @@ export function ParticipantUploadLevelTwoSection({
       {!loading && !error ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredItems.map((item) => {
-            const isLeaf = (subcategoriesByCategory[item.id] ?? []).length === 0;
+            const hasLoadedChildrenState = Object.prototype.hasOwnProperty.call(
+              subcategoriesByCategory,
+              item.id,
+            );
+            const children = subcategoriesByCategory[item.id] ?? [];
+            const isLeaf = hasLoadedChildrenState && children.length === 0;
             const href = isLeaf
               ? `/participante/subir/${eventId}/formulario/${level1Id}/${item.id}?l1=${encodeURIComponent(level1Name)}&final=${encodeURIComponent(item.name)}`
               : `/participante/subir/${eventId}/nivel-3/${level1Id}/${item.id}?l1=${encodeURIComponent(level1Name)}&l2=${encodeURIComponent(item.name)}`;
@@ -96,7 +125,9 @@ export function ParticipantUploadLevelTwoSection({
               >
                 <h3 className="text-lg font-semibold text-white">{item.name}</h3>
                 <p className="mt-2 text-sm text-[#9E9E9E]">
-                  {isLeaf
+                  {!hasLoadedChildrenState
+                    ? "Verificando especialidades..."
+                    : isLeaf
                     ? "Seleccion final disponible"
                     : "Contiene especialidades finales"}
                 </p>

@@ -18,10 +18,19 @@ const adminErrorMessages: Record<string, string> = {
     "La jerarquia de categorias no permite ciclos entre padre e hijo.",
   EVENT_CATEGORY_ALREADY_EXISTS: "Esa categoria ya esta vinculada al evento.",
   JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
+  JUDGE_ASSIGNMENT_NOT_FOUND: "La asignacion seleccionada ya no existe o fue eliminada.",
   JUDGE_SELF_REVIEW_SCOPE_CONFLICT:
     "No puedes asignar este alcance: el juez ya tiene maquetas propias dentro de esa categoria.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
+  USER_IS_NOT_JUDGE: "El usuario seleccionado no tiene rol de juez activo.",
+  EVENT_NOT_FOUND: "El evento seleccionado no existe o ya no esta disponible.",
+  EVENT_CATEGORY_NOT_FOUND: "La categoria del evento seleccionada no existe.",
+  EVENT_CATEGORY_EVENT_MISMATCH:
+    "La categoria seleccionada no pertenece al evento elegido.",
+  ROLE_NOT_FOUND: "No se encontro la configuracion de roles requerida en el sistema.",
   PERMISSION_NOT_FOUND: "El permiso solicitado no existe o ya no esta disponible.",
+  PERMISSION_NOT_ASSIGNABLE:
+    "Ese permiso no se puede otorgar manualmente a un juez.",
   USER_ALREADY_ADMIN: "El usuario ya tiene el rol ADMIN.",
   USER_IS_NOT_ADMIN: "El usuario no tiene rol ADMIN.",
   NOTIFICATION_NOT_FOUND: "La notificacion ya no esta disponible para este usuario.",
@@ -42,6 +51,14 @@ const adminErrorMessages: Record<string, string> = {
     "Solo se puede actualizar verificacion en cuentas de participante.",
   USER_NOT_FOUND: "No se encontro el usuario solicitado.",
   AUDIT_LOG_NOT_FOUND: "No se encontro el registro de bitacora solicitado.",
+  PODIUM_TIE_BREAK_QUERY_REQUIRED:
+    "Debes seleccionar categoria final y escala para continuar.",
+  PODIUM_TIE_BREAK_NOT_REQUIRED:
+    "No existe empate en podio para esta categoria y escala.",
+  PODIUM_TIE_BREAK_INVALID_ORDER:
+    "El orden manual enviado para desempate no es valido.",
+  EVENT_FINALIZED_LOCKED:
+    "El evento ya esta finalizado y no permite cambios en desempates.",
 };
 
 export const toErrorMessage = (error: unknown, fallback: string) => {

@@ -40,6 +40,8 @@ vi.mock("./use-participant-showcase-models", () => ({
     page: 1,
     total: showcaseHookState.items.length,
     totalPages: 1,
+    manualTieBreakApplied: false,
+    manualTieBreakLabel: null,
     loadingInitial: false,
     loadingMore: false,
     error: null,

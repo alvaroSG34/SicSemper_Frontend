@@ -79,6 +79,17 @@ export const createAdminAccessMatrix = (
   };
   const canReadJudgesSection =
     moduleAccess.judgeAssignments.read || moduleAccess.judgePermissions.read;
+  const canManageJudgesSection =
+    moduleAccess.users.create ||
+    moduleAccess.users.update ||
+    moduleAccess.users.delete ||
+    moduleAccess.judgeAssignments.create ||
+    moduleAccess.judgeAssignments.update ||
+    moduleAccess.judgeAssignments.delete ||
+    moduleAccess.judgePermissions.create ||
+    moduleAccess.judgePermissions.update ||
+    moduleAccess.judgePermissions.delete;
+  const canAccessJudgesSection = canReadJudgesSection || canManageJudgesSection;
 
   return {
     effectivePermissions: uniquePermissions,
@@ -86,7 +97,7 @@ export const createAdminAccessMatrix = (
       inicio: true,
       participantes: moduleAccess.users.read,
       eventos: moduleAccess.events.read,
-      jueces: canReadJudgesSection,
+      jueces: canAccessJudgesSection,
       clubes: moduleAccess.clubs.read,
       categorias: moduleAccess.categories.read,
       escalas: moduleAccess.categories.read,

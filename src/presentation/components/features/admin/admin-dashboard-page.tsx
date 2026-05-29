@@ -668,10 +668,7 @@ export function AdminDashboardPage({
             {!isAdminPermissionManagerVisible ? (
               <footer className="pb-6 text-xs text-[#777777]">
                 {loading ? "Actualizando panel..." : "Panel administrativo actualizado"}
-                <span className="ml-2 inline-flex items-center gap-1">
-                  <ArrowRight className="h-3 w-3" />
-                  Datos sincronizados con la API
-                </span>
+                
               </footer>
             ) : null}
           </div>

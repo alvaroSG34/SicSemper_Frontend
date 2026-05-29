@@ -4,6 +4,7 @@ import type {
   ApiAdminEventControlPage,
   ApiAdminEventControlParticipantDetail,
   ApiAdminEventControlParticipantRow,
+  ApiAdminPodiumTieBreakState,
   ApiAdminEventControlSummary,
 } from "@/application/admin/contracts/admin-event-control.contract";
 import type { AdminService } from "@/application/admin/admin.service.types";
@@ -29,6 +30,9 @@ export const adminEventControlService: Pick<
   | "getEventControlParticipantDetail"
   | "listEventControlModels"
   | "getEventControlModelDetail"
+  | "getEventPodiumTieBreakCandidates"
+  | "setEventPodiumTieBreak"
+  | "clearEventPodiumTieBreak"
 > = {
   async getEventControlSummary(eventId) {
     try {
@@ -119,5 +123,59 @@ export const adminEventControlService: Pick<
       );
     }
   },
-};
 
+  async getEventPodiumTieBreakCandidates(input) {
+    try {
+      const query = buildQueryString({
+        finalCategoryId: input.finalCategoryId,
+        scaleId: input.scaleId,
+      });
+      return await apiRequest<ApiAdminPodiumTieBreakState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak/candidates${query}`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."),
+      );
+    }
+  },
+
+  async setEventPodiumTieBreak(input) {
+    try {
+      return await apiRequest<ApiAdminPodiumTieBreakState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak`,
+        {
+          method: "PUT",
+          body: {
+            finalCategoryId: input.finalCategoryId,
+            scaleId: input.scaleId,
+            orderedModelIds: input.orderedModelIds,
+          },
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudo guardar el desempate manual del podio."),
+      );
+    }
+  },
+
+  async clearEventPodiumTieBreak(input) {
+    try {
+      const query = buildQueryString({
+        finalCategoryId: input.finalCategoryId,
+        scaleId: input.scaleId,
+      });
+      return await apiRequest<ApiAdminPodiumTieBreakState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak${query}`,
+        {
+          method: "DELETE",
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudo restaurar el ranking automatico del podio."),
+      );
+    }
+  },
+};

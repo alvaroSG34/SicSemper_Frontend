@@ -35,6 +35,17 @@ describe('admin-access-matrix', () => {
     expect(byPermissions.section.jueces).toBe(true);
   });
 
+  it('enables judges section when user can manage judges even without read permissions', () => {
+    const matrix = createAdminAccessMatrix(
+      ['ADMIN_JUDGE_ASSIGNMENTS_CREATE'],
+      false,
+    );
+
+    expect(matrix.section.jueces).toBe(true);
+    expect(matrix.canReadJudgesSection).toBe(false);
+    expect(matrix.module.judgeAssignments.create).toBe(true);
+  });
+
   it('grants full access for superadmin', () => {
     const matrix = createAdminAccessMatrix(
       [

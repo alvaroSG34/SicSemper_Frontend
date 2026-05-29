@@ -164,7 +164,7 @@ describe("JudgeReviewPage", () => {
       />,
     );
 
-    expect(screen.getByText("Calificacion enviada (solo lectura)")).toBeTruthy();
+    expect(screen.getByText("Calificacion enviada")).toBeTruthy();
     expect(screen.queryByText("Guardar calificacion")).toBeNull();
   });
 });
