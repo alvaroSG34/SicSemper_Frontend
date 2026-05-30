@@ -7,6 +7,7 @@ import type {
   AdminPermissionEntry,
   AssignJudgeScopePayload,
   CategoryDeleteImpact,
+  CatalogEvent,
   CatalogEventStatus,
   ClubDeleteImpact,
   CreateAdminPayload,
@@ -87,7 +88,7 @@ export type AdminStoreState = {
     },
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
-  ) => Promise<void>;
+  ) => Promise<CatalogEvent>;
   updateEvent: (payload: {
     id: string;
     organizerClubId: string;
@@ -113,7 +114,7 @@ export type AdminStoreState = {
     },
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
-  ) => Promise<void>;
+  ) => Promise<CatalogEvent>;
   getEventDeleteImpact: (eventId: string) => Promise<EventDeleteImpact>;
   createEventCategoryLink: (payload: { eventId: string; categoryId: string }) => Promise<EventCategoryOption>;
   removeEventCategoryLink: (eventCategoryId: string) => Promise<void>;

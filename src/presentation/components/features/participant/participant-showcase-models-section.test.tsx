@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { ParticipantShowcaseModelsSection } from "./participant-showcase-models-section";
 
+import type { ParticipantShowcaseModelItem } from "@/domain/participant/participant.types";
+
 const showcaseHookState = vi.hoisted(() => ({
   items: [
     {
@@ -27,7 +29,7 @@ const showcaseHookState = vi.hoisted(() => ({
       scoreRankGlobal: null,
       createdAt: "2026-05-02T00:00:00.000Z",
     },
-  ],
+  ] as ParticipantShowcaseModelItem[],
 }));
 
 vi.mock("./use-participant-showcase-models", () => ({
@@ -67,6 +69,7 @@ describe("ParticipantShowcaseModelsSection", () => {
     level2Id: null,
     finalCategoryName: "Biplano",
     scaleLabel: "1:32",
+    segmentType: "scale" as const,
   };
 
   beforeEach(() => {

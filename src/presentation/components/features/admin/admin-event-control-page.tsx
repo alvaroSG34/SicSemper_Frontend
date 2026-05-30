@@ -8,6 +8,7 @@ import { createAdminAccessMatrix } from "@/presentation/components/features/admi
 import { useAdminEventControl } from "@/presentation/components/features/admin/use-admin-event-control";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
+import { adminEventsService } from "@/application/admin/services/admin-events.service";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -121,6 +122,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     podiumTieBreakState,
     podiumTieBreakOrder,
     loadingTieBreak,
+    tieBreakOptions,
     moveTieBreakCandidate,
     savePodiumTieBreak,
     clearPodiumTieBreak,
@@ -130,58 +132,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     canManagePodiumTieBreak,
   });
 
-  const tieBreakContextOptions = useMemo(() => {
-    const seen = new Set<string>();
-    const options: Array<{ finalCategoryId: string; scaleId: string; label: string }> = [];
-    const pushOption = (input: {
-      finalCategoryId?: string;
-      scaleId?: string;
-      categoryLabel?: string;
-      scaleValue?: string;
-    }) => {
-      if (!input.finalCategoryId || !input.scaleId) {
-        return;
-      }
-      const key = `${input.finalCategoryId}:${input.scaleId}`;
-      if (seen.has(key)) {
-        return;
-      }
-      seen.add(key);
-      options.push({
-        finalCategoryId: input.finalCategoryId,
-        scaleId: input.scaleId,
-        label: `${input.categoryLabel ?? "Categoria"} · ${input.scaleValue ?? "Escala"}`,
-      });
-    };
 
-    models.forEach((row) => {
-      pushOption({
-        finalCategoryId: row.finalCategoryId,
-        scaleId: row.scaleId,
-        categoryLabel: row.categoryLabel,
-        scaleValue: row.scaleValue,
-      });
-    });
-
-    summary?.topSegmentsByScore.forEach((segment) => {
-      pushOption({
-        finalCategoryId: segment.finalCategoryId,
-        scaleId: segment.scaleId,
-        categoryLabel: segment.categoryLabel,
-        scaleValue: segment.scaleValue,
-      });
-    });
-    summary?.topSegmentsByVolume.forEach((segment) => {
-      pushOption({
-        finalCategoryId: segment.finalCategoryId,
-        scaleId: segment.scaleId,
-        categoryLabel: segment.categoryLabel,
-        scaleValue: segment.scaleValue,
-      });
-    });
-
-    return options;
-  }, [models, summary]);
 
   if (!canReadEventControl) {
     return (
@@ -638,7 +589,9 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                 <select
                   value={
                     selectedTieBreakContext
-                      ? `${selectedTieBreakContext.finalCategoryId}:${selectedTieBreakContext.scaleId}`
+                      ? selectedTieBreakContext.type === "group"
+                        ? `group:${selectedTieBreakContext.groupId}`
+                        : `scale:${selectedTieBreakContext.finalCategoryId}:${selectedTieBreakContext.scaleId}`
                       : ""
                   }
                   onChange={(event) => {
@@ -647,19 +600,34 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                       void selectTieBreakContext(null);
                       return;
                     }
-                    const [finalCategoryId, scaleId] = value.split(":");
-                    if (!finalCategoryId || !scaleId) {
+                    const [type, first, second] = value.split(":");
+                    if (type === "group" && first) {
+                      void selectTieBreakContext({ type: "group", groupId: first });
                       return;
                     }
-                    void selectTieBreakContext({ finalCategoryId, scaleId });
+                    if (type === "scale" && first && second) {
+                      void selectTieBreakContext({
+                        type: "scale",
+                        finalCategoryId: first,
+                        scaleId: second,
+                      });
+                    }
                   }}
                   className="h-10 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona categoria y escala</option>
-                  {tieBreakContextOptions.map((option) => (
+                  {tieBreakOptions.map((option) => (
                     <option
-                      key={`${option.finalCategoryId}:${option.scaleId}`}
-                      value={`${option.finalCategoryId}:${option.scaleId}`}
+                      key={
+                        option.type === "group"
+                          ? `group:${option.groupId}`
+                          : `scale:${option.finalCategoryId}:${option.scaleId}`
+                      }
+                      value={
+                        option.type === "group"
+                          ? `group:${option.groupId}`
+                          : `scale:${option.finalCategoryId}:${option.scaleId}`
+                      }
                     >
                       {option.label}
                     </option>
@@ -675,9 +643,9 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                   </button>
                 ) : null}
               </div>
-              {tieBreakContextOptions.length === 0 ? (
+              {tieBreakOptions.length === 0 ? (
                 <p className="mt-2 text-xs text-[#9C9C9C]">
-                  No hay categorias/escalas disponibles para desempate en este evento.
+                  No se han detectado empates en el Top 3 de ninguna categoría.
                 </p>
               ) : null}
 

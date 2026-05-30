@@ -11,13 +11,15 @@ const SEARCH_DEBOUNCE_MS = 350;
 type UseParticipantShowcaseModelsInput = {
   eventId: string;
   finalCategoryId: string;
-  scaleId: string;
+  scaleId?: string;
+  groupId?: string;
 };
 
 export const useParticipantShowcaseModels = ({
   eventId,
   finalCategoryId,
   scaleId,
+  groupId,
 }: UseParticipantShowcaseModelsInput) => {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -50,6 +52,7 @@ export const useParticipantShowcaseModels = ({
           eventId,
           finalCategoryId,
           scaleId,
+          groupId,
           page: targetPage,
           pageSize: PAGE_SIZE,
           search: debouncedSearch || undefined,
@@ -95,7 +98,7 @@ export const useParticipantShowcaseModels = ({
         }
       }
     },
-    [debouncedSearch, eventId, finalCategoryId, scaleId, sort],
+    [debouncedSearch, eventId, finalCategoryId, scaleId, groupId, sort],
   );
 
   useEffect(() => {

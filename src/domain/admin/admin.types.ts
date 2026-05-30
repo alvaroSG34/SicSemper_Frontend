@@ -57,6 +57,19 @@ export type EventCategoryScaleConfig = {
   scaleValues: string[];
 };
 
+export type EventCategoryScaleGroup = {
+  id: Identifier;
+  eventId: Identifier;
+  finalCategoryId: Identifier;
+  name: string;
+  scaleIds: Identifier[];
+};
+
+export type EventCategoryScaleGroupInput = {
+  name: string;
+  scaleIds: Identifier[];
+};
+
 export type JudgeAssignmentScope = {
   id: Identifier;
   judgeUserId: Identifier;
@@ -248,6 +261,19 @@ export type AdminEventControlSummary = {
   }>;
 };
 
+export type AdminTieBreakOption =
+  | {
+      type: "scale";
+      finalCategoryId: Identifier;
+      scaleId: Identifier;
+      label: string;
+    }
+  | {
+      type: "group";
+      groupId: Identifier;
+      label: string;
+    };
+
 export type AdminEventControlPage<TItem> = {
   items: TItem[];
   page: number;
@@ -410,10 +436,33 @@ export type AdminPodiumTieBreakState = {
   } | null;
 };
 
+export type AdminPodiumTieBreakGroupState = {
+  eventId: Identifier;
+  groupId: Identifier;
+  eventStatus: CatalogEventStatus;
+  locked: boolean;
+  tieGroups: Array<{
+    baseRank: number;
+    modelIds: Identifier[];
+  }>;
+  candidates: AdminPodiumTieBreakCandidate[];
+  manualDecision: {
+    orderedModelIds: Identifier[];
+    updatedAt: string;
+    updatedByUserId: Identifier;
+  } | null;
+};
+
 export type AdminPodiumTieBreakDecisionInput = {
   eventId: Identifier;
   finalCategoryId: Identifier;
   scaleId: Identifier;
+  orderedModelIds: Identifier[];
+};
+
+export type AdminPodiumTieBreakGroupDecisionInput = {
+  eventId: Identifier;
+  groupId: Identifier;
   orderedModelIds: Identifier[];
 };
 

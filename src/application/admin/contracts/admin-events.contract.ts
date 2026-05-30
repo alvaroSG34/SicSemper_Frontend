@@ -32,3 +32,21 @@ export type ApiAdminSyncEventCategoryScalesRequest = {
     scaleIds: string[];
   }>;
 };
+
+export type ApiAdminEventCategoryScaleGroupsResponse = {
+  eventId: string;
+  finalCategoryId: string;
+  groups: Array<{
+    id: string;
+    name: string;
+    scaleIds: string[];
+  }>;
+};
+
+export type ApiAdminReplaceEventCategoryScaleGroupsRequest = {
+  finalCategoryId: string;
+  groups: Array<{
+    name: string;
+    scaleIds: string[];
+  }>;
+};

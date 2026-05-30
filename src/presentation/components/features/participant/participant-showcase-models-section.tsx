@@ -18,6 +18,7 @@ type ParticipantShowcaseModelsSectionProps = {
   level2Id: string | null;
   finalCategoryName: string;
   scaleLabel: string;
+  segmentType: "scale" | "group";
 };
 
 const dateFormatter = new Intl.DateTimeFormat("es-BO", {
@@ -90,6 +91,7 @@ export function ParticipantShowcaseModelsSection({
   level2Id,
   finalCategoryName,
   scaleLabel,
+  segmentType,
 }: ParticipantShowcaseModelsSectionProps) {
   const user = useAuthStore((state) => state.user);
   const {
@@ -110,7 +112,8 @@ export function ParticipantShowcaseModelsSection({
   } = useParticipantShowcaseModels({
     eventId,
     finalCategoryId,
-    scaleId,
+    scaleId: segmentType === "scale" ? scaleId : undefined,
+    groupId: segmentType === "group" ? scaleId : undefined,
   });
 
   const backHref = useMemo(
@@ -143,9 +146,10 @@ export function ParticipantShowcaseModelsSection({
       query.set("l2id", level2Id);
     }
     query.set("scale", scaleLabel);
+    query.set("type", segmentType);
 
     return query.toString();
-  }, [finalCategoryName, level1Name, level2Id, level2Name, scaleLabel]);
+  }, [finalCategoryName, level1Name, level2Id, level2Name, scaleLabel, segmentType]);
 
   const hasMore = page < totalPages;
 

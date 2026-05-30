@@ -204,3 +204,20 @@ export type ApiAdminPodiumTieBreakState = {
     updatedByUserId: string;
   } | null;
 };
+
+export type ApiAdminPodiumTieBreakGroupState = {
+  eventId: string;
+  groupId: string;
+  eventStatus: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
+  locked: boolean;
+  tieGroups: Array<{
+    baseRank: number;
+    modelIds: string[];
+  }>;
+  candidates: ApiAdminPodiumTieBreakCandidate[];
+  manualDecision: {
+    orderedModelIds: string[];
+    updatedAt: string;
+    updatedByUserId: string;
+  } | null;
+};

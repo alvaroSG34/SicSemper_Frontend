@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { participantService } from "@/application/participant/participant.service";
-import type { ParticipantScale } from "@/domain/participant/participant.types";
+import type { ParticipantScale, ParticipantShowcaseScaleGroup } from "@/domain/participant/participant.types";
 
 type UseParticipantShowcaseScalesInput = {
   eventId: string;
@@ -12,6 +12,7 @@ export const useParticipantShowcaseScales = ({
   finalCategoryId,
 }: UseParticipantShowcaseScalesInput) => {
   const [scales, setScales] = useState<ParticipantScale[]>([]);
+  const [scaleGroups, setScaleGroups] = useState<ParticipantShowcaseScaleGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,21 +24,24 @@ export const useParticipantShowcaseScales = ({
       setError(null);
 
       try {
-        const response = await participantService.getScalesForEventCategory(
-          eventId,
-          finalCategoryId,
-        );
+        const [fetchedScales, fetchedGroups] = await Promise.all([
+          participantService.getScalesForEventCategory(eventId, finalCategoryId),
+          participantService.getScaleGroupsForEventCategory(eventId, finalCategoryId)
+        ]);
+
         if (!cancelled) {
-          setScales(response);
+          setScales(fetchedScales);
+          setScaleGroups(fetchedGroups);
         }
       } catch (requestError) {
         if (!cancelled) {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : "No se pudieron cargar las escalas.",
+              : "No se pudieron cargar las escalas y grupos.",
           );
           setScales([]);
+          setScaleGroups([]);
         }
       } finally {
         if (!cancelled) {
@@ -55,6 +59,7 @@ export const useParticipantShowcaseScales = ({
 
   return {
     scales,
+    scaleGroups,
     loading,
     error,
   };

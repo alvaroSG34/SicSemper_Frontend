@@ -13,6 +13,7 @@ type ParticipantShowcaseModelsPageProps = {
   level2Id: string | null;
   finalCategoryName: string;
   scaleLabel: string;
+  segmentType: "scale" | "group";
 };
 
 export function ParticipantShowcaseModelsPage({
@@ -25,6 +26,7 @@ export function ParticipantShowcaseModelsPage({
   level2Id,
   finalCategoryName,
   scaleLabel,
+  segmentType,
 }: ParticipantShowcaseModelsPageProps) {
   return (
     <ParticipantDashboardShell activeSection="eventos">
@@ -39,6 +41,7 @@ export function ParticipantShowcaseModelsPage({
           level2Id={level2Id}
           finalCategoryName={finalCategoryName}
           scaleLabel={scaleLabel}
+          segmentType={segmentType}
         />
       )}
     </ParticipantDashboardShell>

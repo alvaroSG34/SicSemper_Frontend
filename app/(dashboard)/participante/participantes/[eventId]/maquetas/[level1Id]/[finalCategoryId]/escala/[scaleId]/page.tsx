@@ -13,6 +13,7 @@ type ParticipanteShowcaseMaquetasPorEscalaPageProps = {
     l2id?: string | string[];
     final?: string | string[];
     scale?: string | string[];
+    type?: string | string[];
   }>;
 };
 
@@ -30,6 +31,8 @@ export default async function ParticipanteShowcaseMaquetasPorEscalaPage({
   const level2Id = firstValue(resolvedSearchParams.l2id) ?? null;
   const finalCategoryName = firstValue(resolvedSearchParams.final) ?? "Especialidad";
   const scaleLabel = firstValue(resolvedSearchParams.scale) ?? "Escala";
+  const typeParam = firstValue(resolvedSearchParams.type);
+  const segmentType = typeParam === "group" ? "group" : "scale";
 
   return (
     <ParticipantShowcaseModelsPage
@@ -42,6 +45,7 @@ export default async function ParticipanteShowcaseMaquetasPorEscalaPage({
       level2Id={level2Id}
       finalCategoryName={finalCategoryName}
       scaleLabel={scaleLabel}
+      segmentType={segmentType}
     />
   );
 }
