@@ -36,16 +36,18 @@ export const loadSnapshot = async (
   });
 };
 
-export const executeMutation = async (
+export const executeMutation = async <T>(
   set: AdminSetState,
-  mutation: () => Promise<void>,
-) => {
+  mutation: () => Promise<T>,
+): Promise<T | undefined> => {
   set({ loading: true, error: null });
 
   try {
-    await mutation();
+    const result = await mutation();
     await loadSnapshot(set);
+    return result;
   } catch (error) {
     set({ loading: false, error: getErrorMessage(error) });
   }
+  return undefined;
 };

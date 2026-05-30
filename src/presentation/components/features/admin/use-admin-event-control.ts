@@ -6,6 +6,7 @@ import type {
   AdminEventControlSummary,
   AdminEventModelDetail,
   AdminEventModelRow,
+  AdminPodiumTieBreakGroupState,
   AdminPodiumTieBreakState,
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
@@ -74,13 +75,14 @@ export const useAdminEventControl = ({
   const [selectedModelDetail, setSelectedModelDetail] = useState<AdminEventModelDetail | null>(
     null,
   );
-  const [selectedTieBreakContext, setSelectedTieBreakContext] = useState<{
-    finalCategoryId: string;
-    scaleId: string;
-  } | null>(null);
-  const [podiumTieBreakState, setPodiumTieBreakState] = useState<AdminPodiumTieBreakState | null>(
-    null,
-  );
+  const [selectedTieBreakContext, setSelectedTieBreakContext] = useState<
+    | { type: "scale"; finalCategoryId: string; scaleId: string }
+    | { type: "group"; groupId: string }
+    | null
+  >(null);
+  const [podiumTieBreakState, setPodiumTieBreakState] = useState<
+    AdminPodiumTieBreakState | AdminPodiumTieBreakGroupState | null
+  >(null);
   const [podiumTieBreakOrder, setPodiumTieBreakOrder] = useState<string[]>([]);
   const [loadingTieBreak, setLoadingTieBreak] = useState(false);
 
@@ -200,15 +202,21 @@ export const useAdminEventControl = ({
   );
 
   const loadPodiumTieBreakState = useCallback(
-    async (context: { finalCategoryId: string; scaleId: string }) => {
+    async (context: { type: "scale"; finalCategoryId: string; scaleId: string } | { type: "group"; groupId: string }) => {
       setLoadingTieBreak(true);
       setError(null);
       try {
-        const state = await adminEventControlService.getEventPodiumTieBreakCandidates({
-          eventId,
-          finalCategoryId: context.finalCategoryId,
-          scaleId: context.scaleId,
-        });
+        const state =
+          context.type === "group"
+            ? await adminEventControlService.getEventPodiumTieBreakGroupCandidates({
+                eventId,
+                groupId: context.groupId,
+              })
+            : await adminEventControlService.getEventPodiumTieBreakCandidates({
+                eventId,
+                finalCategoryId: context.finalCategoryId,
+                scaleId: context.scaleId,
+              });
         setPodiumTieBreakState(state);
         const defaultOrder =
           state.manualDecision?.orderedModelIds.length
@@ -229,7 +237,7 @@ export const useAdminEventControl = ({
   );
 
   const selectTieBreakContext = useCallback(
-    async (context: { finalCategoryId: string; scaleId: string } | null) => {
+    async (context: { type: "scale"; finalCategoryId: string; scaleId: string } | { type: "group"; groupId: string } | null) => {
       setSelectedTieBreakContext(context);
       if (!context) {
         setPodiumTieBreakState(null);
@@ -266,12 +274,19 @@ export const useAdminEventControl = ({
     setPendingAction("podium-tiebreak:save");
     setError(null);
     try {
-      const nextState = await adminEventControlService.setEventPodiumTieBreak({
-        eventId,
-        finalCategoryId: selectedTieBreakContext.finalCategoryId,
-        scaleId: selectedTieBreakContext.scaleId,
-        orderedModelIds: podiumTieBreakOrder,
-      });
+      const nextState =
+        selectedTieBreakContext.type === "group"
+          ? await adminEventControlService.setEventPodiumTieBreakGroup({
+              eventId,
+              groupId: selectedTieBreakContext.groupId,
+              orderedModelIds: podiumTieBreakOrder,
+            })
+          : await adminEventControlService.setEventPodiumTieBreak({
+              eventId,
+              finalCategoryId: selectedTieBreakContext.finalCategoryId,
+              scaleId: selectedTieBreakContext.scaleId,
+              orderedModelIds: podiumTieBreakOrder,
+            });
       setPodiumTieBreakState(nextState);
       setPodiumTieBreakOrder(
         nextState.manualDecision?.orderedModelIds ?? podiumTieBreakOrder,
@@ -300,11 +315,17 @@ export const useAdminEventControl = ({
     setPendingAction("podium-tiebreak:clear");
     setError(null);
     try {
-      const nextState = await adminEventControlService.clearEventPodiumTieBreak({
-        eventId,
-        finalCategoryId: selectedTieBreakContext.finalCategoryId,
-        scaleId: selectedTieBreakContext.scaleId,
-      });
+      const nextState =
+        selectedTieBreakContext.type === "group"
+          ? await adminEventControlService.clearEventPodiumTieBreakGroup({
+              eventId,
+              groupId: selectedTieBreakContext.groupId,
+            })
+          : await adminEventControlService.clearEventPodiumTieBreak({
+              eventId,
+              finalCategoryId: selectedTieBreakContext.finalCategoryId,
+              scaleId: selectedTieBreakContext.scaleId,
+            });
       setPodiumTieBreakState(nextState);
       setPodiumTieBreakOrder(nextState.candidates.map((entry) => entry.modelId));
     } catch (nextError) {

@@ -116,13 +116,19 @@ export const createAdminMutationsStoreSlice: StateCreator<
     });
   },
   createEventAndLinkCategories: async (payload, categoryIds, scalesByCategoryId) => {
-    await executeMutation(set, async () => {
-      await adminService.createEventAndLinkCategories(
+    const created = await executeMutation(set, async () =>
+      adminService.createEventAndLinkCategories(
         payload,
         categoryIds,
         scalesByCategoryId,
-      );
-    });
+      ),
+    );
+
+    if (!created) {
+      throw new Error("No se pudo crear el evento.");
+    }
+
+    return created;
   },
   updateEvent: async (payload) => {
     await executeMutation(set, async () => {
@@ -134,13 +140,19 @@ export const createAdminMutationsStoreSlice: StateCreator<
     categoryIds,
     scalesByCategoryId,
   ) => {
-    await executeMutation(set, async () => {
-      await adminService.updateEventAndLinkCategories(
+    const updated = await executeMutation(set, async () =>
+      adminService.updateEventAndLinkCategories(
         payload,
         categoryIds,
         scalesByCategoryId,
-      );
-    });
+      ),
+    );
+
+    if (!updated) {
+      throw new Error("No se pudo actualizar el evento.");
+    }
+
+    return updated;
   },
   getEventDeleteImpact: async (eventId) => {
     return adminService.getEventDeleteImpact(eventId);

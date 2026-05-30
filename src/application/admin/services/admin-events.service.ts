@@ -1,6 +1,8 @@
 import type {
   ApiAdminEvent,
   ApiAdminEventCategoryScalesResponse,
+  ApiAdminEventCategoryScaleGroupsResponse,
+  ApiAdminReplaceEventCategoryScaleGroupsRequest,
   ApiAdminSyncEventCategoryScalesRequest,
   ApiEventDeleteImpact,
 } from "@/application/admin/contracts/admin-events.contract";
@@ -35,6 +37,8 @@ export const adminEventsService: Pick<
   | "updateEventAndLinkCategories"
   | "listEventCategoryScales"
   | "syncEventCategoryScales"
+  | "listEventCategoryScaleGroups"
+  | "replaceEventCategoryScaleGroups"
   | "createEventCategoryLink"
   | "removeEventCategoryLink"
   | "getEventDeleteImpact"
@@ -221,6 +225,50 @@ export const adminEventsService: Pick<
         toErrorMessage(
           error,
           "No se pudieron guardar las escalas por categoria del evento.",
+        ),
+      );
+    }
+  },
+  async listEventCategoryScaleGroups(eventId, finalCategoryId) {
+    try {
+      const query = new URLSearchParams({ finalCategoryId }).toString();
+      const response = await apiRequest<ApiAdminEventCategoryScaleGroupsResponse>(
+        `/admin/events/${eventId}/category-scale-groups?${query}`,
+      );
+      return {
+        ...response,
+        groups: response.groups.map(g => ({ ...g, eventId: response.eventId, finalCategoryId: response.finalCategoryId }))
+      };
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron cargar los grupos MultiEscala del evento.",
+        ),
+      );
+    }
+  },
+  async replaceEventCategoryScaleGroups(eventId, finalCategoryId, groups) {
+    try {
+      const response = await apiRequest<ApiAdminEventCategoryScaleGroupsResponse>(
+        `/admin/events/${eventId}/category-scale-groups`,
+        {
+          method: "PUT",
+          body: {
+            finalCategoryId,
+            groups,
+          } satisfies ApiAdminReplaceEventCategoryScaleGroupsRequest,
+        },
+      );
+      return {
+        ...response,
+        groups: response.groups.map(g => ({ ...g, eventId: response.eventId, finalCategoryId: response.finalCategoryId }))
+      };
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron guardar los grupos MultiEscala del evento.",
         ),
       );
     }

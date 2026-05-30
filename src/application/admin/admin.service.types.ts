@@ -9,6 +9,8 @@ import type {
   AdminEventModelDetail,
   AdminEventModelRow,
   AdminPodiumTieBreakDecisionInput,
+  AdminPodiumTieBreakGroupDecisionInput,
+  AdminPodiumTieBreakGroupState,
   AdminPodiumTieBreakState,
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
@@ -22,6 +24,8 @@ import type {
   CatalogCategory,
   CatalogEvent,
   EventCategoryScaleConfig,
+  EventCategoryScaleGroup,
+  EventCategoryScaleGroupInput,
   EventCategoryOption,
   CatalogSubcategory,
   ClubDeleteImpact,
@@ -98,6 +102,15 @@ export interface AdminService {
     eventId: string,
     items: Array<{ eventCategoryId: string; scaleIds: string[] }>,
   ): Promise<void>;
+  listEventCategoryScaleGroups(
+    eventId: string,
+    finalCategoryId: string,
+  ): Promise<{ eventId: string; finalCategoryId: string; groups: EventCategoryScaleGroup[] }>;
+  replaceEventCategoryScaleGroups(
+    eventId: string,
+    finalCategoryId: string,
+    groups: EventCategoryScaleGroupInput[],
+  ): Promise<{ eventId: string; finalCategoryId: string; groups: EventCategoryScaleGroup[] }>;
   createEventCategoryLink(payload: { eventId: string; categoryId: string }): Promise<EventCategoryOption>;
   removeEventCategoryLink(eventCategoryId: string): Promise<void>;
   getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
@@ -133,12 +146,23 @@ export interface AdminService {
     finalCategoryId: string;
     scaleId: string;
   }): Promise<AdminPodiumTieBreakState>;
+  getEventPodiumTieBreakGroupCandidates(input: {
+    eventId: string;
+    groupId: string;
+  }): Promise<AdminPodiumTieBreakGroupState>;
   setEventPodiumTieBreak(input: AdminPodiumTieBreakDecisionInput): Promise<AdminPodiumTieBreakState>;
+  setEventPodiumTieBreakGroup(
+    input: AdminPodiumTieBreakGroupDecisionInput,
+  ): Promise<AdminPodiumTieBreakGroupState>;
   clearEventPodiumTieBreak(input: {
     eventId: string;
     finalCategoryId: string;
     scaleId: string;
   }): Promise<AdminPodiumTieBreakState>;
+  clearEventPodiumTieBreakGroup(input: {
+    eventId: string;
+    groupId: string;
+  }): Promise<AdminPodiumTieBreakGroupState>;
   createCategory(payload: CreateCategoryPayload): Promise<CatalogCategory>;
   updateCategory(payload: UpdateCategoryPayload): Promise<CatalogCategory>;
   getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;

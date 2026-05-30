@@ -4,6 +4,7 @@ import type {
   ApiAdminEventControlPage,
   ApiAdminEventControlParticipantDetail,
   ApiAdminEventControlParticipantRow,
+  ApiAdminPodiumTieBreakGroupState,
   ApiAdminPodiumTieBreakState,
   ApiAdminEventControlSummary,
 } from "@/application/admin/contracts/admin-event-control.contract";
@@ -31,8 +32,11 @@ export const adminEventControlService: Pick<
   | "listEventControlModels"
   | "getEventControlModelDetail"
   | "getEventPodiumTieBreakCandidates"
+  | "getEventPodiumTieBreakGroupCandidates"
   | "setEventPodiumTieBreak"
+  | "setEventPodiumTieBreakGroup"
   | "clearEventPodiumTieBreak"
+  | "clearEventPodiumTieBreakGroup"
 > = {
   async getEventControlSummary(eventId) {
     try {
@@ -139,6 +143,20 @@ export const adminEventControlService: Pick<
       );
     }
   },
+  async getEventPodiumTieBreakGroupCandidates(input) {
+    try {
+      const query = buildQueryString({
+        groupId: input.groupId,
+      });
+      return await apiRequest<ApiAdminPodiumTieBreakGroupState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak/groups/candidates${query}`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."),
+      );
+    }
+  },
 
   async setEventPodiumTieBreak(input) {
     try {
@@ -159,6 +177,24 @@ export const adminEventControlService: Pick<
       );
     }
   },
+  async setEventPodiumTieBreakGroup(input) {
+    try {
+      return await apiRequest<ApiAdminPodiumTieBreakGroupState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak/groups`,
+        {
+          method: "PUT",
+          body: {
+            groupId: input.groupId,
+            orderedModelIds: input.orderedModelIds,
+          },
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudo guardar el desempate manual del podio."),
+      );
+    }
+  },
 
   async clearEventPodiumTieBreak(input) {
     try {
@@ -168,6 +204,23 @@ export const adminEventControlService: Pick<
       });
       return await apiRequest<ApiAdminPodiumTieBreakState>(
         `/admin/events/${input.eventId}/control/podium-tiebreak${query}`,
+        {
+          method: "DELETE",
+        },
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudo restaurar el ranking automatico del podio."),
+      );
+    }
+  },
+  async clearEventPodiumTieBreakGroup(input) {
+    try {
+      const query = buildQueryString({
+        groupId: input.groupId,
+      });
+      return await apiRequest<ApiAdminPodiumTieBreakGroupState>(
+        `/admin/events/${input.eventId}/control/podium-tiebreak/groups${query}`,
         {
           method: "DELETE",
         },

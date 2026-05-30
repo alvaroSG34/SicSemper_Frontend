@@ -80,6 +80,12 @@ type Step3ScaleSpecialtyItem = {
   isConfigured: boolean;
 };
 
+type EventScaleGroupDraft = {
+  id?: string;
+  name: string;
+  scaleIds: string[];
+};
+
 const emptyEventForm: EventFormState = {
   organizerClubId: '',
   name: '',
@@ -134,6 +140,10 @@ export const useAdminEvents = ({
   const [eventForm, setEventForm] = useState<EventFormState>(emptyEventForm);
   const [eventModalScaleIdsByCategoryId, setEventModalScaleIdsByCategoryId] =
     useState<Record<string, string[]>>({});
+  const [eventModalScaleGroupsByCategoryId, setEventModalScaleGroupsByCategoryId] =
+    useState<Record<string, EventScaleGroupDraft[]>>({});
+  const [eventModalScaleGroupsLoading, setEventModalScaleGroupsLoading] =
+    useState(false);
   const [eventModalScaleCategorySearch, setEventModalScaleCategorySearch] = useState('');
   const [eventModalScaleSubcategorySearch, setEventModalScaleSubcategorySearch] = useState('');
   const [eventModalScaleSpecialtySearch, setEventModalScaleSpecialtySearch] = useState('');
@@ -724,12 +734,93 @@ export const useAdminEvents = ({
     });
   }, [eventModalSelectedLeafIds]);
 
+  useEffect(() => {
+    setEventModalScaleGroupsByCategoryId((prev) => {
+      const next: Record<string, EventScaleGroupDraft[]> = {};
+      for (const categoryId of eventModalSelectedLeafIds) {
+        next[categoryId] = prev[categoryId] ?? [];
+      }
+      return next;
+    });
+  }, [eventModalSelectedLeafIds]);
+
   const updateCategoryScaleIds = useCallback(
     (categoryId: string, scaleIds: string[]) => {
       setEventModalScaleIdsByCategoryId((prev) => ({
         ...prev,
         [categoryId]: Array.from(new Set(scaleIds)),
       }));
+    },
+    [],
+  );
+
+  const addScaleGroup = useCallback((categoryId: string) => {
+    setEventModalScaleGroupsByCategoryId((prev) => {
+      const current = prev[categoryId] ?? [];
+      return {
+        ...prev,
+        [categoryId]: [...current, { name: '', scaleIds: [] }],
+      };
+    });
+  }, []);
+
+  const removeScaleGroup = useCallback((categoryId: string, index: number) => {
+    setEventModalScaleGroupsByCategoryId((prev) => {
+      const current = prev[categoryId] ?? [];
+      return {
+        ...prev,
+        [categoryId]: current.filter((_, groupIndex) => groupIndex !== index),
+      };
+    });
+  }, []);
+
+  const updateScaleGroupName = useCallback(
+    (categoryId: string, index: number, name: string) => {
+      setEventModalScaleGroupsByCategoryId((prev) => {
+        const current = prev[categoryId] ?? [];
+        const next = current.map((group, groupIndex) =>
+          groupIndex === index ? { ...group, name } : group,
+        );
+        return { ...prev, [categoryId]: next };
+      });
+    },
+    [],
+  );
+
+  const toggleScaleGroupScaleId = useCallback(
+    (categoryId: string, index: number, scaleId: string) => {
+      setEventModalScaleGroupsByCategoryId((prev) => {
+        const current = prev[categoryId] ?? [];
+        
+        // We find the target group to see if it already has the scale
+        const targetGroup = current[index];
+        if (!targetGroup) return prev;
+        
+        const isAdding = !targetGroup.scaleIds.includes(scaleId);
+
+        const next = current.map((group, groupIndex) => {
+          if (groupIndex === index) {
+            const nextScaleIds = isAdding
+              ? [...group.scaleIds, scaleId]
+              : group.scaleIds.filter((entry) => entry !== scaleId);
+            return {
+              ...group,
+              scaleIds: Array.from(new Set(nextScaleIds)),
+            };
+          }
+
+          // If we are adding to the target group, remove it from all other groups
+          if (isAdding && group.scaleIds.includes(scaleId)) {
+            return {
+              ...group,
+              scaleIds: group.scaleIds.filter((entry) => entry !== scaleId),
+            };
+          }
+
+          return group;
+        });
+        return { ...prev, [categoryId]: next };
+      });
     },
     [],
   );
@@ -746,6 +837,8 @@ export const useAdminEvents = ({
     setActiveEventTab('datos');
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleGroupsByCategoryId({});
+    setEventModalScaleGroupsLoading(false);
     setEventModalScaleCategorySearch('');
     setEventModalScaleSubcategorySearch('');
     setEventModalScaleSpecialtySearch('');
@@ -793,6 +886,7 @@ export const useAdminEvents = ({
       });
     setEventModalSelectedLeafIds(normalizedLeafIds);
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleCategorySearch('');
     setEventModalScaleSubcategorySearch('');
     setEventModalScaleSpecialtySearch('');
@@ -828,6 +922,43 @@ export const useAdminEvents = ({
       .finally(() => {
         setEventModalScaleConfigLoading(false);
       });
+
+    setEventModalScaleGroupsLoading(true);
+    void Promise.all(
+      [...normalizedLeafIds].map((categoryId) =>
+        adminEventsService.listEventCategoryScaleGroups(eventItem.id, categoryId),
+      ),
+    )
+      .then((responses) => {
+        const groupsByCategoryId = responses.reduce<Record<string, EventScaleGroupDraft[]>>(
+          (accumulator, response) => {
+            accumulator[response.finalCategoryId] = response.groups.map((group) => ({
+              id: group.id,
+              name: group.name,
+              scaleIds: group.scaleIds,
+            }));
+            return accumulator;
+          },
+          {},
+        );
+        setEventModalScaleGroupsByCategoryId((prev) => {
+          const next: Record<string, EventScaleGroupDraft[]> = {};
+          for (const categoryId of normalizedLeafIds) {
+            next[categoryId] = groupsByCategoryId[categoryId] ?? prev[categoryId] ?? [];
+          }
+          return next;
+        });
+      })
+      .catch((error: unknown) => {
+        setEventModalError(
+          error instanceof Error
+            ? error.message
+            : 'No se pudo cargar la configuracion de grupos MultiEscala del evento.',
+        );
+      })
+      .finally(() => {
+        setEventModalScaleGroupsLoading(false);
+      });
   };
 
   const closeEventModal = () => {
@@ -844,6 +975,7 @@ export const useAdminEvents = ({
     setActiveEventTab('datos');
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleCategorySearch('');
     setEventModalScaleSubcategorySearch('');
     setEventModalScaleSpecialtySearch('');
@@ -852,6 +984,7 @@ export const useAdminEvents = ({
     setEventModalSelectedScaleLeafId(null);
     setEventModalScaleDraftIds([]);
     setEventModalScaleConfigLoading(false);
+    setEventModalScaleGroupsLoading(false);
     setEventModalError(null);
     if (eventImageFileInputRef.current) {
       eventImageFileInputRef.current.value = '';
@@ -968,14 +1101,38 @@ export const useAdminEvents = ({
       {},
     );
 
+    const groupsByCategoryId = allCategoryIds.reduce<Record<string, EventScaleGroupDraft[]>>(
+      (accumulator, categoryId) => {
+        accumulator[categoryId] = eventModalScaleGroupsByCategoryId[categoryId] ?? [];
+        return accumulator;
+      },
+      {},
+    );
+
+    for (const categoryId of allCategoryIds) {
+      const allowedScaleIds = new Set(eventModalScaleIdsByCategoryId[categoryId] ?? []);
+      const groups = groupsByCategoryId[categoryId] ?? [];
+      for (const group of groups) {
+        const trimmedName = group.name.trim();
+        const validScaleIds = group.scaleIds.filter((scaleId) => allowedScaleIds.has(scaleId));
+        if (!trimmedName || validScaleIds.length === 0) {
+          setEventModalError(
+            'Cada grupo MultiEscala debe tener nombre y al menos una escala valida.',
+          );
+          return;
+        }
+      }
+    }
+
     const actionKey = eventModalMode === 'create' ? 'event:create' : `event:update:${eventModalTargetId}`;
 
     const success = await executeAction(
       actionKey,
       eventModalMode === 'create' ? 'Evento creado correctamente.' : 'Evento actualizado correctamente.',
       async () => {
+        let eventId: string | null = eventModalTargetId ?? null;
         if (eventModalMode === 'create') {
-          await createEventAndLinkCategories(
+          const createdEvent = await createEventAndLinkCategories(
             {
               organizerClubId: eventForm.organizerClubId,
               name: eventForm.name,
@@ -989,8 +1146,9 @@ export const useAdminEvents = ({
             allCategoryIds,
             scalesByCategoryId,
           );
+          eventId = createdEvent.id;
         } else if (eventModalTargetId) {
-          await updateEventAndLinkCategories(
+          const updatedEvent = await updateEventAndLinkCategories(
             {
               id: eventModalTargetId,
               organizerClubId: eventForm.organizerClubId,
@@ -1004,6 +1162,24 @@ export const useAdminEvents = ({
             },
             allCategoryIds,
             scalesByCategoryId,
+          );
+          eventId = updatedEvent.id;
+        }
+
+        if (eventId) {
+          await Promise.all(
+            allCategoryIds.map((categoryId) => {
+              const allowedScaleIds = new Set(eventModalScaleIdsByCategoryId[categoryId] ?? []);
+              const groups = (groupsByCategoryId[categoryId] ?? []).map((group) => ({
+                name: group.name.trim(),
+                scaleIds: group.scaleIds.filter((scaleId) => allowedScaleIds.has(scaleId)),
+              }));
+              return adminEventsService.replaceEventCategoryScaleGroups(
+                eventId,
+                categoryId,
+                groups,
+              );
+            }),
           );
         }
 
@@ -1105,6 +1281,8 @@ export const useAdminEvents = ({
     eventModalError,
     eventModalScaleConfigLoading,
     eventModalScaleIdsByCategoryId,
+    eventModalScaleGroupsByCategoryId,
+    eventModalScaleGroupsLoading,
     availableScales: scales,
     updateCategoryScaleIds,
     eventModalScaleCategorySearch,
@@ -1129,6 +1307,10 @@ export const useAdminEvents = ({
     clearStep3ScaleDraft,
     toggleStep3ScaleDraftId,
     saveStep3ScaleDraft,
+    addScaleGroup,
+    removeScaleGroup,
+    updateScaleGroupName,
+    toggleScaleGroupScaleId,
     eventForm,
     setEventForm,
     eventImageFileInputRef,

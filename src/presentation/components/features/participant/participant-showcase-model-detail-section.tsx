@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { CalendarDays, FileText } from "lucide-react";
 import type { ParticipantShowcaseDetailMediaItem } from "@/domain/participant/participant.types";
+import { useSearchParams } from "next/navigation";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useParticipantShowcaseModelDetail } from "./use-participant-showcase-model-detail";
 
@@ -70,12 +71,16 @@ export function ParticipantShowcaseModelDetailSection({
   finalCategoryName,
   scaleLabel,
 }: ParticipantShowcaseModelDetailSectionProps) {
+  const searchParams = useSearchParams();
+  const segmentType = searchParams.get("type");
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+
   const { detail, loading, error } = useParticipantShowcaseModelDetail({
     eventId,
     finalCategoryId,
     modelId,
-    scaleId,
+    scaleId: segmentType === "group" ? undefined : scaleId,
+    groupId: segmentType === "group" ? scaleId : undefined,
   });
 
   const backHref = useMemo(() => {

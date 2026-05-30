@@ -155,6 +155,14 @@ export type ParticipantScale = {
   updatedAt: string;
 };
 
+export type ParticipantShowcaseScaleGroup = {
+  id: string;
+  eventId: string;
+  finalCategoryId: string;
+  name: string;
+  scaleIds: string[];
+};
+
 export type ParticipantEnrollmentStatus = "ACTIVA" | "PENDIENTE" | "CANCELADA";
 
 export type ParticipantEnrollment = {

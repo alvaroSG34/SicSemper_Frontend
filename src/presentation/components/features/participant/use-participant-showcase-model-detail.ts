@@ -7,6 +7,7 @@ type UseParticipantShowcaseModelDetailInput = {
   finalCategoryId: string;
   modelId: string;
   scaleId?: string;
+  groupId?: string;
 };
 
 export const useParticipantShowcaseModelDetail = ({
@@ -14,6 +15,7 @@ export const useParticipantShowcaseModelDetail = ({
   finalCategoryId,
   modelId,
   scaleId,
+  groupId,
 }: UseParticipantShowcaseModelDetailInput) => {
   const [detail, setDetail] = useState<ParticipantShowcaseModelDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,7 @@ export const useParticipantShowcaseModelDetail = ({
           finalCategoryId,
           modelId,
           scaleId,
+          groupId,
         });
 
         if (cancelled) {
@@ -53,6 +56,7 @@ export const useParticipantShowcaseModelDetail = ({
           setLoading(false);
         }
       }
+
     };
 
     void run();
@@ -60,7 +64,7 @@ export const useParticipantShowcaseModelDetail = ({
     return () => {
       cancelled = true;
     };
-  }, [eventId, finalCategoryId, modelId, scaleId]);
+  }, [eventId, finalCategoryId, modelId, scaleId, groupId]);
 
   return { detail, loading, error };
 };

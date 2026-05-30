@@ -13,6 +13,7 @@ import type {
   ParticipantRegisteredEvents,
   ParticipantShowcaseTreeResponse,
   ParticipantScale,
+  ParticipantShowcaseScaleGroup,
   ParticipantShowcaseSortOption,
   ParticipantSubcategoryOption,
   UpdateParticipantProfilePayload,
@@ -91,6 +92,10 @@ export interface ParticipantService {
     eventId: string,
     finalCategoryId: string,
   ): Promise<ParticipantScale[]>;
+  getScaleGroupsForEventCategory(
+    eventId: string,
+    finalCategoryId: string,
+  ): Promise<ParticipantShowcaseScaleGroup[]>;
   getEnrollmentContext(
     userId: string,
     eventId: string,
@@ -121,7 +126,8 @@ export interface ParticipantService {
   getCategoryShowcase(input: {
     eventId: string;
     finalCategoryId: string;
-    scaleId: string;
+    scaleId?: string;
+    groupId?: string;
     page?: number;
     pageSize?: number;
     search?: string;
@@ -132,6 +138,7 @@ export interface ParticipantService {
     finalCategoryId: string;
     modelId: string;
     scaleId?: string;
+    groupId?: string;
   }): Promise<ParticipantShowcaseModelDetail>;
 }
 
@@ -334,6 +341,20 @@ export const participantService: ParticipantService = {
       );
     }
   },
+  async getScaleGroupsForEventCategory(eventId, finalCategoryId) {
+    try {
+      return await apiRequest<ParticipantShowcaseScaleGroup[]>(
+        `/participant/events/${encodeURIComponent(eventId)}/categories/${encodeURIComponent(finalCategoryId)}/scale-groups`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(
+          error,
+          "No se pudieron cargar los grupos de escalas para esta categoría.",
+        ),
+      );
+    }
+  },
   async getEnrollmentContext(_userId, eventId, categoryId, subcategoryId) {
     try {
       void _userId;
@@ -474,7 +495,12 @@ export const participantService: ParticipantService = {
       if (input.sort) {
         searchParams.set("sort", input.sort);
       }
-      searchParams.set("scaleId", input.scaleId);
+      if (input.scaleId) {
+        searchParams.set("scaleId", input.scaleId);
+      }
+      if (input.groupId) {
+        searchParams.set("groupId", input.groupId);
+      }
 
       const query = searchParams.toString();
       const path = query
@@ -491,6 +517,9 @@ export const participantService: ParticipantService = {
       const searchParams = new URLSearchParams();
       if (input.scaleId) {
         searchParams.set("scaleId", input.scaleId);
+      }
+      if (input.groupId) {
+        searchParams.set("groupId", input.groupId);
       }
       const query = searchParams.toString();
       const path = query

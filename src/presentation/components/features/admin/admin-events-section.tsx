@@ -1,7 +1,7 @@
 import { ImageWithSkeleton } from '@/presentation/components/ui';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, Check, ChevronRight, Clock3, Layers, Search } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, Clock3, Layers, Plus, Search, Trash2 } from 'lucide-react';
 import type {
   AdminClub,
   CatalogCategory,
@@ -110,7 +110,10 @@ export function AdminEventsSection({
     getCategoryNodeSelectionState,
     eventModalError,
     eventModalScaleConfigLoading,
+    eventModalScaleIdsByCategoryId,
     availableScales,
+    eventModalScaleGroupsByCategoryId,
+    eventModalScaleGroupsLoading,
     eventModalScaleCategorySearch,
     setEventModalScaleCategorySearch,
     eventModalScaleSubcategorySearch,
@@ -132,6 +135,10 @@ export function AdminEventsSection({
     markAllStep3ScaleDraft,
     clearStep3ScaleDraft,
     toggleStep3ScaleDraftId,
+    addScaleGroup,
+    removeScaleGroup,
+    updateScaleGroupName,
+    toggleScaleGroupScaleId,
     eventForm,
     setEventForm,
     eventImageFileInputRef,
@@ -1102,6 +1109,147 @@ export function AdminEventsSection({
                         </p>
                       </div>
                     </section>
+                  </div>
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-xl border border-[#2D2D2D] bg-[#0D0D0F]">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1E1E23] px-4 py-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[rgba(91,104,241,0.24)] text-[#99A4FF]">
+                        <Layers className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-semibold text-white">Grupos MultiEscala</p>
+                        <p className="mt-0.5 truncate text-xs text-[#8E8E95]">
+                          Define grupos de escalas que compiten juntas por especialidad.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        eventModalSelectedScaleLeafId
+                          ? addScaleGroup(eventModalSelectedScaleLeafId)
+                          : null
+                      }
+                      disabled={!eventModalSelectedScaleLeafId}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D5D5DB] disabled:opacity-40"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Agregar grupo
+                    </button>
+                  </div>
+
+                  <div className="px-4 py-4">
+                    {eventModalScaleGroupsLoading ? (
+                      <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                        Cargando grupos MultiEscala...
+                      </p>
+                    ) : null}
+
+                    {!eventModalScaleGroupsLoading && !eventModalSelectedScaleLeafId ? (
+                      <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                        Selecciona una especialidad para configurar grupos.
+                      </p>
+                    ) : null}
+
+                    {!eventModalScaleGroupsLoading && eventModalSelectedScaleLeafId ? (
+                      (() => {
+                        const groups = eventModalScaleGroupsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
+                        const allowedScaleIds =
+                          eventModalScaleIdsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
+                        const allowedScales = availableScales.filter((scale) =>
+                          allowedScaleIds.includes(scale.id),
+                        );
+
+                        if (allowedScales.length === 0) {
+                          return (
+                            <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                              Primero activa escalas permitidas para esta especialidad.
+                            </p>
+                          );
+                        }
+
+                        if (groups.length === 0) {
+                          return (
+                            <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                              Aun no hay grupos configurados para esta especialidad.
+                            </p>
+                          );
+                        }
+
+                        return (
+                          <div className="space-y-3">
+                            {groups.map((group, index) => (
+                              <div
+                                key={`scale-group-${eventModalSelectedScaleLeafId}-${index}`}
+                                className="rounded-lg border border-[#24242A] bg-[#111116] p-3"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                  <input
+                                    value={group.name}
+                                    onChange={(event) =>
+                                      updateScaleGroupName(
+                                        eventModalSelectedScaleLeafId,
+                                        index,
+                                        event.target.value,
+                                      )
+                                    }
+                                    placeholder="Nombre del grupo"
+                                    className="h-9 w-full min-w-[220px] flex-1 rounded-md border border-[#2D2D2D] bg-[#121216] px-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      removeScaleGroup(eventModalSelectedScaleLeafId, index)
+                                    }
+                                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3B1D1D] bg-[rgba(76,21,21,0.35)] px-3 text-xs font-semibold text-[#FCA5A5]"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    Quitar
+                                  </button>
+                                </div>
+
+                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                  {allowedScales.map((scale) => {
+                                    const checked = group.scaleIds.includes(scale.id);
+                                    return (
+                                      <button
+                                        key={`group-scale-${eventModalSelectedScaleLeafId}-${index}-${scale.id}`}
+                                        type="button"
+                                        onClick={() =>
+                                          toggleScaleGroupScaleId(
+                                            eventModalSelectedScaleLeafId,
+                                            index,
+                                            scale.id,
+                                          )
+                                        }
+                                        className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs font-semibold ${
+                                          checked
+                                            ? 'border-[#166534] bg-[rgba(22,101,52,0.25)] text-[#4ADE80]'
+                                            : 'border-[#2B2B31] bg-[#141419] text-[#E5E5E8]'
+                                        }`}
+                                      >
+                                        <span>{scale.value}</span>
+                                        <span
+                                          className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
+                                            checked
+                                              ? 'bg-[rgba(34,197,94,0.18)] text-[#4ADE80]'
+                                              : 'bg-[#1E1E23] text-[#7D7D86]'
+                                          }`}
+                                        >
+                                          {checked ? 'ACTIVA' : 'INACTIVA'}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()
+                    ) : null}
                   </div>
                 </div>
 

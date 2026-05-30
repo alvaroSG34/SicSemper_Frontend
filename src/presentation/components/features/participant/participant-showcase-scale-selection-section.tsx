@@ -23,7 +23,7 @@ export function ParticipantShowcaseScaleSelectionSection({
   level2Id,
   finalCategoryName,
 }: ParticipantShowcaseScaleSelectionSectionProps) {
-  const { scales, loading, error } = useParticipantShowcaseScales({
+  const { scales, scaleGroups, loading, error } = useParticipantShowcaseScales({
     eventId,
     finalCategoryId,
   });
@@ -58,19 +58,56 @@ export function ParticipantShowcaseScaleSelectionSection({
         </p>
       ) : null}
 
-      {!loading && !error && scales.length === 0 ? (
+      {!loading && !error && scales.length === 0 && scaleGroups.length === 0 ? (
         <p className="mt-6 rounded-xl border border-[#2D2D2D] bg-[#151515] px-4 py-3 text-sm text-[#9C9C9C]">
           No hay escalas disponibles para esta subcategoria final.
         </p>
       ) : null}
 
-      {!loading && !error && scales.length > 0 ? (
+      {!loading && !error && (scales.length > 0 || scaleGroups.length > 0) ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {scales.map((scale) => {
+          {scaleGroups.map((group) => {
+            const query = new URLSearchParams({
+              l1: level1Name,
+              final: finalCategoryName,
+              scale: group.name,
+              type: "group",
+            });
+            if (level2Name) {
+              query.set("l2", level2Name);
+            }
+            if (level2Id) {
+              query.set("l2id", level2Id);
+            }
+
+            return (
+              <Link
+                key={group.id}
+                href={`/participante/participantes/${eventId}/maquetas/${level1Id}/${finalCategoryId}/escala/${group.id}?${query.toString()}`}
+                className="group relative overflow-hidden rounded-2xl border border-[#D4A373]/30 bg-gradient-to-b from-[#2A2118] to-[#151515] p-5 transition hover:border-[#D4A373]"
+              >
+                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[#D4A373]/10 blur-2xl transition-all duration-500 group-hover:bg-[#D4A373]/20" />
+                <p className="relative text-xs font-semibold tracking-[1.6px] text-[#D4A373]">
+                  GRUPO MULTIESCALA
+                </p>
+                <h3 className="relative mt-2 text-2xl font-bold text-white drop-shadow-md">
+                  {group.name}
+                </h3>
+                <p className="relative mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#D4A373]">
+                  Ver maquetas
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </p>
+              </Link>
+            );
+          })}
+          {scales
+            .filter((scale) => !scaleGroups.some((g) => g.scaleIds.includes(scale.id)))
+            .map((scale) => {
             const query = new URLSearchParams({
               l1: level1Name,
               final: finalCategoryName,
               scale: scale.value,
+              type: "scale",
             });
             if (level2Name) {
               query.set("l2", level2Name);
@@ -86,7 +123,7 @@ export function ParticipantShowcaseScaleSelectionSection({
                 className="group rounded-2xl border border-[#2D2D2D] bg-[#151515] p-5 transition hover:border-[#5B68F1]/70"
               >
                 <p className="text-xs font-semibold tracking-[1.6px] text-[#8BA3FF]">
-                  ESCALA
+                  ESCALA INDIVIDUAL
                 </p>
                 <h3 className="mt-2 text-2xl font-bold text-white">{scale.value}</h3>
                 <p className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#8BA3FF]">
