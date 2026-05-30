@@ -283,6 +283,9 @@ export function JudgeReviewPage({
                 <span className="text-[#8E8E8E]">Categoria:</span> {modelDetail.category.label}
               </p>
               <p>
+                <span className="text-[#8E8E8E]">Escala:</span> {modelDetail.scale.value}
+              </p>
+              <p>
                 <span className="text-[#8E8E8E]">Marca:</span> {modelDetail.brand || "No registrada"}
               </p>
               <p>

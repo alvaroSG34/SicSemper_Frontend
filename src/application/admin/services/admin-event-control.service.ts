@@ -8,6 +8,7 @@ import type {
   ApiAdminPodiumTieBreakState,
   ApiAdminEventControlSummary,
 } from "@/application/admin/contracts/admin-event-control.contract";
+import type { AdminTieBreakOption } from "@/domain/admin/admin.types";
 import type { AdminService } from "@/application/admin/admin.service.types";
 import { apiRequest } from "@/infrastructure/api/http-client";
 import { toErrorMessage } from "./admin-service.shared";
@@ -37,6 +38,7 @@ export const adminEventControlService: Pick<
   | "setEventPodiumTieBreakGroup"
   | "clearEventPodiumTieBreak"
   | "clearEventPodiumTieBreakGroup"
+  | "getEventPodiumTieBreakOptions"
 > = {
   async getEventControlSummary(eventId) {
     try {
@@ -124,6 +126,18 @@ export const adminEventControlService: Pick<
           error,
           "No se pudo cargar el detalle de la maqueta.",
         ),
+      );
+    }
+  },
+
+  async getEventPodiumTieBreakOptions(eventId) {
+    try {
+      return await apiRequest<AdminTieBreakOption[]>(
+        `/admin/events/${eventId}/control/podium-tiebreak/options`,
+      );
+    } catch (error) {
+      throw new Error(
+        toErrorMessage(error, "No se pudieron cargar las opciones de desempate."),
       );
     }
   },

@@ -122,6 +122,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     podiumTieBreakState,
     podiumTieBreakOrder,
     loadingTieBreak,
+    tieBreakOptions,
     moveTieBreakCandidate,
     savePodiumTieBreak,
     clearPodiumTieBreak,
@@ -131,153 +132,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     canManagePodiumTieBreak,
   });
 
-  const categoryLabelsById = useMemo(() => {
-    const map = new Map<string, string>();
-    const register = (finalCategoryId?: string, label?: string) => {
-      if (!finalCategoryId || map.has(finalCategoryId)) {
-        return;
-      }
-      map.set(finalCategoryId, label ?? "Categoria");
-    };
 
-    models.forEach((row) => {
-      register(row.finalCategoryId, row.categoryLabel);
-    });
-    summary?.topSegmentsByScore.forEach((segment) => {
-      register(segment.finalCategoryId, segment.categoryLabel);
-    });
-    summary?.topSegmentsByVolume.forEach((segment) => {
-      register(segment.finalCategoryId, segment.categoryLabel);
-    });
-
-    return map;
-  }, [models, summary]);
-
-  const finalCategoryIdsForGroups = useMemo(() => {
-    const ids = new Set<string>();
-    categoryLabelsById.forEach((_label, key) => {
-      ids.add(key);
-    });
-    return [...ids];
-  }, [categoryLabelsById]);
-
-  const [tieBreakGroupOptions, setTieBreakGroupOptions] = useState<
-    Array<{ type: "group"; groupId: string; label: string }>
-  >([]);
-  const [loadingTieBreakGroups, setLoadingTieBreakGroups] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    if (finalCategoryIdsForGroups.length === 0) {
-      setTieBreakGroupOptions([]);
-      return () => {
-        active = false;
-      };
-    }
-
-    setLoadingTieBreakGroups(true);
-    void Promise.all(
-      finalCategoryIdsForGroups.map((finalCategoryId) =>
-        adminEventsService.listEventCategoryScaleGroups(eventId, finalCategoryId),
-      ),
-    )
-      .then((responses) => {
-        if (!active) {
-          return;
-        }
-        const options = responses.flatMap((response) => {
-          const categoryLabel = categoryLabelsById.get(response.finalCategoryId) ?? "Categoria";
-          return response.groups.map((group) => ({
-            type: "group" as const,
-            groupId: group.id,
-            label: `${categoryLabel} · ${group.name}`,
-          }));
-        });
-        setTieBreakGroupOptions(options);
-      })
-      .catch(() => {
-        if (!active) {
-          return;
-        }
-        setTieBreakGroupOptions([]);
-      })
-      .finally(() => {
-        if (!active) {
-          return;
-        }
-        setLoadingTieBreakGroups(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [categoryLabelsById, eventId, finalCategoryIdsForGroups]);
-
-  const tieBreakContextOptions = useMemo(() => {
-    const seen = new Set<string>();
-    const options: Array<
-      | { type: "scale"; finalCategoryId: string; scaleId: string; label: string }
-      | { type: "group"; groupId: string; label: string }
-    > = [];
-    const pushOption = (input: {
-      finalCategoryId?: string;
-      scaleId?: string;
-      categoryLabel?: string;
-      scaleValue?: string;
-    }) => {
-      if (!input.finalCategoryId || !input.scaleId) {
-        return;
-      }
-      const key = `scale:${input.finalCategoryId}:${input.scaleId}`;
-      if (seen.has(key)) {
-        return;
-      }
-      seen.add(key);
-      options.push({
-        type: "scale",
-        finalCategoryId: input.finalCategoryId,
-        scaleId: input.scaleId,
-        label: `${input.categoryLabel ?? "Categoria"} · ${input.scaleValue ?? "Escala"}`,
-      });
-    };
-
-    models.forEach((row) => {
-      pushOption({
-        finalCategoryId: row.finalCategoryId,
-        scaleId: row.scaleId,
-        categoryLabel: row.categoryLabel,
-        scaleValue: row.scaleValue,
-      });
-    });
-
-    summary?.topSegmentsByScore.forEach((segment) => {
-      pushOption({
-        finalCategoryId: segment.finalCategoryId,
-        scaleId: segment.scaleId,
-        categoryLabel: segment.categoryLabel,
-        scaleValue: segment.scaleValue,
-      });
-    });
-    summary?.topSegmentsByVolume.forEach((segment) => {
-      pushOption({
-        finalCategoryId: segment.finalCategoryId,
-        scaleId: segment.scaleId,
-        categoryLabel: segment.categoryLabel,
-        scaleValue: segment.scaleValue,
-      });
-    });
-
-    tieBreakGroupOptions.forEach((option) => {
-      const key = `group:${option.groupId}`;
-      if (seen.has(key)) {
-        return;
-      }
-      seen.add(key);
-      options.push(option);
-    });
-
-    return options;
-  }, [models, summary, tieBreakGroupOptions]);
 
   if (!canReadEventControl) {
     return (
@@ -761,7 +616,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                   className="h-10 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona categoria y escala</option>
-                  {tieBreakContextOptions.map((option) => (
+                  {tieBreakOptions.map((option) => (
                     <option
                       key={
                         option.type === "group"
@@ -788,13 +643,10 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                   </button>
                 ) : null}
               </div>
-              {tieBreakContextOptions.length === 0 && !loadingTieBreakGroups ? (
+              {tieBreakOptions.length === 0 ? (
                 <p className="mt-2 text-xs text-[#9C9C9C]">
-                  No hay categorias/escalas disponibles para desempate en este evento.
+                  No se han detectado empates en el Top 3 de ninguna categoría.
                 </p>
-              ) : null}
-              {loadingTieBreakGroups ? (
-                <p className="mt-2 text-xs text-[#9C9C9C]">Cargando grupos MultiEscala...</p>
               ) : null}
 
               {loadingTieBreak ? (

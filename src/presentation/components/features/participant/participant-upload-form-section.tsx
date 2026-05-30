@@ -59,6 +59,9 @@ export function ParticipantUploadFormSection({
     finalCategoryId,
     "upload",
   );
+
+  console.log("Upload Form Loading Debug in Component", { loading, error, eventName, hasScales: scales.length });
+
   const submitModel = useParticipantStore((state) => state.submitModel);
   const flowError = useParticipantStore((state) => state.flowError);
   const flowSuccessMessage = useParticipantStore((state) => state.flowSuccessMessage);

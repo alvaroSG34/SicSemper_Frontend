@@ -261,6 +261,19 @@ export type AdminEventControlSummary = {
   }>;
 };
 
+export type AdminTieBreakOption =
+  | {
+      type: "scale";
+      finalCategoryId: Identifier;
+      scaleId: Identifier;
+      label: string;
+    }
+  | {
+      type: "group";
+      groupId: Identifier;
+      label: string;
+    };
+
 export type AdminEventControlPage<TItem> = {
   items: TItem[];
   page: number;

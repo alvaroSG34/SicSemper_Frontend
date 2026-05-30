@@ -15,6 +15,7 @@ import type {
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
   AdminPermissionCode,
+  AdminTieBreakOption,
   AdminPermissionEntry,
   AdminNotificationsMutationResult,
   AdminNotificationsPageResponse,
@@ -146,6 +147,7 @@ export interface AdminService {
     finalCategoryId: string;
     scaleId: string;
   }): Promise<AdminPodiumTieBreakState>;
+  getEventPodiumTieBreakOptions(eventId: string): Promise<AdminTieBreakOption[]>;
   getEventPodiumTieBreakGroupCandidates(input: {
     eventId: string;
     groupId: string;

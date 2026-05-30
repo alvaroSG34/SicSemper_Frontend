@@ -143,6 +143,8 @@ export const useParticipantUploadEventContext = (
 
   useEffect(() => {
     if (!eventReady || !normalizedFinalCategoryId) {
+      setScalesLoading(false);
+      requestedScaleContextRef.current = null;
       return;
     }
 
@@ -186,6 +188,9 @@ export const useParticipantUploadEventContext = (
 
     return () => {
       cancelled = true;
+      if (requestedScaleContextRef.current === contextKey) {
+        requestedScaleContextRef.current = null;
+      }
     };
   }, [eventReady, normalizedEventId, normalizedFinalCategoryId]);
 

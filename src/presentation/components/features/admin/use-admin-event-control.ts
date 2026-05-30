@@ -10,6 +10,7 @@ import type {
   AdminPodiumTieBreakState,
   AdminEventParticipantDetail,
   AdminEventParticipantRow,
+  AdminTieBreakOption,
   EventControlModelSortOption,
 } from "@/domain/admin/admin.types";
 import { useAdminStore } from "@/presentation/stores";
@@ -85,6 +86,7 @@ export const useAdminEventControl = ({
   >(null);
   const [podiumTieBreakOrder, setPodiumTieBreakOrder] = useState<string[]>([]);
   const [loadingTieBreak, setLoadingTieBreak] = useState(false);
+  const [tieBreakOptions, setTieBreakOptions] = useState<AdminTieBreakOption[]>([]);
 
   const loadSummary = useCallback(async () => {
     const nextSummary = await adminEventControlService.getEventControlSummary(eventId);
@@ -123,17 +125,27 @@ export const useAdminEventControl = ({
     setModelsTotalPages(response.totalPages);
   }, [eventId, modelsFilters, modelsPage, modelsPageSize]);
 
+  const loadTieBreakOptions = useCallback(async () => {
+    if (!canManagePodiumTieBreak) return;
+    try {
+      const options = await adminEventControlService.getEventPodiumTieBreakOptions(eventId);
+      setTieBreakOptions(options);
+    } catch {
+      // ignore
+    }
+  }, [eventId, canManagePodiumTieBreak]);
+
   const refreshAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      await Promise.all([loadSummary(), loadParticipants(), loadModels()]);
+      await Promise.all([loadSummary(), loadParticipants(), loadModels(), loadTieBreakOptions()]);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "No se pudo cargar el centro de control.");
     } finally {
       setLoading(false);
     }
-  }, [loadModels, loadParticipants, loadSummary]);
+  }, [loadModels, loadParticipants, loadSummary, loadTieBreakOptions]);
 
   useEffect(() => {
     void refreshAll();
@@ -439,6 +451,7 @@ export const useAdminEventControl = ({
     podiumTieBreakState,
     podiumTieBreakOrder,
     loadingTieBreak,
+    tieBreakOptions,
     moveTieBreakCandidate,
     savePodiumTieBreak,
     clearPodiumTieBreak,

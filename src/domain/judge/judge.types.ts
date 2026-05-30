@@ -142,6 +142,10 @@ export type JudgeModelDetail = {
     name: string;
     parentName: string | null;
   };
+  scale: {
+    id: Identifier;
+    value: string;
+  };
   media: Array<{
     id: Identifier;
     publicUrl: string | null;
