@@ -32,6 +32,7 @@ export class ApiError extends Error {
 }
 
 let refreshPromise: Promise<boolean> | null = null;
+let csrfToken: string | null = null;
 
 const normalizePath = (path: string) => (path.startsWith("/") ? path : `/${path}`);
 
@@ -65,6 +66,16 @@ const getBrowserCookie = (name: string): string | null => {
   }
 
   return null;
+};
+
+const getCsrfToken = () => csrfToken ?? getBrowserCookie("ss_csrf");
+
+const captureCsrfToken = (response: Response) => {
+  const nextCsrfToken = response.headers.get("x-csrf-token");
+
+  if (nextCsrfToken) {
+    csrfToken = nextCsrfToken;
+  }
 };
 
 const getMessageFromPayload = (payload: ErrorPayload, statusCode: number) => {
@@ -110,10 +121,10 @@ const runRefresh = async () => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        const csrfToken = getBrowserCookie("ss_csrf");
         const headers = new Headers();
-        if (csrfToken) {
-          headers.set("x-csrf-token", csrfToken);
+        const currentCsrfToken = getCsrfToken();
+        if (currentCsrfToken) {
+          headers.set("x-csrf-token", currentCsrfToken);
         }
 
         const response = await fetch(getUrl("/auth/refresh"), {
@@ -121,6 +132,7 @@ const runRefresh = async () => {
           headers,
           credentials: "include",
         });
+        captureCsrfToken(response);
 
         return response.ok;
       } catch {
@@ -148,9 +160,9 @@ const sendRequest = async (
     headers.set("Content-Type", "application/json");
   }
   if (isMutation && !headers.has("x-csrf-token")) {
-    const csrfToken = getBrowserCookie("ss_csrf");
-    if (csrfToken) {
-      headers.set("x-csrf-token", csrfToken);
+    const currentCsrfToken = getCsrfToken();
+    if (currentCsrfToken) {
+      headers.set("x-csrf-token", currentCsrfToken);
     }
   }
 
@@ -165,6 +177,7 @@ const sendRequest = async (
           : JSON.stringify(options.body),
     credentials: "include",
   });
+  captureCsrfToken(response);
 
   if (response.ok) {
     return parseResponse(response);
