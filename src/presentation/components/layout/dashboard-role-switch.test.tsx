@@ -63,4 +63,26 @@ describe("DashboardRoleSwitch", () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it("hides the header selector for accounts with only participant and judge roles", () => {
+    useAuthStore.setState({
+      user: makeUser(["PARTICIPANTE", "JUEZ"]),
+      currentRole: "PARTICIPANTE",
+    });
+
+    const { container } = render(<DashboardRoleSwitch hideParticipantJudgeOnly />);
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("keeps the header selector when an administrative role is also available", () => {
+    useAuthStore.setState({
+      user: makeUser(["PARTICIPANTE", "JUEZ", "ADMIN"]),
+      currentRole: "PARTICIPANTE",
+    });
+
+    render(<DashboardRoleSwitch hideParticipantJudgeOnly />);
+
+    expect(screen.getByLabelText("Cambiar rol de dashboard")).toBeTruthy();
+  });
 });

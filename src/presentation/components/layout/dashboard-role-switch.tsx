@@ -19,7 +19,11 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   SUPERADMIN: "/admin/inicio",
 };
 
-export function DashboardRoleSwitch() {
+type DashboardRoleSwitchProps = {
+  hideParticipantJudgeOnly?: boolean;
+};
+
+export function DashboardRoleSwitch({ hideParticipantJudgeOnly = false }: DashboardRoleSwitchProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
@@ -31,8 +35,10 @@ export function DashboardRoleSwitch() {
     ? (["SUPERADMIN"] as UserRole[])
     : rawAvailableRoles;
   const activeRole = currentRole ?? availableRoles[0] ?? null;
+  const isParticipantJudgeOnly =
+    availableRoles.length === 2 && availableRoles.includes("PARTICIPANTE") && availableRoles.includes("JUEZ");
 
-  if (availableRoles.length <= 1 || !activeRole) {
+  if (availableRoles.length <= 1 || !activeRole || (hideParticipantJudgeOnly && isParticipantJudgeOnly)) {
     return null;
   }
 

@@ -52,6 +52,9 @@ import { useAdminPermissions } from "@/presentation/components/features/admin/us
 const DashboardRoleSwitch = dynamic(() =>
   import("@/presentation/components/layout").then((module) => module.DashboardRoleSwitch),
 );
+const AccountMenu = dynamic(() =>
+  import("@/presentation/components/layout").then((module) => module.AccountMenu),
+);
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -421,11 +424,7 @@ export function AdminDashboardPage({
 
                 <DashboardRoleSwitch />
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
-                  <span className="text-sm font-semibold text-white">
-                    {(user?.name ?? "AD").slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
+                <AccountMenu initials={(user?.name ?? "AD").slice(0, 2).toUpperCase()} photoUrl={user?.photoUrl} />
               </div>
             </header>
             {error ? (

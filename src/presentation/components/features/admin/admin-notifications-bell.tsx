@@ -94,9 +94,13 @@ export function AdminNotificationsBell() {
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         onClick={togglePopover}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition hover:border-[#2A2A2A] hover:bg-[#131313]"
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition ${
+          isOpen
+            ? "border-[#5B68F1] bg-[rgba(91,104,241,0.18)] shadow-[0_0_0_3px_rgba(91,104,241,0.16)]"
+            : "border-transparent hover:border-[#2A2A2A] hover:bg-[#131313]"
+        }`}
       >
-        <Bell className="h-5 w-5 text-white" />
+        <Bell className={`h-5 w-5 ${isOpen ? "text-[#AAB2FF]" : "text-white"}`} />
         {unreadCount > 0 ? (
           <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-[5px] bg-[#F15BB5]" />
         ) : null}
@@ -106,7 +110,7 @@ export function AdminNotificationsBell() {
         <div
           role="dialog"
           aria-label="Notificaciones de admin"
-          className="fixed left-3 right-3 top-[88px] z-50 w-auto rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-3 shadow-[0_20px_80px_rgba(0,0,0,0.45)] md:absolute md:right-0 md:left-auto md:top-12 md:w-[360px]"
+          className="fixed left-3 right-3 top-[5px] z-50 w-auto rounded-2xl border border-[#2D2D2D] bg-[#0F0F0F] p-3 shadow-[0_20px_80px_rgba(0,0,0,0.45)] md:absolute md:right-0 md:left-auto md:top-12 md:w-[360px]"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#222222] px-2 pb-2">
             <div>

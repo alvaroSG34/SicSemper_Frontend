@@ -1,21 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   BadgeCheck,
   ChevronDown,
   Home,
-  LogOut,
-  Menu,
-  Settings,
   CalendarDays,
-  X,
 } from "lucide-react";
-import { DashboardRoleSwitch } from "@/presentation/components/layout";
+import { AccountMenu, DashboardRoleSwitch } from "@/presentation/components/layout";
 import { Skeleton } from "@/presentation/components/ui";
-import { useAuthStore, useJudgeStore } from "@/presentation/stores";
+import { useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
 import { JudgeNotificationsBell } from "./judge-notifications-bell";
 
@@ -33,11 +29,41 @@ type JudgeNavItem = {
 const judgeNavItems: JudgeNavItem[] = [
   { id: "inicio", label: "Inicio", href: "/juez/inicio", icon: Home },
   { id: "eventos", label: "Eventos", href: "/juez/eventos", icon: CalendarDays },
-  { id: "perfil", label: "Perfil", href: "/juez/perfil", icon: Settings },
 ];
 
 const isItemActive = (pathname: string, href: string) =>
   pathname === href || pathname.startsWith(`${href}/`);
+
+export function JudgeMobileNavigation({ pathname }: { pathname: string }) {
+  return (
+    <nav
+      aria-label="Navegacion de juez"
+      className="fixed inset-x-0 bottom-0 z-[60] flex border-t border-[#2A2A2A] bg-[#0A0A0A]/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_28px_rgba(0,0,0,0.3)] backdrop-blur xl:hidden"
+    >
+      {judgeNavItems.map((item) => {
+        const active =
+          isItemActive(pathname, item.href) ||
+          (item.id === "eventos" &&
+            (pathname === "/juez/calificar" || pathname.startsWith("/juez/calificar/")));
+
+        return (
+          <Link
+            key={`mobile-tab:${item.id}`}
+            href={item.href}
+            aria-current={active ? "page" : undefined}
+            className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition ${
+              active ? "bg-[rgba(91,104,241,0.18)] text-[#AAB2FF]" : "text-[#9B9B9B] hover:bg-[#161616] hover:text-white"
+            }`}
+          >
+            <item.icon className="h-5 w-5" />
+            <span>{item.label}</span>
+            {active ? <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#5B68F1]" /> : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
 
 function JudgeDashboardLoading() {
   return (
@@ -109,55 +135,20 @@ function JudgeDashboardError({
 
 export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
-
   const dashboard = useJudgeStore((state) => state.dashboard);
   const loading = useJudgeStore((state) => state.loading);
   const error = useJudgeStore((state) => state.error);
   const loadDashboard = useJudgeStore((state) => state.loadDashboard);
   const clearError = useJudgeStore((state) => state.clearError);
 
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [initialLoadRequested, setInitialLoadRequested] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
+  const initialLoadRequested = useRef(false);
 
   useEffect(() => {
-    if (!dashboard && !loading && !initialLoadRequested) {
-      setInitialLoadRequested(true);
+    if (!dashboard && !loading && !initialLoadRequested.current) {
+      initialLoadRequested.current = true;
       void loadDashboard();
     }
-  }, [dashboard, loading, initialLoadRequested, loadDashboard]);
-
-  const activeSectionLabel = useMemo(() => {
-    if (pathname === "/juez/calificar" || pathname.startsWith("/juez/calificar/")) {
-      return "Calificar";
-    }
-
-    const active = judgeNavItems.find((item) => isItemActive(pathname, item.href));
-    return active?.label ?? "Inicio";
-  }, [pathname]);
-  const isMobileMenuVisible = mobileMenuOpen && mobileMenuPath === pathname;
-
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
-  };
-
-  const openMobileMenu = () => {
-    setMobileMenuPath(pathname);
-    setMobileMenuOpen(true);
-  };
-
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      await logout();
-      router.push("/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
+  }, [dashboard, loading, loadDashboard]);
 
   const handleRetryDashboardLoad = async () => {
     await loadDashboard();
@@ -197,106 +188,12 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
               );
             })}
           </nav>
-
-          <button
-            type="button"
-            disabled={isLoggingOut}
-            onClick={() => void handleLogout()}
-            className="mt-auto flex items-center gap-4 text-left opacity-70 transition hover:opacity-100 disabled:opacity-40"
-          >
-            <LogOut className="h-5 w-5 text-[#AAAAAA]" />
-            <span className="text-base font-medium text-[#AAAAAA]">Cerrar sesion</span>
-          </button>
         </aside>
 
-        <section className="relative min-h-screen flex-1 px-4 py-6 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
+        <section className="relative min-h-screen flex-1 px-4 py-6 pb-24 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
           <div className="pointer-events-none absolute right-[120px] top-[380px] hidden h-[120px] w-[120px] rotate-[15deg] rounded-[20px] border-2 border-[#F15BB5] bg-white/10 xl:block" />
 
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
-            <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <ChevronDown className="h-4 w-4 text-white" />
-                  <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
-                  <button
-                    type="button"
-                    aria-label="Abrir menu de navegacion"
-                    onClick={openMobileMenu}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
-                  >
-                    <Menu className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {isMobileMenuVisible ? (
-              <div className="fixed inset-0 z-[70] xl:hidden">
-                <button
-                  type="button"
-                  aria-label="Cerrar menu"
-                  onClick={closeMobileMenu}
-                  className="absolute inset-0 bg-black/70"
-                />
-                <aside className="relative h-full w-[86%] max-w-[320px] border-r border-[#2A2A2A] bg-[#0A0A0A] px-5 py-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <ChevronDown className="h-4 w-4 text-white" />
-                      <span className="text-lg font-bold text-white">IPMS BOLIVIA</span>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label="Cerrar menu de navegacion"
-                      onClick={closeMobileMenu}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A2A2A] bg-[#111111] text-[#D0D0D0]"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <nav className="mt-6 flex flex-col gap-2">
-                    {judgeNavItems.map((item) => {
-                      const active =
-                        isItemActive(pathname, item.href) ||
-                        (item.id === "eventos" &&
-                          (pathname === "/juez/calificar" || pathname.startsWith("/juez/calificar/")));
-                      return (
-                        <Link
-                          key={`mobile-drawer:${item.id}`}
-                          href={item.href}
-                          onClick={closeMobileMenu}
-                          className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium ${
-                            active
-                              ? "border-[#5B68F1] bg-[rgba(91,104,241,0.15)] text-[#5B68F1]"
-                              : "border-[#2A2A2A] bg-[#111111] text-[#AAAAAA]"
-                          }`}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </nav>
-
-                  <button
-                    type="button"
-                    disabled={isLoggingOut}
-                    onClick={() => {
-                      closeMobileMenu();
-                      void handleLogout();
-                    }}
-                    className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#2A2A2A] bg-[#111111] px-3 py-2 text-sm font-medium text-[#AAAAAA] disabled:opacity-40"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Cerrar sesion
-                  </button>
-                </aside>
-              </div>
-            ) : null}
-
             <header className="flex items-center justify-between gap-3 md:gap-6">
               <div className="min-w-0 flex-1">
                 <h1
@@ -310,20 +207,13 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
               </div>
 
               <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
-                <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">
-                    <BadgeCheck className="h-3.5 w-3.5" />
-                    {profile?.verified ? "Juez verificado" : "Revision activa"}
-                  </span>
-                </div>
+                <BadgeCheck className="h-7 w-7 text-[#10B981]" aria-label="Juez verificado" />
 
                 <JudgeNotificationsBell />
 
-                <DashboardRoleSwitch />
+                <DashboardRoleSwitch hideParticipantJudgeOnly />
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
-                  <span className="text-sm font-semibold text-white">{profile?.initials ?? "JU"}</span>
-                </div>
+                <AccountMenu initials={profile?.initials ?? "JU"} profileHref="/juez/perfil" />
               </div>
             </header>
 
@@ -345,6 +235,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
             {children}
           </div>
         </section>
+        <JudgeMobileNavigation pathname={pathname} />
       </div>
     </main>
   );

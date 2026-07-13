@@ -94,9 +94,13 @@ export function JudgeNotificationsBell() {
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         onClick={togglePopover}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full border border-transparent transition hover:border-[#2A2A2A] hover:bg-[#131313]"
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition ${
+          isOpen
+            ? "border-[#5B68F1] bg-[rgba(91,104,241,0.18)] shadow-[0_0_0_3px_rgba(91,104,241,0.16)]"
+            : "border-transparent hover:border-[#2A2A2A] hover:bg-[#131313]"
+        }`}
       >
-        <Bell className="h-5 w-5 text-white" />
+        <Bell className={`h-5 w-5 ${isOpen ? "text-[#AAB2FF]" : "text-white"}`} />
         {unreadCount > 0 ? (
           <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-[5px] bg-[#F15BB5]" />
         ) : null}

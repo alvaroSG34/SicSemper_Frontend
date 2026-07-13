@@ -1,8 +1,7 @@
-import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { Outfit } from "next/font/google";
 import { BadgeCheck } from "lucide-react";
 import type { ParticipantProfile } from "@/domain/participant/participant.types";
-import { DashboardRoleSwitch } from "@/presentation/components/layout";
+import { AccountMenu, DashboardRoleSwitch } from "@/presentation/components/layout";
 import { ParticipantNotificationsBell } from "./participant-notifications-bell";
 
 const outfit = Outfit({
@@ -15,8 +14,6 @@ type ParticipantHeaderProps = {
 };
 
 export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
-  const hasPhoto = Boolean(profile.photoUrl?.trim());
-
   return (
     <header className="flex items-center justify-between gap-3 md:gap-6">
       <div className="min-w-0 flex-1">
@@ -28,31 +25,14 @@ export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
 
       <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
         {profile.verified ? (
-          <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">
-              <BadgeCheck className="h-3.5 w-3.5" />
-              Perfil verificado
-            </span>
-          </div>
+          <BadgeCheck className="h-7 w-7 text-[#10B981]" aria-label="Perfil verificado" />
         ) : null}
 
         <ParticipantNotificationsBell />
 
-        <DashboardRoleSwitch />
+        <DashboardRoleSwitch hideParticipantJudgeOnly />
 
-        <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-[#5B68F1] bg-[#2D2D2D] sm:h-12 sm:w-12">
-          {hasPhoto ? (
-            <ImageWithSkeleton
-              src={profile.photoUrl ?? ""}
-              alt="Foto de perfil"
-              fill
-              sizes="48px"
-              className="object-cover"
-            />
-          ) : (
-            <span className="text-sm font-semibold text-white">{profile.initials}</span>
-          )}
-        </div>
+        <AccountMenu initials={profile.initials} photoUrl={profile.photoUrl} profileHref="/participante/perfil" />
       </div>
     </header>
   );

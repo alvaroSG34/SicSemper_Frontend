@@ -107,7 +107,6 @@ export function ParticipantDashboardShell({
     sidebarItems,
     loadDashboard,
     handleSelectSection,
-    handleLogout,
   } = useParticipantDashboardPage({
     activeSection,
   });
@@ -127,19 +126,13 @@ export function ParticipantDashboardShell({
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#000000] text-white">
       <div className="relative flex min-h-screen flex-col xl:flex-row">
-        <ParticipantSidebar
-          items={sidebarItems}
-          onLogout={() => void handleLogout()}
-        />
+        <ParticipantSidebar items={sidebarItems} />
 
-        <section className="relative min-h-screen flex-1 px-4 py-6 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
+        <section className="relative min-h-screen flex-1 px-4 py-6 pb-24 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
           <div className="pointer-events-none absolute right-[120px] top-[380px] hidden h-[120px] w-[120px] rotate-[15deg] rounded-[20px] border-2 border-[#F15BB5] bg-white/10 xl:block" />
 
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
-            <ParticipantMobileSidebar
-              items={sidebarItems}
-              onLogout={() => void handleLogout()}
-            />
+            <ParticipantMobileSidebar items={sidebarItems} />
 
             <ParticipantHeader profile={dashboard.profile} />
 
