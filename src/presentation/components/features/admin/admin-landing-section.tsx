@@ -487,7 +487,24 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                 <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Main sponsors</p>
                 <div className="space-y-2">
                   {draft.sponsors.main.map((entry, index) => (
-                    <TextInput key={`main-${index}`} label={`Main ${index + 1}`} value={entry} onChange={(value) => updateField(`sponsors.main.${index}`, value)} />
+                    <div key={`main-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#101010] p-3">
+                      <p className="mb-2 text-[11px] font-semibold text-[#CFCFCF]">Main {index + 1}</p>
+                      <div className="space-y-2">
+                        <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.main.${index}.name`, value)} />
+                        <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.main.${index}.logoUrl`, value)} />
+                        <TextInput label="URL destino" value={entry.url} onChange={(value) => updateField(`sponsors.main.${index}.url`, value)} />
+                        {entry.logoUrl ? (
+                          <div className="flex h-20 items-center justify-center rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={entry.logoUrl} alt={entry.name} className="max-h-full max-w-full object-contain" />
+                          </div>
+                        ) : null}
+                        <button type="button" onClick={() => void openLibrary(`sponsors.main.${index}.logoUrl`, `Logo sponsor main ${index + 1}`)} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
+                          <ImagePlus className="h-3.5 w-3.5" />
+                          Biblioteca
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -495,7 +512,24 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                 <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Secondary sponsors</p>
                 <div className="space-y-2">
                   {draft.sponsors.secondary.map((entry, index) => (
-                    <TextInput key={`secondary-${index}`} label={`Secondary ${index + 1}`} value={entry} onChange={(value) => updateField(`sponsors.secondary.${index}`, value)} />
+                    <div key={`secondary-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#101010] p-3">
+                      <p className="mb-2 text-[11px] font-semibold text-[#CFCFCF]">Secondary {index + 1}</p>
+                      <div className="space-y-2">
+                        <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.secondary.${index}.name`, value)} />
+                        <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.secondary.${index}.logoUrl`, value)} />
+                        <TextInput label="URL destino" value={entry.url} onChange={(value) => updateField(`sponsors.secondary.${index}.url`, value)} />
+                        {entry.logoUrl ? (
+                          <div className="flex h-20 items-center justify-center rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={entry.logoUrl} alt={entry.name} className="max-h-full max-w-full object-contain" />
+                          </div>
+                        ) : null}
+                        <button type="button" onClick={() => void openLibrary(`sponsors.secondary.${index}.logoUrl`, `Logo sponsor secondary ${index + 1}`)} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
+                          <ImagePlus className="h-3.5 w-3.5" />
+                          Biblioteca
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

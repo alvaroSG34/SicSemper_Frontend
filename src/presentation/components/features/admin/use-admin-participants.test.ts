@@ -47,6 +47,38 @@ describe('useAdminParticipants', () => {
     createdAt: '2026-01-01T00:00:00.000Z',
   };
 
+  const judgeParticipantUser: User = {
+    id: 'judge-participant-1',
+    name: 'Juez Participante',
+    email: 'judge-participant@example.com',
+    ci: null,
+    country: null,
+    city: null,
+    phone: null,
+    status: 'ACTIVO',
+    verified: false,
+    birthDate: null,
+    club: null,
+    roles: ['PARTICIPANTE', 'JUEZ'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const judgeUser: User = {
+    id: 'judge-1',
+    name: 'Juez Uno',
+    email: 'judge@example.com',
+    ci: null,
+    country: null,
+    city: null,
+    phone: null,
+    status: 'ACTIVO',
+    verified: false,
+    birthDate: null,
+    club: null,
+    roles: ['JUEZ'],
+    createdAt: '2026-01-01T00:00:00.000Z',
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     setParticipantVerified.mockResolvedValue(undefined);
@@ -86,11 +118,15 @@ describe('useAdminParticipants', () => {
     expect(setParticipantVerified).not.toHaveBeenCalled();
   });
 
-  it('allows verification edit only for participant-only users', () => {
-    const { result } = renderHook(() => useAdminParticipants([participantUser, adminUser]));
+  it('allows verification edit for users with participant role', () => {
+    const { result } = renderHook(() =>
+      useAdminParticipants([participantUser, adminUser, judgeParticipantUser, judgeUser]),
+    );
 
     expect(result.current.canEditParticipantVerification(participantUser)).toBe(true);
-    expect(result.current.canEditParticipantVerification(adminUser)).toBe(false);
+    expect(result.current.canEditParticipantVerification(judgeParticipantUser)).toBe(true);
+    expect(result.current.canEditParticipantVerification(adminUser)).toBe(true);
+    expect(result.current.canEditParticipantVerification(judgeUser)).toBe(false);
   });
 
   it('keeps detail modal open and syncs participant data after users refresh', () => {

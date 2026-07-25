@@ -259,7 +259,7 @@ export function AdminParticipantsSection({
                 ) : null}
                 {canUpdateUsers && !canEditParticipantVerification(participantDetailModal) ? (
                   <p className="mt-2 text-[11px] text-[#9C9C9C]">
-                    Solo participantes pueden cambiar el estado de verificacion.
+                    Solo cuentas con rol participante pueden cambiar el estado de verificacion.
                   </p>
                 ) : null}
               </div>

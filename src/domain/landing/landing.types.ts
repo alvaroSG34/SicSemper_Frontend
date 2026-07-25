@@ -30,9 +30,15 @@ export type LandingScheduleItem = {
   isActive: boolean;
 };
 
+export type LandingSponsor = {
+  name: string;
+  logoUrl: string;
+  url: string;
+};
+
 export type LandingSponsors = {
-  main: string[];
-  secondary: string[];
+  main: LandingSponsor[];
+  secondary: LandingSponsor[];
 };
 
 export type LandingLocationCard = {

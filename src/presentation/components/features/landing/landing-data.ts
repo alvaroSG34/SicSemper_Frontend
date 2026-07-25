@@ -92,16 +92,16 @@ export const landingDefaultContent: LandingContent = {
   ],
   sponsors: {
     main: [
-      'IPMS BOLIVIA',
-      'MODEL KITS BOL',
-      'AEROMODEL CLUB',
-      'TANQUE HISTORICO',
-      'NAVAL SCALE HOUSE',
-      'DIORAMA LAB',
-      'HOBBY MASTER',
-      'PINTURAS ATLAS',
+      { name: 'IPMS BOLIVIA', logoUrl: '', url: '' },
+      { name: 'MODEL KITS BOL', logoUrl: '', url: '' },
+      { name: 'AEROMODEL CLUB', logoUrl: '', url: '' },
+      { name: 'TANQUE HISTORICO', logoUrl: '', url: '' },
+      { name: 'NAVAL SCALE HOUSE', logoUrl: '', url: '' },
+      { name: 'DIORAMA LAB', logoUrl: '', url: '' },
+      { name: 'HOBBY MASTER', logoUrl: '', url: '' },
+      { name: 'PINTURAS ATLAS', logoUrl: '', url: '' },
     ],
-    secondary: ['IPMS BOLIVIA'],
+    secondary: [{ name: 'IPMS BOLIVIA', logoUrl: '', url: '' }],
   },
   locationCards: [
     {
@@ -140,20 +140,34 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const readText = (value: unknown, fallback: string, maxLength = 2000) =>
   typeof value === 'string' && value.trim().length > 0 ? value.trim().slice(0, maxLength) : fallback;
 
-const readStringArray = (
+const readSponsorArray = (
   value: unknown,
-  fallback: string[],
+  fallback: LandingContent['sponsors']['main'],
   maxItems: number,
-  maxLength = 120,
 ) => {
   if (!Array.isArray(value)) {
     return fallback;
   }
 
   const cleaned = value
-    .filter((item): item is string => typeof item === 'string')
-    .map((item) => item.trim().slice(0, maxLength))
-    .filter((item) => item.length > 0)
+    .map((item) => {
+      if (typeof item === 'string') {
+        return { name: item.trim().slice(0, 120), logoUrl: '', url: '' };
+      }
+
+      if (!isRecord(item)) {
+        return null;
+      }
+
+      return {
+        name: readText(item.name, '', 120),
+        logoUrl: typeof item.logoUrl === 'string' ? item.logoUrl.trim().slice(0, 2000) : '',
+        url: typeof item.url === 'string' ? item.url.trim().slice(0, 2000) : '',
+      };
+    })
+    .filter((item): item is LandingContent['sponsors']['main'][number] =>
+      Boolean(item?.name),
+    )
     .slice(0, maxItems);
 
   return cleaned.length > 0 ? cleaned : fallback;
@@ -240,17 +254,15 @@ export const normalizeLandingContent = (payload: unknown): LandingContent => {
       };
     }),
     sponsors: {
-      main: readStringArray(
+      main: readSponsorArray(
         isRecord(payload.sponsors) ? payload.sponsors.main : undefined,
         base.sponsors.main,
         20,
-        120,
       ),
-      secondary: readStringArray(
+      secondary: readSponsorArray(
         isRecord(payload.sponsors) ? payload.sponsors.secondary : undefined,
         base.sponsors.secondary,
         20,
-        120,
       ),
     },
     locationCards: base.locationCards.map((current, index) => {

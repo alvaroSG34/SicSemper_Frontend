@@ -16,8 +16,10 @@ const participantStatusConfig: Record<string, { label: string; className: string
   SUSPENDIDO: { label: 'Suspendido', className: 'bg-red-900/40 text-red-400' },
 };
 
+const isParticipantUser = (user: User) => user.roles.includes('PARTICIPANTE');
+
 const isParticipantOnlyUser = (user: User) =>
-  user.roles.includes('PARTICIPANTE') &&
+  isParticipantUser(user) &&
   !user.roles.includes('JUEZ') &&
   !user.roles.includes('ADMIN') &&
   !user.roles.includes('SUPERADMIN');
@@ -54,7 +56,7 @@ export const useAdminParticipants = (users: User[]) => {
 
   const participantPool = useMemo(() => {
     if (participantRoleFilter === 'TODOS') {
-      return users.filter((candidate) => candidate.roles.includes('PARTICIPANTE'));
+      return users.filter(isParticipantUser);
     }
 
     return users.filter(isParticipantOnlyUser);
@@ -121,7 +123,7 @@ export const useAdminParticipants = (users: User[]) => {
     }
   };
 
-  const canEditParticipantVerification = (user: User) => isParticipantOnlyUser(user);
+  const canEditParticipantVerification = (user: User) => isParticipantUser(user);
 
   const handleSetParticipantVerified = async (userId: string, currentVerified: boolean) => {
     const nextVerified = !currentVerified;
