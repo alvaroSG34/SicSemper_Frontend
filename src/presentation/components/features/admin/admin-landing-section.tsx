@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { ImagePlus, RefreshCw, Save, Send, Undo2, Upload } from 'lucide-react';
+import { ImagePlus, Plus, RefreshCw, Save, Send, Trash2, Undo2, Upload } from 'lucide-react';
 import { adminLandingService } from '@/application/admin/services/admin-landing.service';
 import type {
   LandingAsset,
   LandingContent,
   LandingDraftState,
+  LandingSponsor,
 } from '@/domain/landing/landing.types';
 
 type AdminLandingSectionProps = {
@@ -23,6 +24,8 @@ type ImageTarget = {
 
 const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const asJson = (value: unknown) => JSON.stringify(value);
+const maxSponsorsPerGroup = 20;
+const emptySponsor = (): LandingSponsor => ({ name: '', logoUrl: '', url: '' });
 
 const formatDateTime = (raw: string | null | undefined) => {
   if (!raw) return 'Sin datos';
@@ -199,6 +202,33 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
 
   const updateField = (path: string, value: unknown) => {
     setDraft((current) => (current ? setByPath(current, path, value) : current));
+  };
+
+  const addSponsor = (group: keyof LandingContent['sponsors']) => {
+    setDraft((current) => {
+      if (!current) return current;
+      if (current.sponsors[group].length >= maxSponsorsPerGroup) {
+        setFeedback({
+          type: 'error',
+          message: `Puedes registrar hasta ${maxSponsorsPerGroup} sponsors por grupo.`,
+        });
+        return current;
+      }
+
+      const next = deepClone(current);
+      next.sponsors[group] = [...next.sponsors[group], emptySponsor()];
+      return next;
+    });
+  };
+
+  const removeSponsor = (group: keyof LandingContent['sponsors'], index: number) => {
+    setDraft((current) => {
+      if (!current || current.sponsors[group].length <= 1) return current;
+
+      const next = deepClone(current);
+      next.sponsors[group] = next.sponsors[group].filter((_, currentIndex) => currentIndex !== index);
+      return next;
+    });
   };
 
   const openLibrary = async (path: string, label: string) => {
@@ -484,11 +514,23 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
             <h4 className="mb-3 text-sm font-semibold text-white">Sponsors</h4>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
-                <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Main sponsors</p>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-[#CFCFCF]">Main sponsors</p>
+                  <button type="button" onClick={() => addSponsor('main')} disabled={draft.sponsors.main.length >= maxSponsorsPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
+                    <Plus className="h-3.5 w-3.5" />
+                    Agregar
+                  </button>
+                </div>
                 <div className="space-y-2">
                   {draft.sponsors.main.map((entry, index) => (
                     <div key={`main-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#101010] p-3">
-                      <p className="mb-2 text-[11px] font-semibold text-[#CFCFCF]">Main {index + 1}</p>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold text-[#CFCFCF]">Main {index + 1}</p>
+                        <button type="button" onClick={() => removeSponsor('main', index)} disabled={draft.sponsors.main.length <= 1} className="inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-[#3A1D1D] px-2 text-[11px] text-[#FCA5A5] disabled:cursor-not-allowed disabled:opacity-40">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Eliminar
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.main.${index}.name`, value)} />
                         <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.main.${index}.logoUrl`, value)} />
@@ -509,11 +551,23 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                 </div>
               </div>
               <div className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
-                <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Secondary sponsors</p>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-[#CFCFCF]">Secondary sponsors</p>
+                  <button type="button" onClick={() => addSponsor('secondary')} disabled={draft.sponsors.secondary.length >= maxSponsorsPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
+                    <Plus className="h-3.5 w-3.5" />
+                    Agregar
+                  </button>
+                </div>
                 <div className="space-y-2">
                   {draft.sponsors.secondary.map((entry, index) => (
                     <div key={`secondary-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#101010] p-3">
-                      <p className="mb-2 text-[11px] font-semibold text-[#CFCFCF]">Secondary {index + 1}</p>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold text-[#CFCFCF]">Secondary {index + 1}</p>
+                        <button type="button" onClick={() => removeSponsor('secondary', index)} disabled={draft.sponsors.secondary.length <= 1} className="inline-flex h-7 items-center justify-center gap-1 rounded-lg border border-[#3A1D1D] px-2 text-[11px] text-[#FCA5A5] disabled:cursor-not-allowed disabled:opacity-40">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Eliminar
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.secondary.${index}.name`, value)} />
                         <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.secondary.${index}.logoUrl`, value)} />
