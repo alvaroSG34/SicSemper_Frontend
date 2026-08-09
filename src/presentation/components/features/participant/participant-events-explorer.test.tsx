@@ -18,7 +18,7 @@ const events: ParticipantEventDetail[] = [
     description: "Descripcion del evento",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
-    organizerClub: { id: "club-1", name: "IPMS" },
+    organizerClub: { id: "club-1", name: "SICSEMPER" },
   },
   {
     id: "event-2",

@@ -284,7 +284,7 @@ export function AdminDashboardPage({
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-5 w-5 text-white" />
-            <span className="text-2xl font-bold tracking-[-0.5px] text-white">IPMS BOLIVIA</span>
+            <span className="text-2xl font-bold tracking-[-0.5px] text-white">SICSEMPER</span>
           </div>
 
           <nav className="mt-16 flex flex-col gap-7">
@@ -324,7 +324,7 @@ export function AdminDashboardPage({
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <ChevronDown className="h-4 w-4 text-white" />
-                  <span className="text-lg font-bold tracking-[-0.3px] text-white">IPMS BOLIVIA</span>
+                  <span className="text-lg font-bold tracking-[-0.3px] text-white">SICSEMPER</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-[#5B68F1]">{activeSectionLabel}</span>
@@ -352,7 +352,7 @@ export function AdminDashboardPage({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <ChevronDown className="h-4 w-4 text-white" />
-                      <span className="text-lg font-bold text-white">IPMS BOLIVIA</span>
+                      <span className="text-lg font-bold text-white">SICSEMPER</span>
                     </div>
                     <button
                       type="button"
@@ -405,7 +405,7 @@ export function AdminDashboardPage({
                 <h1
                   className={`${outfit.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}
                 >
-                  Hola, Admin {user?.name?.split(" ")[0] ?? "IPMS BOLIVIA"}
+                  Hola, Admin {user?.name?.split(" ")[0] ?? "SICSEMPER"}
                 </h1>
                 <p className="hidden text-sm text-[#AAAAAA] md:block">
                   Centro de control operativo de competencias de modelismo

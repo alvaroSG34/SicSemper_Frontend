@@ -11,7 +11,7 @@ const baseChallenge: ParticipantNextChallenge = {
   eyebrow: "PROXIMO RETO",
   title: "Desafio Abierto",
   categoryLine: "Categoria principal",
-  organizer: "Organiza: IPMS BOLIVIA",
+  organizer: "Organiza: SICSEMPER",
   startDate: null,
   countdown: {
     days: "00",
@@ -25,7 +25,7 @@ describe("ParticipantNextChallenge", () => {
   it("shows organizer when there is active event", () => {
     render(<ParticipantNextChallengeCard challenge={baseChallenge} />);
 
-    expect(screen.getByText("Organiza: IPMS BOLIVIA")).toBeTruthy();
+    expect(screen.getByText("Organiza: SICSEMPER")).toBeTruthy();
   });
 
   it("hides organizer in empty state without eventId", () => {
@@ -40,7 +40,7 @@ describe("ParticipantNextChallenge", () => {
       />,
     );
 
-    expect(screen.queryByText("Organiza: IPMS BOLIVIA")).toBeNull();
+    expect(screen.queryByText("Organiza: SICSEMPER")).toBeNull();
     expect(screen.getByText("Todavia no hay desafios abiertos")).toBeTruthy();
   });
 });

@@ -4,7 +4,7 @@ const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export const landingDefaultContent: LandingContent = {
   heroDate: '15 Y 16 DE AGOSTO, 2026 / SALON GUARAYO - FEXPOCRUZ',
-  heroTitle: 'Competencia IPMS BOLIVIA\nDe Modelismo',
+  heroTitle: 'Competencia SICSEMPER\nDe Modelismo',
   modelCards: [
     {
       name: 'Avion a escala',
@@ -30,7 +30,7 @@ export const landingDefaultContent: LandingContent = {
     subtitle:
       'Vive la pasion por el modelismo en un evento que celebra el detalle, la creatividad y la precision.',
     descriptionOne:
-      'IPMS BOLIVIA reune a constructores, coleccionistas y entusiastas de las maquetas en un espacio donde cada pieza cuenta una historia. Desde aviones y tanques hasta creaciones personalizadas, nuestra competencia es el escenario para demostrar talento y compartir trabajo con una comunidad que valora cada detalle.',
+      'SICSEMPER reune a constructores, coleccionistas y entusiastas de las maquetas en un espacio donde cada pieza cuenta una historia. Desde aviones y tanques hasta creaciones personalizadas, nuestra competencia es el escenario para demostrar talento y compartir trabajo con una comunidad que valora cada detalle.',
     descriptionTwo:
       'Participa, compite y conecta con personas que comparten tu misma pasion. Aqui no solo presentas una maqueta: presentas horas de dedicacion, tecnica y creatividad.',
     image: '/Images/Evento.webp',
@@ -92,7 +92,7 @@ export const landingDefaultContent: LandingContent = {
   ],
   sponsors: {
     main: [
-      { name: 'IPMS BOLIVIA', logoUrl: '', url: '' },
+      { name: 'SICSEMPER', logoUrl: '', url: '' },
       { name: 'MODEL KITS BOL', logoUrl: '', url: '' },
       { name: 'AEROMODEL CLUB', logoUrl: '', url: '' },
       { name: 'TANQUE HISTORICO', logoUrl: '', url: '' },
@@ -101,7 +101,7 @@ export const landingDefaultContent: LandingContent = {
       { name: 'HOBBY MASTER', logoUrl: '', url: '' },
       { name: 'PINTURAS ATLAS', logoUrl: '', url: '' },
     ],
-    secondary: [{ name: 'IPMS BOLIVIA', logoUrl: '', url: '' }],
+    secondary: [{ name: 'SICSEMPER', logoUrl: '', url: '' }],
   },
   locationCards: [
     {

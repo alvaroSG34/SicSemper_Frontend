@@ -24,7 +24,7 @@ export function LandingFooter() {
       <div className="mx-auto flex w-full max-w-[1686px] flex-col gap-12 px-6 pb-10 pt-20 md:px-10 xl:px-[120px]">
         <div className="flex w-full flex-wrap justify-center gap-12 xl:gap-20">
           <div className="w-full xl:w-[280px]">
-            <p className="text-xl font-semibold text-[color:var(--landing-text)]">IPMS BOLIVIA</p>
+            <p className="text-xl font-semibold text-[color:var(--landing-text)]">SICSEMPER</p>
             <p className="mt-3 text-[13px] text-[color:var(--landing-muted)]">
               Plataforma oficial de gestion para competencias de modelismo y maquetas.
             </p>
@@ -64,10 +64,10 @@ export function LandingFooter() {
               </p>
 
               <a
-                href="mailto:contacto@ipmsbolivia.org"
+                href="mailto:contacto@SICSEMPERbolivia.org"
                 className="flex h-11 w-full max-w-[280px] items-center rounded-[22px] border border-[color:var(--landing-border)] px-5 text-[13px] text-[color:var(--landing-subtle)] transition-colors hover:text-[color:var(--landing-text)] focus-visible:outline-none focus-visible:text-[color:var(--landing-text)]"
               >
-                contacto@ipmsbolivia.org
+                contacto@SICSEMPERbolivia.org
               </a>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function LandingFooter() {
 
         <div className="flex w-full flex-wrap items-center gap-4 border-t border-transparent pt-8">
           <p className="text-[13px] text-[color:var(--landing-subtle)]">
-            (c) 2026 IPMS BOLIVIA. Todos los derechos reservados.
+            (c) 2026 SICSEMPER. Todos los derechos reservados.
           </p>
           <nav aria-label="Legal" className="flex gap-4 xl:ml-auto">
             <Link href="/privacidad" className={footerLinkClassName}>

@@ -172,7 +172,7 @@ export function PublicHeader({
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >
-            IPMS BOLIVIA
+            SICSEMPER
           </span>
         </Link>
 

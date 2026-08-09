@@ -5,7 +5,7 @@ describe("PublicHeader", () => {
   it("uses compact responsive logo sizing on mobile", () => {
     render(<PublicHeader isLandingPage />);
 
-    const brand = screen.getByText("IPMS BOLIVIA");
+    const brand = screen.getByText("SICSEMPER");
     const brandLink = brand.closest("a");
     const headerInner = brandLink?.parentElement;
 
@@ -35,7 +35,7 @@ describe("PublicHeader", () => {
   it("uses a solid dark login header on mobile and keeps the split background for desktop", () => {
     const { container } = render(<PublicHeader variant="login" activeAuthAction="login" />);
     const header = container.querySelector("header");
-    const brand = screen.getByText("IPMS BOLIVIA");
+    const brand = screen.getByText("SICSEMPER");
 
     expect(header?.className).toContain("bg-[#0a0a0a]");
     expect(header?.className).toContain("xl:bg-[linear-gradient");

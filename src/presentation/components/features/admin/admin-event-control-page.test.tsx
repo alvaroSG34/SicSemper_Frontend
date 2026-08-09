@@ -55,7 +55,7 @@ describe("AdminEventControlPage", () => {
         eventStatus: "ACTIVO",
         startDate: "2026-10-10T08:00:00.000Z",
         endDate: "2026-10-12T20:00:00.000Z",
-        organizerClubName: "IPMS Bolivia",
+        organizerClubName: "SICSEMPER",
         registrationsCount: 12,
         uniqueParticipantsCount: 10,
         verifiedParticipantsCount: 7,

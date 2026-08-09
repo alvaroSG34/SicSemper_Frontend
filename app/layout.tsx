@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "IPMS BOLIVIA",
+  title: "SICSEMPER",
   description: "Plataforma de competencias de modelismo y evaluacion de maquetas",
 };
 

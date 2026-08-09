@@ -32,8 +32,8 @@ describe("LandingFooter", () => {
   it("renders contact and legal links", () => {
     render(<LandingFooter />);
 
-    expect(screen.getByRole("link", { name: "contacto@ipmsbolivia.org" }).getAttribute("href")).toBe(
-      "mailto:contacto@ipmsbolivia.org",
+    expect(screen.getByRole("link", { name: "contacto@SICSEMPERbolivia.org" }).getAttribute("href")).toBe(
+      "mailto:contacto@SICSEMPERbolivia.org",
     );
     expect(screen.getByRole("link", { name: "Politica de privacidad" }).getAttribute("href")).toBe(
       "/privacidad",

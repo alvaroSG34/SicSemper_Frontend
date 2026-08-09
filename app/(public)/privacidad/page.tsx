@@ -13,15 +13,15 @@ export default function PrivacyPage() {
 
         <article className="space-y-4 text-sm leading-7 text-[#D0D0D0]">
           <p>
-            IPMS BOLIVIA recopila datos personales unicamente para gestionar registros, inscripciones y comunicacion operativa de la plataforma.
+            SICSEMPER recopila datos personales unicamente para gestionar registros, inscripciones y comunicacion operativa de la plataforma.
           </p>
           <p>
             Los datos pueden incluir nombre, correo electronico, telefono, ciudad, pais y datos de participacion en eventos. No se comercializa informacion personal.
           </p>
           <p>
             Puedes solicitar correccion o eliminacion de tus datos escribiendo a{" "}
-            <a className="text-[#7CD4D1] hover:text-white" href="mailto:contacto@ipmsbolivia.org">
-              contacto@ipmsbolivia.org
+            <a className="text-[#7CD4D1] hover:text-white" href="mailto:contacto@SICSEMPERbolivia.org">
+              contacto@SICSEMPERbolivia.org
             </a>
             .
           </p>

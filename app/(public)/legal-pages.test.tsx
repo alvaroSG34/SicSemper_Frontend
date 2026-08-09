@@ -29,8 +29,8 @@ describe("Legal pages", () => {
 
     expect(screen.getByRole("heading", { name: "Politica de privacidad" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Volver al inicio" }).getAttribute("href")).toBe("/");
-    expect(screen.getByRole("link", { name: "contacto@ipmsbolivia.org" }).getAttribute("href")).toBe(
-      "mailto:contacto@ipmsbolivia.org",
+    expect(screen.getByRole("link", { name: "contacto@SICSEMPERbolivia.org" }).getAttribute("href")).toBe(
+      "mailto:contacto@SICSEMPERbolivia.org",
     );
   });
 

@@ -1,3 +1,3 @@
 export const appConfig = {
-  appName: "IPMS BOLIVIA",
+  appName: "SICSEMPER",
 } as const;

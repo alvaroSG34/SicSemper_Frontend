@@ -22,6 +22,6 @@ describe("ParticipantMobileSidebar", () => {
     expect(screen.getAllByRole("link")).toHaveLength(3);
     expect(screen.getByRole("link", { name: "Inicio" }).getAttribute("href")).toBe("/participante/inicio");
     expect(screen.getByRole("link", { name: "Eventos" }).getAttribute("aria-current")).toBe("page");
-    expect(navigationBar.textContent).not.toContain("IPMS BOLIVIA");
+    expect(navigationBar.textContent).not.toContain("SICSEMPER");
   });
 });
