@@ -28,10 +28,7 @@ type ParticipantStoreState = {
   selectedEventSubcategoryPurpose: "default" | "upload";
   eventCategories: ParticipantCategoryOption[];
   subcategoriesByCategory: Record<string, ParticipantSubcategoryOption[]>;
-  subcategoryBranchCacheByContext: Record<
-    string,
-    Record<string, ParticipantSubcategoryOption[]>
-  >;
+  subcategoryBranchCacheByContext: Record<string, Record<string, ParticipantSubcategoryOption[]>>;
   subcategoryBranchLoadingByContext: Record<string, Record<string, boolean>>;
   subcategoryBranchErrorByContext: Record<string, Record<string, string | null>>;
   showcaseTreeByEventId: Record<string, ParticipantShowcaseTreeResponse>;
@@ -48,14 +45,9 @@ type ParticipantStoreState = {
   flowSuccessMessage: string | null;
   loadDashboard: (userId?: string) => Promise<void>;
   loadExploreEvents: (options?: { force?: boolean }) => Promise<void>;
-  selectEvent: (
-    eventId: string,
-    subcategoryPurpose?: "default" | "upload",
-  ) => Promise<boolean>;
+  selectEvent: (eventId: string, subcategoryPurpose?: "default" | "upload") => Promise<boolean>;
   loadShowcaseTree: (eventId: string, options?: { force?: boolean }) => Promise<void>;
-  ensureSubcategoryBranches: (
-    input: EnsureSubcategoryBranchesInput,
-  ) => Promise<void>;
+  ensureSubcategoryBranches: (input: EnsureSubcategoryBranchesInput) => Promise<void>;
   loadEventCategoriesForDetail: (eventId: string) => Promise<void>;
   submitModel: (payload: {
     userId: string;
@@ -68,6 +60,15 @@ type ParticipantStoreState = {
     escalaId: string;
     files: File[];
   }) => Promise<boolean>;
+  updateModel: (payload: {
+    userId: string;
+    modelId: string;
+    nombreModelo: string;
+    marca: string;
+    descripcion?: string;
+    files: Array<{ id: string } | File>;
+  }) => Promise<void>;
+  deleteModel: (payload: { userId: string; modelId: string }) => Promise<void>;
   loadMyModels: (userId: string) => Promise<void>;
   clearError: () => void;
   clearFlowState: () => void;
@@ -85,15 +86,9 @@ type SubcategoryTreeLoadResult = {
 let dashboardRequest: Promise<ParticipantDashboardData> | null = null;
 let exploreRequest: Promise<ExplorePayload> | null = null;
 const myModelsRequests = new Map<string, Promise<ParticipantModel[]>>();
-const detailCategoriesRequests = new Map<
-  string,
-  Promise<ParticipantEventAllowedCategoryGroup[]>
->();
+const detailCategoriesRequests = new Map<string, Promise<ParticipantEventAllowedCategoryGroup[]>>();
 const showcaseTreeRequests = new Map<string, Promise<ParticipantShowcaseTreeResponse>>();
-const subcategoryBranchRequests = new Map<
-  string,
-  Promise<ParticipantSubcategoryOption[]>
->();
+const subcategoryBranchRequests = new Map<string, Promise<ParticipantSubcategoryOption[]>>();
 const SUBCATEGORY_REQUEST_TIMEOUT_MS = 12_000;
 const EVENT_CONTEXT_REQUEST_TIMEOUT_MS = 12_000;
 const SHOWCASE_TREE_REQUEST_TIMEOUT_MS = 12_000;
@@ -127,10 +122,8 @@ const getErrorMessage = (error: unknown): string => {
   return "Ocurrio un error inesperado al cargar el dashboard de participante.";
 };
 
-const buildSubcategoryContextKey = (
-  eventId: string,
-  purpose: "default" | "upload",
-) => `${eventId}::${purpose}`;
+const buildSubcategoryContextKey = (eventId: string, purpose: "default" | "upload") =>
+  `${eventId}::${purpose}`;
 
 const buildSubcategoriesMapFromShowcaseTree = (
   tree: ParticipantShowcaseTreeResponse,
@@ -324,12 +317,9 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       return;
     }
 
-
     if (!exploreRequest) {
       set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
-      exploreRequest = participantService
-        .getUpcomingEvents()
-        .then((events) => ({ events }));
+      exploreRequest = participantService.getUpcomingEvents().then((events) => ({ events }));
     }
 
     const request = exploreRequest;
@@ -370,7 +360,6 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       return false;
     }
 
-
     set({
       flowLoading: true,
       flowError: null,
@@ -399,13 +388,8 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         throw new Error("No se encontro el evento seleccionado.");
       }
 
-
-      const contextKey = buildSubcategoryContextKey(
-        event.id,
-        subcategoryPurpose,
-      );
-      const cachedBranches =
-        get().subcategoryBranchCacheByContext[contextKey] ?? {};
+      const contextKey = buildSubcategoryContextKey(event.id, subcategoryPurpose);
+      const cachedBranches = get().subcategoryBranchCacheByContext[contextKey] ?? {};
 
       set({
         selectedEvent: event,
@@ -452,8 +436,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
       const firstRootBranchError =
         categories
           .map((category) => rootBranchErrors[category.id])
-          .find((message): message is string => Boolean(message && message.trim())) ??
-        null;
+          .find((message): message is string => Boolean(message && message.trim())) ?? null;
 
       set({
         flowLoading: false,
@@ -713,10 +696,7 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         );
         const grouped = categories.map((category) => ({
           category,
-          subcategories: collectLeafDescendants(
-            category.id,
-            subcategoriesByCategoryResult.map,
-          ),
+          subcategories: collectLeafDescendants(category.id, subcategoriesByCategoryResult.map),
         }));
         return grouped;
       })();
@@ -807,6 +787,54 @@ export const useParticipantStore = create<ParticipantStoreState>((set, get) => (
         flowSuccessMessage: null,
       });
       return false;
+    }
+  },
+  updateModel: async (payload) => {
+    set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
+
+    try {
+      const files = await Promise.all(
+        payload.files.map((file) =>
+          "id" in file ? { id: file.id } : participantService.uploadModelFile(file),
+        ),
+      );
+      const updatedModel = await participantService.updateModel({
+        modelId: payload.modelId,
+        nombreModelo: payload.nombreModelo,
+        marca: payload.marca,
+        descripcion: payload.descripcion,
+        files,
+      });
+      const myModels = await participantService.getMyModels(payload.userId);
+
+      set({
+        flowLoading: false,
+        flowError: null,
+        flowSuccessMessage: `Maqueta ${updatedModel.nombreModelo} actualizada correctamente.`,
+        myModels,
+      });
+    } catch (error) {
+      const message = getErrorMessage(error);
+      set({ flowLoading: false, flowError: message, flowSuccessMessage: null });
+      throw new Error(message);
+    }
+  },
+  deleteModel: async ({ userId, modelId }) => {
+    set({ flowLoading: true, flowError: null, flowSuccessMessage: null });
+
+    try {
+      await participantService.deleteModel(modelId);
+      const myModels = await participantService.getMyModels(userId);
+      set({
+        flowLoading: false,
+        flowError: null,
+        flowSuccessMessage: "Maqueta eliminada correctamente.",
+        myModels,
+      });
+    } catch (error) {
+      const message = getErrorMessage(error);
+      set({ flowLoading: false, flowError: message, flowSuccessMessage: null });
+      throw new Error(message);
     }
   },
   loadMyModels: async (userId) => {

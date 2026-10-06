@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
   AdminClub,
   CatalogCategory,
@@ -9,19 +9,20 @@ import type {
   EventCategoryOption,
   EventDeleteImpact,
   JudgeAssignmentScope,
-} from '@/domain/admin/admin.types';
-import { adminEventsService } from '@/application/admin/services/admin-events.service';
-import { adminUploadsService } from '@/application/admin/services/admin-uploads.service';
-import { useAdminOperations } from './use-admin-operations';
-import { useAdminStore } from '@/presentation/stores/admin.store';
+} from "@/domain/admin/admin.types";
+import { adminEventsService } from "@/application/admin/services/admin-events.service";
+import { adminUploadsService } from "@/application/admin/services/admin-uploads.service";
+import { useAdminOperations } from "./use-admin-operations";
+import { useAdminStore } from "@/presentation/stores/admin.store";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 import {
   combineLaPazDateAndTimeToUtcIso,
   splitUtcIsoToLaPazDateAndTime,
   toLaPazDateTimeTimestamp,
-} from '@/core/utils/event-datetime';
+} from "@/core/utils/event-datetime";
 
-type EventModalMode = 'create' | 'edit';
-type EventModalTab = 'datos' | 'categorias' | 'escalas';
+type EventModalMode = "create" | "edit";
+type EventModalTab = "datos" | "categorias" | "escalas";
 
 type EventFormState = {
   organizerClubId: string;
@@ -31,6 +32,9 @@ type EventFormState = {
   startTime: string;
   endDate: string;
   endTime: string;
+  participantModelEditingEnabled: boolean;
+  participantModelEditingDeadlineDate: string;
+  participantModelEditingDeadlineTime: string;
   status: CatalogEventStatus;
   description: string;
   imageUrl: string;
@@ -87,19 +91,27 @@ type EventScaleGroupDraft = {
 };
 
 const emptyEventForm: EventFormState = {
-  organizerClubId: '',
-  name: '',
-  place: '',
-  startDate: '',
-  startTime: '',
-  endDate: '',
-  endTime: '',
-  status: 'BORRADOR',
-  description: '',
-  imageUrl: '',
+  organizerClubId: "",
+  name: "",
+  place: "",
+  startDate: "",
+  startTime: "",
+  endDate: "",
+  endTime: "",
+  participantModelEditingEnabled: false,
+  participantModelEditingDeadlineDate: "",
+  participantModelEditingDeadlineTime: "",
+  status: "BORRADOR",
+  description: "",
+  imageUrl: "",
 };
 
-export const eventStatusOptions: CatalogEventStatus[] = ['ACTIVO', 'PAUSADO', 'BORRADOR', 'FINALIZADO'];
+export const eventStatusOptions: CatalogEventStatus[] = [
+  "ACTIVO",
+  "PAUSADO",
+  "BORRADOR",
+  "FINALIZADO",
+];
 
 type UseAdminEventsParams = {
   events: CatalogEvent[];
@@ -122,41 +134,50 @@ export const useAdminEvents = ({
   assignments,
   canReadJudgeAssignments,
 }: UseAdminEventsParams) => {
-  const { createEventAndLinkCategories, updateEventAndLinkCategories, getEventDeleteImpact, removeEvent } =
-    useAdminOperations();
+  const {
+    createEventAndLinkCategories,
+    updateEventAndLinkCategories,
+    getEventDeleteImpact,
+    removeEvent,
+  } = useAdminOperations();
   const clearError = useAdminStore((state) => state.clearError);
 
-  const [eventSearch, setEventSearch] = useState('');
-  const [eventStatusFilter, setEventStatusFilter] = useState<'TODOS' | CatalogEventStatus>('TODOS');
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventStatusFilter, setEventStatusFilter] = useState<"TODOS" | CatalogEventStatus>("TODOS");
   const [eventModalMode, setEventModalMode] = useState<EventModalMode | null>(null);
-  const [activeEventTab, setActiveEventTab] = useState<EventModalTab>('datos');
+  const [activeEventTab, setActiveEventTab] = useState<EventModalTab>("datos");
   const [eventModalSelectedLeafIds, setEventModalSelectedLeafIds] = useState<Set<string>>(
     new Set(),
   );
   const [eventModalTargetId, setEventModalTargetId] = useState<string | null>(null);
   const [eventModalError, setEventModalError] = useState<string | null>(null);
-  const [eventModalScaleConfigLoading, setEventModalScaleConfigLoading] =
-    useState(false);
+  const [eventModalScaleConfigLoading, setEventModalScaleConfigLoading] = useState(false);
   const [eventForm, setEventForm] = useState<EventFormState>(emptyEventForm);
-  const [eventModalScaleIdsByCategoryId, setEventModalScaleIdsByCategoryId] =
-    useState<Record<string, string[]>>({});
-  const [eventModalScaleGroupsByCategoryId, setEventModalScaleGroupsByCategoryId] =
-    useState<Record<string, EventScaleGroupDraft[]>>({});
-  const [eventModalScaleGroupsLoading, setEventModalScaleGroupsLoading] =
-    useState(false);
-  const [eventModalScaleCategorySearch, setEventModalScaleCategorySearch] = useState('');
-  const [eventModalScaleSubcategorySearch, setEventModalScaleSubcategorySearch] = useState('');
-  const [eventModalScaleSpecialtySearch, setEventModalScaleSpecialtySearch] = useState('');
-  const [eventModalSelectedScaleCategoryId, setEventModalSelectedScaleCategoryId] =
-    useState<string | null>(null);
-  const [eventModalSelectedScaleSubcategoryId, setEventModalSelectedScaleSubcategoryId] =
-    useState<string | null>(null);
-  const [eventModalSelectedScaleLeafId, setEventModalSelectedScaleLeafId] = useState<string | null>(null);
+  useRealtimeDirtyForm(["admin", "event", "model"], eventModalMode !== null);
+  const [eventModalScaleIdsByCategoryId, setEventModalScaleIdsByCategoryId] = useState<
+    Record<string, string[]>
+  >({});
+  const [eventModalScaleGroupsByCategoryId, setEventModalScaleGroupsByCategoryId] = useState<
+    Record<string, EventScaleGroupDraft[]>
+  >({});
+  const [eventModalScaleGroupsLoading, setEventModalScaleGroupsLoading] = useState(false);
+  const [eventModalScaleCategorySearch, setEventModalScaleCategorySearch] = useState("");
+  const [eventModalScaleSubcategorySearch, setEventModalScaleSubcategorySearch] = useState("");
+  const [eventModalScaleSpecialtySearch, setEventModalScaleSpecialtySearch] = useState("");
+  const [eventModalSelectedScaleCategoryId, setEventModalSelectedScaleCategoryId] = useState<
+    string | null
+  >(null);
+  const [eventModalSelectedScaleSubcategoryId, setEventModalSelectedScaleSubcategoryId] = useState<
+    string | null
+  >(null);
+  const [eventModalSelectedScaleLeafId, setEventModalSelectedScaleLeafId] = useState<string | null>(
+    null,
+  );
   const [eventModalScaleDraftIds, setEventModalScaleDraftIds] = useState<string[]>([]);
   const [isEventImageUploading, setIsEventImageUploading] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     message: string;
   } | null>(null);
   const [eventDeleteImpactModal, setEventDeleteImpactModal] = useState<{
@@ -191,11 +212,12 @@ export const useAdminEvents = ({
     const normalizedQuery = eventSearch.trim().toLowerCase();
 
     return events.filter((eventItem) => {
-      const matchesStatus = eventStatusFilter === 'TODOS' ? true : eventItem.status === eventStatusFilter;
+      const matchesStatus =
+        eventStatusFilter === "TODOS" ? true : eventItem.status === eventStatusFilter;
       const matchesSearch =
         normalizedQuery.length === 0
           ? true
-          : `${eventItem.name} ${eventItem.place ?? ''} ${eventItem.description ?? ''}`
+          : `${eventItem.name} ${eventItem.place ?? ""} ${eventItem.description ?? ""}`
               .toLowerCase()
               .includes(normalizedQuery);
 
@@ -299,10 +321,7 @@ export const useAdminEvents = ({
   }, [eventCategories]);
 
   const collectSelectedLeafCategoryIds = useCallback(
-    () =>
-      [...eventModalSelectedLeafIds].filter((leafId) =>
-        allLeafNodeIds.has(leafId),
-      ),
+    () => [...eventModalSelectedLeafIds].filter((leafId) => allLeafNodeIds.has(leafId)),
     [allLeafNodeIds, eventModalSelectedLeafIds],
   );
 
@@ -385,12 +404,10 @@ export const useAdminEvents = ({
 
       const leafParentId = leaf?.categoryId ?? rootCategoryId;
       const leafParentIsCategory = categoriesById.has(leafParentId);
-      const subcategoryId = leafParentIsCategory
-        ? `__direct__:${rootCategoryId}`
-        : leafParentId;
+      const subcategoryId = leafParentIsCategory ? `__direct__:${rootCategoryId}` : leafParentId;
       const subcategoryName = leafParentIsCategory
-        ? 'Sin subcategoria'
-        : subcategoriesById.get(leafParentId)?.name ?? 'Subcategoria';
+        ? "Sin subcategoria"
+        : (subcategoriesById.get(leafParentId)?.name ?? "Subcategoria");
       const subcategoryKey = `${rootCategoryId}:${subcategoryId}`;
 
       if (!subcategoriesAccumulator.has(subcategoryKey)) {
@@ -599,28 +616,31 @@ export const useAdminEvents = ({
     }
   }, [eventModalSelectedScaleLeafId]);
 
-  const toggleStep3ScaleDraftId = useCallback((scaleId: string) => {
-    setEventModalScaleDraftIds((current) => {
-      const next = current.includes(scaleId)
-        ? current.filter((id) => id !== scaleId)
-        : [...current, scaleId];
-      const deduped = Array.from(new Set(next));
-      if (eventModalSelectedScaleLeafId) {
-        setEventModalScaleIdsByCategoryId((prev) => ({
-          ...prev,
-          [eventModalSelectedScaleLeafId]: deduped,
-        }));
-      }
-      return deduped;
-    });
-  }, [eventModalSelectedScaleLeafId]);
+  const toggleStep3ScaleDraftId = useCallback(
+    (scaleId: string) => {
+      setEventModalScaleDraftIds((current) => {
+        const next = current.includes(scaleId)
+          ? current.filter((id) => id !== scaleId)
+          : [...current, scaleId];
+        const deduped = Array.from(new Set(next));
+        if (eventModalSelectedScaleLeafId) {
+          setEventModalScaleIdsByCategoryId((prev) => ({
+            ...prev,
+            [eventModalSelectedScaleLeafId]: deduped,
+          }));
+        }
+        return deduped;
+      });
+    },
+    [eventModalSelectedScaleLeafId],
+  );
 
   const saveStep3ScaleDraft = useCallback(() => {
     // Maintained for compatibility with existing consumers.
   }, []);
 
   const eventModalCategoryRemovalImpact = useMemo<EventCategoryRemovalImpact>(() => {
-    if (eventModalMode !== 'edit' || !eventModalTargetId) {
+    if (eventModalMode !== "edit" || !eventModalTargetId) {
       return {
         removedEventCategoryIds: [],
         removedCategoryNames: [],
@@ -670,16 +690,16 @@ export const useAdminEvents = ({
       await action();
       const latestError = useAdminStore.getState().error;
       if (latestError) {
-        setActionFeedback({ type: 'error', message: latestError });
+        setActionFeedback({ type: "error", message: latestError });
         return false;
       }
 
-      setActionFeedback({ type: 'success', message: successMessage });
+      setActionFeedback({ type: "success", message: successMessage });
       return true;
     } catch (error) {
       setActionFeedback({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'No se pudo completar la accion.',
+        type: "error",
+        message: error instanceof Error ? error.message : "No se pudo completar la accion.",
       });
       return false;
     } finally {
@@ -687,27 +707,30 @@ export const useAdminEvents = ({
     }
   };
 
-  const toggleCategorySelection = useCallback((categoryId: string) => {
-    const leafIds = categoryLeafIdsByNodeId.get(categoryId) ?? [];
-    if (leafIds.length === 0) {
-      return;
-    }
-
-    setEventModalSelectedLeafIds((prev) => {
-      const next = new Set(prev);
-
-      const allSelected = leafIds.every((leafId) => next.has(leafId));
-      for (const leafId of leafIds) {
-        if (allSelected) {
-          next.delete(leafId);
-        } else {
-          next.add(leafId);
-        }
+  const toggleCategorySelection = useCallback(
+    (categoryId: string) => {
+      const leafIds = categoryLeafIdsByNodeId.get(categoryId) ?? [];
+      if (leafIds.length === 0) {
+        return;
       }
 
-      return next;
-    });
-  }, [categoryLeafIdsByNodeId]);
+      setEventModalSelectedLeafIds((prev) => {
+        const next = new Set(prev);
+
+        const allSelected = leafIds.every((leafId) => next.has(leafId));
+        for (const leafId of leafIds) {
+          if (allSelected) {
+            next.delete(leafId);
+          } else {
+            next.add(leafId);
+          }
+        }
+
+        return next;
+      });
+    },
+    [categoryLeafIdsByNodeId],
+  );
 
   const selectStep3ScaleCategory = useCallback((categoryId: string) => {
     setEventModalSelectedScaleCategoryId(categoryId);
@@ -744,22 +767,19 @@ export const useAdminEvents = ({
     });
   }, [eventModalSelectedLeafIds]);
 
-  const updateCategoryScaleIds = useCallback(
-    (categoryId: string, scaleIds: string[]) => {
-      setEventModalScaleIdsByCategoryId((prev) => ({
-        ...prev,
-        [categoryId]: Array.from(new Set(scaleIds)),
-      }));
-    },
-    [],
-  );
+  const updateCategoryScaleIds = useCallback((categoryId: string, scaleIds: string[]) => {
+    setEventModalScaleIdsByCategoryId((prev) => ({
+      ...prev,
+      [categoryId]: Array.from(new Set(scaleIds)),
+    }));
+  }, []);
 
   const addScaleGroup = useCallback((categoryId: string) => {
     setEventModalScaleGroupsByCategoryId((prev) => {
       const current = prev[categoryId] ?? [];
       return {
         ...prev,
-        [categoryId]: [...current, { name: '', scaleIds: [] }],
+        [categoryId]: [...current, { name: "", scaleIds: [] }],
       };
     });
   }, []);
@@ -774,28 +794,25 @@ export const useAdminEvents = ({
     });
   }, []);
 
-  const updateScaleGroupName = useCallback(
-    (categoryId: string, index: number, name: string) => {
-      setEventModalScaleGroupsByCategoryId((prev) => {
-        const current = prev[categoryId] ?? [];
-        const next = current.map((group, groupIndex) =>
-          groupIndex === index ? { ...group, name } : group,
-        );
-        return { ...prev, [categoryId]: next };
-      });
-    },
-    [],
-  );
+  const updateScaleGroupName = useCallback((categoryId: string, index: number, name: string) => {
+    setEventModalScaleGroupsByCategoryId((prev) => {
+      const current = prev[categoryId] ?? [];
+      const next = current.map((group, groupIndex) =>
+        groupIndex === index ? { ...group, name } : group,
+      );
+      return { ...prev, [categoryId]: next };
+    });
+  }, []);
 
   const toggleScaleGroupScaleId = useCallback(
     (categoryId: string, index: number, scaleId: string) => {
       setEventModalScaleGroupsByCategoryId((prev) => {
         const current = prev[categoryId] ?? [];
-        
+
         // We find the target group to see if it already has the scale
         const targetGroup = current[index];
         if (!targetGroup) return prev;
-        
+
         const isAdding = !targetGroup.scaleIds.includes(scaleId);
 
         const next = current.map((group, groupIndex) => {
@@ -828,20 +845,20 @@ export const useAdminEvents = ({
   const openCreateEventModal = () => {
     setActionFeedback(null);
     clearError();
-    setEventModalMode('create');
+    setEventModalMode("create");
     setEventModalTargetId(null);
     setEventForm({
       ...emptyEventForm,
-      organizerClubId: clubs[0]?.id ?? '',
+      organizerClubId: clubs[0]?.id ?? "",
     });
-    setActiveEventTab('datos');
+    setActiveEventTab("datos");
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleGroupsLoading(false);
-    setEventModalScaleCategorySearch('');
-    setEventModalScaleSubcategorySearch('');
-    setEventModalScaleSpecialtySearch('');
+    setEventModalScaleCategorySearch("");
+    setEventModalScaleSubcategorySearch("");
+    setEventModalScaleSpecialtySearch("");
     setEventModalSelectedScaleCategoryId(null);
     setEventModalSelectedScaleSubcategoryId(null);
     setEventModalSelectedScaleLeafId(null);
@@ -856,21 +873,27 @@ export const useAdminEvents = ({
     setEventModalError(null);
     const startDateTime = splitUtcIsoToLaPazDateAndTime(eventItem.startDate);
     const endDateTime = splitUtcIsoToLaPazDateAndTime(eventItem.endDate);
+    const editingDeadline = splitUtcIsoToLaPazDateAndTime(
+      eventItem.participantModelEditingDeadline,
+    );
 
-    setEventModalMode('edit');
+    setEventModalMode("edit");
     setEventModalTargetId(eventItem.id);
-    setActiveEventTab('datos');
+    setActiveEventTab("datos");
     setEventForm({
-      organizerClubId: eventItem.organizerClubId ?? clubs[0]?.id ?? '',
+      organizerClubId: eventItem.organizerClubId ?? clubs[0]?.id ?? "",
       name: eventItem.name,
-      place: eventItem.place ?? '',
+      place: eventItem.place ?? "",
       startDate: startDateTime.date,
       startTime: startDateTime.time,
       endDate: endDateTime.date,
       endTime: endDateTime.time,
+      participantModelEditingEnabled: eventItem.participantModelEditingEnabled ?? false,
+      participantModelEditingDeadlineDate: editingDeadline.date,
+      participantModelEditingDeadlineTime: editingDeadline.time,
       status: eventItem.status,
-      description: eventItem.description ?? '',
-      imageUrl: eventItem.imageUrl ?? '',
+      description: eventItem.description ?? "",
+      imageUrl: eventItem.imageUrl ?? "",
     });
 
     const normalizedLeafIds = new Set<string>();
@@ -887,9 +910,9 @@ export const useAdminEvents = ({
     setEventModalSelectedLeafIds(normalizedLeafIds);
     setEventModalScaleIdsByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
-    setEventModalScaleCategorySearch('');
-    setEventModalScaleSubcategorySearch('');
-    setEventModalScaleSpecialtySearch('');
+    setEventModalScaleCategorySearch("");
+    setEventModalScaleSubcategorySearch("");
+    setEventModalScaleSpecialtySearch("");
     setEventModalSelectedScaleCategoryId(null);
     setEventModalSelectedScaleSubcategoryId(null);
     setEventModalSelectedScaleLeafId(null);
@@ -898,12 +921,13 @@ export const useAdminEvents = ({
     void adminEventsService
       .listEventCategoryScales(eventItem.id)
       .then((response) => {
-        const scaleIdsByCategoryId = response.items.reduce<
-          Record<string, string[]>
-        >((accumulator, item) => {
-          accumulator[item.categoryId] = item.scaleIds;
-          return accumulator;
-        }, {});
+        const scaleIdsByCategoryId = response.items.reduce<Record<string, string[]>>(
+          (accumulator, item) => {
+            accumulator[item.categoryId] = item.scaleIds;
+            return accumulator;
+          },
+          {},
+        );
         setEventModalScaleIdsByCategoryId((prev) => {
           const next: Record<string, string[]> = {};
           for (const categoryId of normalizedLeafIds) {
@@ -916,7 +940,7 @@ export const useAdminEvents = ({
         setEventModalError(
           error instanceof Error
             ? error.message
-            : 'No se pudo cargar la configuracion de escalas del evento.',
+            : "No se pudo cargar la configuracion de escalas del evento.",
         );
       })
       .finally(() => {
@@ -953,7 +977,7 @@ export const useAdminEvents = ({
         setEventModalError(
           error instanceof Error
             ? error.message
-            : 'No se pudo cargar la configuracion de grupos MultiEscala del evento.',
+            : "No se pudo cargar la configuracion de grupos MultiEscala del evento.",
         );
       })
       .finally(() => {
@@ -962,7 +986,7 @@ export const useAdminEvents = ({
   };
 
   const closeEventModal = () => {
-    if (pendingAction === 'event:create') {
+    if (pendingAction === "event:create") {
       return;
     }
     if (eventModalTargetId && pendingAction === `event:update:${eventModalTargetId}`) {
@@ -972,13 +996,13 @@ export const useAdminEvents = ({
     setEventModalMode(null);
     setEventModalTargetId(null);
     setEventForm(emptyEventForm);
-    setActiveEventTab('datos');
+    setActiveEventTab("datos");
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
-    setEventModalScaleCategorySearch('');
-    setEventModalScaleSubcategorySearch('');
-    setEventModalScaleSpecialtySearch('');
+    setEventModalScaleCategorySearch("");
+    setEventModalScaleSubcategorySearch("");
+    setEventModalScaleSpecialtySearch("");
     setEventModalSelectedScaleCategoryId(null);
     setEventModalSelectedScaleSubcategoryId(null);
     setEventModalSelectedScaleLeafId(null);
@@ -987,13 +1011,13 @@ export const useAdminEvents = ({
     setEventModalScaleGroupsLoading(false);
     setEventModalError(null);
     if (eventImageFileInputRef.current) {
-      eventImageFileInputRef.current.value = '';
+      eventImageFileInputRef.current.value = "";
     }
   };
 
   const handleEventImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    event.currentTarget.value = '';
+    event.currentTarget.value = "";
     if (!file) {
       return;
     }
@@ -1005,9 +1029,7 @@ export const useAdminEvents = ({
       setEventModalError(null);
     } catch (error) {
       setEventModalError(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo subir la imagen del evento.',
+        error instanceof Error ? error.message : "No se pudo subir la imagen del evento.",
       );
     } finally {
       setIsEventImageUploading(false);
@@ -1016,12 +1038,12 @@ export const useAdminEvents = ({
 
   const validateEventForm = useCallback(() => {
     if (clubs.length === 0) {
-      setEventModalError('Primero debes crear un club para asignarlo como organizador del evento.');
+      setEventModalError("Primero debes crear un club para asignarlo como organizador del evento.");
       return false;
     }
 
     if (!eventForm.organizerClubId) {
-      setEventModalError('Selecciona el club organizador del evento.');
+      setEventModalError("Selecciona el club organizador del evento.");
       return false;
     }
 
@@ -1034,7 +1056,7 @@ export const useAdminEvents = ({
       !eventForm.endTime ||
       !eventForm.description.trim()
     ) {
-      setEventModalError('Completa todos los campos requeridos para guardar el evento.');
+      setEventModalError("Completa todos los campos requeridos para guardar el evento.");
       return false;
     }
 
@@ -1042,13 +1064,45 @@ export const useAdminEvents = ({
     const endTimestamp = toLaPazDateTimeTimestamp(eventForm.endDate, eventForm.endTime);
 
     if (startTimestamp === null || endTimestamp === null) {
-      setEventModalError('La fecha u hora ingresada no es valida.');
+      setEventModalError("La fecha u hora ingresada no es valida.");
       return false;
     }
 
     if (startTimestamp > endTimestamp) {
-      setEventModalError('La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.');
+      setEventModalError(
+        "La fecha y hora de inicio no puede ser mayor que la fecha y hora de fin.",
+      );
       return false;
+    }
+
+    if (eventForm.participantModelEditingEnabled) {
+      if (
+        !eventForm.participantModelEditingDeadlineDate ||
+        !eventForm.participantModelEditingDeadlineTime
+      ) {
+        setEventModalError("Define la fecha y hora limite para editar maquetas.");
+        return false;
+      }
+      const editingDeadlineTimestamp = toLaPazDateTimeTimestamp(
+        eventForm.participantModelEditingDeadlineDate,
+        eventForm.participantModelEditingDeadlineTime,
+      );
+      if (editingDeadlineTimestamp === null) {
+        setEventModalError("La fecha limite de edicion no es valida.");
+        return false;
+      }
+      if (editingDeadlineTimestamp <= Date.now()) {
+        setEventModalError("La fecha limite de edicion debe ser futura.");
+        return false;
+      }
+      if (editingDeadlineTimestamp <= startTimestamp) {
+        setEventModalError("La fecha limite de edicion debe ser posterior al inicio del evento.");
+        return false;
+      }
+      if (editingDeadlineTimestamp > endTimestamp) {
+        setEventModalError("La fecha limite de edicion no puede superar el fin del evento.");
+        return false;
+      }
     }
 
     setEventModalError(null);
@@ -1064,7 +1118,7 @@ export const useAdminEvents = ({
     if (!eventModalMode) {
       return;
     }
-    if (eventModalMode === 'edit' && !eventModalTargetId) {
+    if (eventModalMode === "edit" && !eventModalTargetId) {
       return;
     }
 
@@ -1076,9 +1130,19 @@ export const useAdminEvents = ({
 
     const startDateIso = combineLaPazDateAndTimeToUtcIso(eventForm.startDate, eventForm.startTime);
     const endDateIso = combineLaPazDateAndTimeToUtcIso(eventForm.endDate, eventForm.endTime);
+    const participantModelEditingDeadlineIso = eventForm.participantModelEditingEnabled
+      ? combineLaPazDateAndTimeToUtcIso(
+          eventForm.participantModelEditingDeadlineDate,
+          eventForm.participantModelEditingDeadlineTime,
+        )
+      : undefined;
 
-    if (!startDateIso || !endDateIso) {
-      setEventModalError('La fecha u hora ingresada no es valida.');
+    if (
+      !startDateIso ||
+      !endDateIso ||
+      (eventForm.participantModelEditingEnabled && !participantModelEditingDeadlineIso)
+    ) {
+      setEventModalError("La fecha u hora ingresada no es valida.");
       return;
     }
 
@@ -1088,7 +1152,7 @@ export const useAdminEvents = ({
     );
     if (categoriesWithoutScales.length > 0) {
       setEventModalError(
-        'Cada categoria final seleccionada debe tener al menos una escala permitida.',
+        "Cada categoria final seleccionada debe tener al menos una escala permitida.",
       );
       return;
     }
@@ -1117,21 +1181,24 @@ export const useAdminEvents = ({
         const validScaleIds = group.scaleIds.filter((scaleId) => allowedScaleIds.has(scaleId));
         if (!trimmedName || validScaleIds.length === 0) {
           setEventModalError(
-            'Cada grupo MultiEscala debe tener nombre y al menos una escala valida.',
+            "Cada grupo MultiEscala debe tener nombre y al menos una escala valida.",
           );
           return;
         }
       }
     }
 
-    const actionKey = eventModalMode === 'create' ? 'event:create' : `event:update:${eventModalTargetId}`;
+    const actionKey =
+      eventModalMode === "create" ? "event:create" : `event:update:${eventModalTargetId}`;
 
     const success = await executeAction(
       actionKey,
-      eventModalMode === 'create' ? 'Evento creado correctamente.' : 'Evento actualizado correctamente.',
+      eventModalMode === "create"
+        ? "Evento creado correctamente."
+        : "Evento actualizado correctamente.",
       async () => {
         let eventId: string | null = eventModalTargetId ?? null;
-        if (eventModalMode === 'create') {
+        if (eventModalMode === "create") {
           const createdEvent = await createEventAndLinkCategories(
             {
               organizerClubId: eventForm.organizerClubId,
@@ -1142,6 +1209,8 @@ export const useAdminEvents = ({
               endDate: endDateIso,
               description: eventForm.description,
               imageUrl: eventForm.imageUrl || undefined,
+              participantModelEditingEnabled: eventForm.participantModelEditingEnabled,
+              participantModelEditingDeadline: participantModelEditingDeadlineIso ?? undefined,
             },
             allCategoryIds,
             scalesByCategoryId,
@@ -1159,6 +1228,8 @@ export const useAdminEvents = ({
               endDate: endDateIso,
               description: eventForm.description,
               imageUrl: eventForm.imageUrl || undefined,
+              participantModelEditingEnabled: eventForm.participantModelEditingEnabled,
+              participantModelEditingDeadline: participantModelEditingDeadlineIso ?? undefined,
             },
             allCategoryIds,
             scalesByCategoryId,
@@ -1219,7 +1290,7 @@ export const useAdminEvents = ({
       const message =
         error instanceof Error
           ? error.message
-          : 'No se pudo calcular el impacto de eliminacion para este evento.';
+          : "No se pudo calcular el impacto de eliminacion para este evento.";
       setEventDeleteImpactModal((prev) =>
         prev && prev.eventId === eventId
           ? {
@@ -1233,7 +1304,10 @@ export const useAdminEvents = ({
   };
 
   const closeEventDeleteImpactModal = () => {
-    if (eventDeleteImpactModal && pendingAction === `event:delete:${eventDeleteImpactModal.eventId}`) {
+    if (
+      eventDeleteImpactModal &&
+      pendingAction === `event:delete:${eventDeleteImpactModal.eventId}`
+    ) {
       return;
     }
     setEventDeleteImpactModal(null);
@@ -1245,12 +1319,14 @@ export const useAdminEvents = ({
     }
 
     const { eventId } = eventDeleteImpactModal;
-    const success = await executeAction(`event:delete:${eventId}`, 'Evento eliminado correctamente.', () =>
-      removeEvent(eventId),
+    const success = await executeAction(
+      `event:delete:${eventId}`,
+      "Evento eliminado correctamente.",
+      () => removeEvent(eventId),
     );
 
     if (success) {
-      if (eventModalMode === 'edit' && eventModalTargetId === eventId) {
+      if (eventModalMode === "edit" && eventModalTargetId === eventId) {
         closeEventModal();
       }
       setEventDeleteImpactModal(null);
@@ -1258,7 +1334,7 @@ export const useAdminEvents = ({
   };
 
   const isEventModalPending =
-    pendingAction === 'event:create' ||
+    pendingAction === "event:create" ||
     (eventModalTargetId ? pendingAction === `event:update:${eventModalTargetId}` : false);
 
   return {

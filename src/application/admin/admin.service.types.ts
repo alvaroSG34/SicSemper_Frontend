@@ -142,6 +142,31 @@ export interface AdminService {
     eventId: string,
     modelId: string,
   ): Promise<AdminEventModelDetail>;
+  uploadEventControlModelFile(file: File): Promise<{
+    name: string;
+    type: string;
+    size: number;
+    publicUrl?: string | null;
+    storageKey?: string | null;
+  }>;
+  updateEventControlModel(input: {
+    eventId: string;
+    modelId: string;
+    nombreModelo: string;
+    brand: string;
+    description?: string;
+    files: Array<
+      | { id: string }
+      | {
+          name: string;
+          type: string;
+          size: number;
+          publicUrl?: string | null;
+          storageKey?: string | null;
+        }
+    >;
+  }): Promise<AdminEventModelDetail>;
+  deleteEventControlModel(eventId: string, modelId: string): Promise<{ success: boolean }>;
   getEventPodiumTieBreakCandidates(input: {
     eventId: string;
     finalCategoryId: string;

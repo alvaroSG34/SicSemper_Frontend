@@ -1,11 +1,6 @@
 import type { Identifier } from "@/core/types";
 
-export type ParticipantSidebarItemId =
-  | "inicio"
-  | "eventos"
-  | "maquetas"
-  | "resultados"
-  | "perfil";
+export type ParticipantSidebarItemId = "inicio" | "eventos" | "maquetas" | "resultados" | "perfil";
 
 export type ParticipantSidebarIcon =
   | "home"
@@ -204,6 +199,8 @@ export type ParticipantModel = {
   descripcion: string;
   codigo: string;
   status: ParticipantModelStatus;
+  canEdit: boolean;
+  editingDeadline: string | null;
   createdAt: string;
   updatedAt: string;
   eventName: string;
@@ -232,6 +229,14 @@ export type CreateParticipantModelPayload = {
   descripcion?: string;
   escalaId: Identifier;
   files: ParticipantUploadFileInput[];
+};
+
+export type UpdateParticipantModelPayload = {
+  modelId: Identifier;
+  nombreModelo: string;
+  marca: string;
+  descripcion?: string;
+  files: Array<{ id: Identifier } | ParticipantUploadFileInput>;
 };
 
 export type ParticipantDashboardData = {
@@ -321,11 +326,7 @@ export type ParticipantShowcaseModelItem = {
   createdAt: string;
 };
 
-export type ParticipantShowcaseSortOption =
-  | "SCORE_DESC"
-  | "SCORE_ASC"
-  | "DATE_DESC"
-  | "DATE_ASC";
+export type ParticipantShowcaseSortOption = "SCORE_DESC" | "SCORE_ASC" | "DATE_DESC" | "DATE_ASC";
 
 export type ParticipantShowcaseModelsPage = {
   items: ParticipantShowcaseModelItem[];
@@ -391,4 +392,3 @@ export type ParticipantShowcaseModelDetail = {
     judgeBreakdown: ParticipantShowcaseJudgeBreakdownItem[];
   };
 };
-

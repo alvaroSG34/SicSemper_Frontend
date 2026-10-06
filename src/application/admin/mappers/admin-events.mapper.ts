@@ -3,24 +3,26 @@ import type {
   CreateEventPayload,
   EventDeleteImpact,
   UpdateEventPayload,
-} from '@/domain/admin/admin.types';
+} from "@/domain/admin/admin.types";
 import type {
   ApiAdminEvent,
   ApiCreateEventRequest,
   ApiEventDeleteImpact,
   ApiUpdateEventRequest,
-} from '../contracts/admin-events.contract';
+} from "../contracts/admin-events.contract";
 
 export const mapApiEventToCatalogEvent = (event: ApiAdminEvent): CatalogEvent => ({
   id: event.id,
   name: event.name,
   organizerClubId: event.organizerClubId,
   status: event.status,
-  place: event.place ?? '',
-  startDate: event.startDate ?? '',
-  endDate: event.endDate ?? '',
-  description: event.description ?? '',
-  imageUrl: event.imageUrl ?? '',
+  place: event.place ?? "",
+  startDate: event.startDate ?? "",
+  endDate: event.endDate ?? "",
+  participantModelEditingEnabled: event.participantModelEditingEnabled ?? false,
+  participantModelEditingDeadline: event.participantModelEditingDeadline ?? null,
+  description: event.description ?? "",
+  imageUrl: event.imageUrl ?? "",
   createdAt: event.createdAt,
   updatedAt: event.updatedAt,
 });
@@ -36,6 +38,8 @@ export const mapCreateEventPayloadToApiRequest = (
   endDate: payload.endDate,
   description: payload.description,
   imageUrl: payload.imageUrl,
+  participantModelEditingEnabled: payload.participantModelEditingEnabled,
+  participantModelEditingDeadline: payload.participantModelEditingDeadline,
 });
 
 export const mapUpdateEventPayloadToApiRequest = (
@@ -49,11 +53,11 @@ export const mapUpdateEventPayloadToApiRequest = (
   endDate: payload.endDate,
   description: payload.description,
   imageUrl: payload.imageUrl,
+  participantModelEditingEnabled: payload.participantModelEditingEnabled,
+  participantModelEditingDeadline: payload.participantModelEditingDeadline,
 });
 
-export const mapApiEventDeleteImpact = (
-  impact: ApiEventDeleteImpact,
-): EventDeleteImpact => ({
+export const mapApiEventDeleteImpact = (impact: ApiEventDeleteImpact): EventDeleteImpact => ({
   eventId: impact.eventId,
   eventName: impact.eventName,
   eventCategories: impact.eventCategories,

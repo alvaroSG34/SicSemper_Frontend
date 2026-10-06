@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { judgeService } from "@/application/judge/judge.service";
 import type { JudgeNotificationItem } from "@/domain/judge/judge.types";
+import { subscribeRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -160,6 +161,13 @@ export const useJudgeNotifications = (): UseJudgeNotificationsResult => {
   useEffect(() => {
     void fetchNotifications(false);
   }, [fetchNotifications]);
+
+  useEffect(
+    () => subscribeRealtimeInvalidation((invalidation) => {
+      if (invalidation.domains.includes("notifications")) void fetchNotifications(false);
+    }),
+    [fetchNotifications],
+  );
 
   useEffect(() => {
     if (!isOpen) {

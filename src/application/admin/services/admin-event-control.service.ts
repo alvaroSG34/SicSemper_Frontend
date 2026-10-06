@@ -32,6 +32,9 @@ export const adminEventControlService: Pick<
   | "getEventControlParticipantDetail"
   | "listEventControlModels"
   | "getEventControlModelDetail"
+  | "uploadEventControlModelFile"
+  | "updateEventControlModel"
+  | "deleteEventControlModel"
   | "getEventPodiumTieBreakCandidates"
   | "getEventPodiumTieBreakGroupCandidates"
   | "setEventPodiumTieBreak"
@@ -127,6 +130,52 @@ export const adminEventControlService: Pick<
           "No se pudo cargar el detalle de la maqueta.",
         ),
       );
+    }
+  },
+
+  async uploadEventControlModelFile(file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      return await apiRequest<{
+        name: string;
+        type: string;
+        size: number;
+        publicUrl?: string | null;
+        storageKey?: string | null;
+      }>("/admin/uploads/model-file", { method: "POST", body: formData });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo subir el archivo de la maqueta."));
+    }
+  },
+
+  async updateEventControlModel(input) {
+    try {
+      return await apiRequest<ApiAdminEventControlModelDetail>(
+        `/admin/events/${input.eventId}/control/models/${input.modelId}`,
+        {
+          method: "PATCH",
+          body: {
+            nombreModelo: input.nombreModelo,
+            brand: input.brand,
+            description: input.description,
+            files: input.files,
+          },
+        },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la maqueta."));
+    }
+  },
+
+  async deleteEventControlModel(eventId, modelId) {
+    try {
+      return await apiRequest<{ success: boolean }>(
+        `/admin/events/${eventId}/control/models/${modelId}`,
+        { method: "DELETE" },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la maqueta."));
     }
   },
 

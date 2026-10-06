@@ -38,7 +38,9 @@ describe("useParticipantModels", () => {
   it("expone loading solo cuando esta cargando y lista vacia", () => {
     currentLoading = true;
     currentModels = [];
-    const { result, rerender } = renderHook(() => useParticipantModels({ effectiveUserId: "user-1" }));
+    const { result, rerender } = renderHook(() =>
+      useParticipantModels({ effectiveUserId: "user-1" }),
+    );
 
     expect(result.current.loading).toBe(true);
 
@@ -56,6 +58,8 @@ describe("useParticipantModels", () => {
         descripcion: "",
         codigo: "MOD-001",
         status: "ENVIADA",
+        canEdit: false,
+        editingDeadline: null,
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
         eventName: "Evento",

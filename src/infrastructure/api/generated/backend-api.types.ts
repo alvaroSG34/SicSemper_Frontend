@@ -627,6 +627,9 @@ export interface components {
             /** Format: date-time */
             endDate: string | null;
             status: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline: string | null;
             description: string | null;
             imageUrl: string | null;
             /** Format: date-time */
@@ -641,6 +644,9 @@ export interface components {
             startDate?: string;
             endDate?: string;
             status?: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled?: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline?: string;
             description?: string;
             imageUrl?: string;
         };
@@ -651,6 +657,9 @@ export interface components {
             startDate?: string;
             endDate?: string;
             status?: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled?: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline?: string;
             description?: string;
             imageUrl?: string;
         };

@@ -204,6 +204,18 @@ describe('AdminEventsSection', () => {
     expect(pushMock).toHaveBeenCalledWith('/admin/eventos/event-1/control');
   });
 
+  it('marks finalized events as concluded without hiding their administrative actions', () => {
+    mockUseAdminEvents.mockReturnValue({
+      ...buildAdminEventsHookReturn(),
+      filteredEvents: [{ ...events[0], status: 'FINALIZADO' }],
+    });
+
+    renderSection(true);
+
+    expect(screen.getByText('Periodo concluido')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Centro de control' })).toBeTruthy();
+  });
+
   it('renders event modal with mini tabs and without wizard buttons', () => {
     mockUseAdminEvents.mockReturnValue({
       ...buildAdminEventsHookReturn(),

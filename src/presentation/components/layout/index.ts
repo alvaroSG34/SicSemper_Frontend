@@ -6,5 +6,6 @@ export { DashboardSidebar } from "./dashboard-sidebar";
 export { AutoPublicHeader } from "./auto-public-header";
 export { AuthSessionSync } from "./auth-session-sync";
 export { DashboardAuthGuard } from "./dashboard-auth-guard";
+export { RealtimeSync } from "./realtime-sync";
 export { DashboardRoleGuard } from "./dashboard-role-guard";
 export { PublicHeader } from "./public-header";

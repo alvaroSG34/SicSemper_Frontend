@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { participantService } from "@/application/participant/participant.service";
 import type { ParticipantShowcaseModelDetail } from "@/domain/participant/participant.types";
+import { subscribeRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 
 type UseParticipantShowcaseModelDetailInput = {
   eventId: string;
@@ -21,7 +22,7 @@ export const useParticipantShowcaseModelDetail = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false;
 
     const run = async () => {
@@ -65,6 +66,17 @@ export const useParticipantShowcaseModelDetail = ({
       cancelled = true;
     };
   }, [eventId, finalCategoryId, modelId, scaleId, groupId]);
+
+  useEffect(() => load(), [load]);
+
+  useEffect(
+    () =>
+      subscribeRealtimeInvalidation((invalidation) => {
+        if (invalidation.scope?.eventId !== eventId || invalidation.scope?.modelId !== modelId) return;
+        if (invalidation.domains.some((domain) => ["showcase", "ranking", "model", "review"].includes(domain))) void load();
+      }),
+    [eventId, load, modelId],
+  );
 
   return { detail, loading, error };
 };

@@ -14,6 +14,8 @@ export type CatalogEvent = {
   place?: string;
   startDate?: string;
   endDate?: string;
+  participantModelEditingEnabled?: boolean;
+  participantModelEditingDeadline?: string | null;
   description?: string;
   imageUrl?: string;
   createdAt?: string;
@@ -206,11 +208,7 @@ export type EventDeleteImpact = {
   models: number;
 };
 
-export type EventControlModelSortOption =
-  | "SCORE_DESC"
-  | "SCORE_ASC"
-  | "DATE_DESC"
-  | "DATE_ASC";
+export type EventControlModelSortOption = "SCORE_DESC" | "SCORE_ASC" | "DATE_DESC" | "DATE_ASC";
 
 export type AdminEventControlSummary = {
   eventId: Identifier;
@@ -523,6 +521,8 @@ export type CreateEventPayload = {
   description: string;
   imageUrl?: string;
   status?: CatalogEventStatus;
+  participantModelEditingEnabled?: boolean;
+  participantModelEditingDeadline?: string;
 };
 
 export type UpdateEventPayload = {
@@ -535,6 +535,8 @@ export type UpdateEventPayload = {
   description: string;
   imageUrl?: string;
   status: CatalogEventStatus;
+  participantModelEditingEnabled: boolean;
+  participantModelEditingDeadline?: string;
 };
 
 export type CreateCategoryPayload = {

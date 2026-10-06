@@ -9,6 +9,7 @@ import { UploadCloud } from "lucide-react";
 import { Outfit } from "next/font/google";
 import { useAuthStore, useParticipantStore } from "@/presentation/stores";
 import { useParticipantUploadEventContext } from "./use-participant-upload-event-context";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -82,6 +83,7 @@ export function ParticipantUploadFormSection({
       escalaId: scales[0]?.id ?? "",
     },
   });
+  useRealtimeDirtyForm(["participant", "event", "model"], form.formState.isDirty || selectedFiles.length > 0 || isSubmitting);
 
   useEffect(() => {
     if (!form.getValues("escalaId") && scales[0]?.id) {

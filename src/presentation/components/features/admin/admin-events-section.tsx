@@ -1,7 +1,16 @@
-import { ImageWithSkeleton } from '@/presentation/components/ui';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { CalendarDays, Check, ChevronRight, Clock3, Layers, Plus, Search, Trash2 } from 'lucide-react';
+import { ImageWithSkeleton } from "@/presentation/components/ui";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import {
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clock3,
+  Layers,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import type {
   AdminClub,
   CatalogCategory,
@@ -10,12 +19,12 @@ import type {
   CatalogSubcategory,
   EventCategoryOption,
   JudgeAssignmentScope,
-} from '@/domain/admin/admin.types';
-import type { User } from '@/domain/user/user.types';
-import { useAdminEvents } from './use-admin-events';
-import { JudgeEventAssignmentBoard } from './judge-event-assignment-board';
-import { useAdminJudgeAssignments } from './use-admin-judge-assignments';
-import { formatEventDateRangeInLaPaz } from '@/core/utils/event-datetime';
+} from "@/domain/admin/admin.types";
+import type { User } from "@/domain/user/user.types";
+import { useAdminEvents } from "./use-admin-events";
+import { JudgeEventAssignmentBoard } from "./judge-event-assignment-board";
+import { useAdminJudgeAssignments } from "./use-admin-judge-assignments";
+import { formatEventDateRangeInLaPaz } from "@/core/utils/event-datetime";
 
 type AdminEventsSectionProps = {
   events: CatalogEvent[];
@@ -57,6 +66,19 @@ const TriStateCheckbox = ({
   />
 );
 
+const isConcludedEvent = (event: Pick<CatalogEvent, "status" | "endDate">) => {
+  if (event.status === "FINALIZADO") {
+    return true;
+  }
+
+  if (!event.endDate) {
+    return false;
+  }
+
+  const endDate = new Date(event.endDate);
+  return !Number.isNaN(endDate.getTime()) && endDate.getTime() < Date.now();
+};
+
 export function AdminEventsSection({
   events,
   clubs,
@@ -86,7 +108,7 @@ export function AdminEventsSection({
     }
 
     const pickerInput = input as HTMLInputElement & { showPicker?: () => void };
-    if (typeof pickerInput.showPicker === 'function') {
+    if (typeof pickerInput.showPicker === "function") {
       pickerInput.showPicker();
       return;
     }
@@ -190,12 +212,11 @@ export function AdminEventsSection({
   });
 
   const [managedEventId, setManagedEventId] = useState<string | null>(null);
-  const [expandedCategoryNodeIds, setExpandedCategoryNodeIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedCategoryNodeIds, setExpandedCategoryNodeIds] = useState<Set<string>>(new Set());
 
   const managedEvent = useMemo(
-    () => (managedEventId ? events.find((eventItem) => eventItem.id === managedEventId) ?? null : null),
+    () =>
+      managedEventId ? (events.find((eventItem) => eventItem.id === managedEventId) ?? null) : null,
     [events, managedEventId],
   );
 
@@ -244,7 +265,10 @@ export function AdminEventsSection({
   );
 
   const handleFinalizeWithGuard = async () => {
-    if (eventModalMode === 'edit' && eventModalCategoryRemovalImpact.removedEventCategoryIds.length > 0) {
+    if (
+      eventModalMode === "edit" &&
+      eventModalCategoryRemovalImpact.removedEventCategoryIds.length > 0
+    ) {
       const confirmMessage =
         canReadJudgeAssignments && eventModalCategoryRemovalImpact.removedAssignmentsCount > 0
           ? `Se quitaran ${eventModalCategoryRemovalImpact.removedEventCategoryIds.length} alcance(s) del evento y se eliminaran ${eventModalCategoryRemovalImpact.removedAssignmentsCount} asignacion(es) de jueces asociadas. Deseas continuar?`
@@ -257,7 +281,8 @@ export function AdminEventsSection({
   };
 
   const isManagingEventReady = Boolean(managedEvent && selectedEventId === managedEvent.id);
-  const isAssignmentPending = pendingAssignmentAction === `judge-assignment:sync:${selectedEventId}`;
+  const isAssignmentPending =
+    pendingAssignmentAction === `judge-assignment:sync:${selectedEventId}`;
 
   useEffect(() => {
     if (!eventModalMode) {
@@ -265,24 +290,29 @@ export function AdminEventsSection({
     }
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         closeEventModal();
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
+    window.addEventListener("keydown", handleEscape);
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener("keydown", handleEscape);
     };
   }, [closeEventModal, eventModalMode]);
 
   return (
     <>
-      <section id="eventos" className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
+      <section
+        id="eventos"
+        className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8"
+      >
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className={`${headingClassName} text-[20px] font-semibold text-white`}>Eventos</h3>
-            <span className="text-xs text-[#9C9C9C]">Catalogo de eventos con edicion y eliminacion</span>
+            <span className="text-xs text-[#9C9C9C]">
+              Catalogo de eventos con edicion y eliminacion
+            </span>
           </div>
           {canCreateEvents ? (
             <button
@@ -298,28 +328,35 @@ export function AdminEventsSection({
         {actionFeedback ? (
           <p
             className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
-              actionFeedback.type === 'success'
-                ? 'border-[#14532d] bg-[#052e16] text-[#86efac]'
-                : 'border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]'
+              actionFeedback.type === "success"
+                ? "border-[#14532d] bg-[#052e16] text-[#86efac]"
+                : "border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]"
             }`}
           >
             {actionFeedback.message}
           </p>
         ) : null}
 
-      
-
         <div className="mt-4 space-y-3">
           {filteredEvents.map((item) => {
             const isDeleting = pendingAction === `event:delete:${item.id}`;
             const isManaging = managedEventId === item.id;
+            const isConcluded = isConcludedEvent(item);
             return (
               <article
                 key={item.id}
-                className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-4 md:flex md:items-center md:justify-between"
+                className={`rounded-xl border p-4 md:flex md:items-center md:justify-between ${
+                  isConcluded
+                    ? "border-[#3A3A3A] bg-[#0D0D0D]"
+                    : "border-[#2D2D2D] bg-[#121212]"
+                }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-16 w-24 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B]">
+                  <div
+                    className={`h-16 w-24 shrink-0 overflow-hidden rounded-md border border-[#2D2D2D] bg-[#0B0B0B] ${
+                      isConcluded ? "grayscale opacity-60" : ""
+                    }`}
+                  >
                     {item.imageUrl ? (
                       <ImageWithSkeleton
                         src={item.imageUrl}
@@ -338,13 +375,23 @@ export function AdminEventsSection({
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      <p className={`text-sm font-semibold ${isConcluded ? "text-[#A3A3A3]" : "text-white"}`}>
+                        {item.name}
+                      </p>
                       <span className="rounded-full border border-[#2D2D2D] bg-[#101010] px-2 py-0.5 text-[11px] text-[#B8B8B8]">
                         {item.status}
                       </span>
+                      {isConcluded ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#525252] bg-[#1A1A1A] px-2 py-0.5 text-[11px] text-[#B8B8B8]">
+                          <Clock3 className="h-3 w-3" />
+                          Periodo concluido
+                        </span>
+                      ) : null}
                     </div>
-                    <p className="mt-1 text-xs text-[#9C9C9C]">{item.place || 'Sin lugar definido'}</p>
-                    <p className="mt-1 text-xs text-[#9C9C9C]">
+                    <p className={`mt-1 text-xs ${isConcluded ? "text-[#737373]" : "text-[#9C9C9C]"}`}>
+                      {item.place || "Sin lugar definido"}
+                    </p>
+                    <p className={`mt-1 text-xs ${isConcluded ? "text-[#737373]" : "text-[#9C9C9C]"}`}>
                       {formatEventDateRangeInLaPaz(item.startDate, item.endDate)}
                     </p>
                   </div>
@@ -366,11 +413,11 @@ export function AdminEventsSection({
                       onClick={() => handleOpenJudgeManager(item.id)}
                       className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold text-white ${
                         isManaging
-                          ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)]'
-                          : 'border border-[#2D2D2D]'
+                          ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)]"
+                          : "border border-[#2D2D2D]"
                       }`}
                     >
-                      {isManaging ? 'Gestionando jueces' : 'Gestionar jueces'}
+                      {isManaging ? "Gestionando jueces" : "Gestionar jueces"}
                     </button>
                   ) : null}
                   {canUpdateEvents ? (
@@ -390,7 +437,7 @@ export function AdminEventsSection({
                       onClick={() => void openEventDeleteImpactModal(item.id, item.name)}
                       className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white"
                     >
-                      {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                      {isDeleting ? "Eliminando..." : "Eliminar"}
                     </button>
                   ) : null}
                 </div>
@@ -427,9 +474,9 @@ export function AdminEventsSection({
             {assignmentFeedback ? (
               <p
                 className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
-                  assignmentFeedback.type === 'success'
-                    ? 'border-[#14532d] bg-[#052e16] text-[#86efac]'
-                    : 'border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]'
+                  assignmentFeedback.type === "success"
+                    ? "border-[#14532d] bg-[#052e16] text-[#86efac]"
+                    : "border-[#7f1d1d] bg-[#7f1d1d]/20 text-[#fca5a5]"
                 }`}
               >
                 {assignmentFeedback.message}
@@ -471,11 +518,13 @@ export function AdminEventsSection({
               <div className="rounded-xl border border-[#2D2D2D] bg-[#0F0F0F] px-4 py-3">
                 <button
                   type="button"
-                  disabled={isAssignmentPending || !canManageJudgeAssignments || !isManagingEventReady}
+                  disabled={
+                    isAssignmentPending || !canManageJudgeAssignments || !isManagingEventReady
+                  }
                   onClick={() => void handleSaveAssignments()}
                   className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {isAssignmentPending ? 'Guardando asignaciones...' : 'Guardar asignaciones'}
+                  {isAssignmentPending ? "Guardando asignaciones..." : "Guardar asignaciones"}
                 </button>
               </div>
             </div>
@@ -489,7 +538,7 @@ export function AdminEventsSection({
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>
-                  {eventModalMode === 'create' ? 'Crear evento' : 'Editar evento'}
+                  {eventModalMode === "create" ? "Crear evento" : "Editar evento"}
                 </h4>
               </div>
               <button
@@ -505,40 +554,40 @@ export function AdminEventsSection({
             <div className="mb-5 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => setActiveEventTab('datos')}
+                onClick={() => setActiveEventTab("datos")}
                 className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
-                  activeEventTab === 'datos'
-                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
-                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                  activeEventTab === "datos"
+                    ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white"
+                    : "border border-[#2D2D2D] text-[#D1D1D1]"
                 }`}
               >
                 Datos
               </button>
               <button
                 type="button"
-                onClick={() => setActiveEventTab('categorias')}
+                onClick={() => setActiveEventTab("categorias")}
                 className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
-                  activeEventTab === 'categorias'
-                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
-                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                  activeEventTab === "categorias"
+                    ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white"
+                    : "border border-[#2D2D2D] text-[#D1D1D1]"
                 }`}
               >
                 Categorias
               </button>
               <button
                 type="button"
-                onClick={() => setActiveEventTab('escalas')}
+                onClick={() => setActiveEventTab("escalas")}
                 className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
-                  activeEventTab === 'escalas'
-                    ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white'
-                    : 'border border-[#2D2D2D] text-[#D1D1D1]'
+                  activeEventTab === "escalas"
+                    ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white"
+                    : "border border-[#2D2D2D] text-[#D1D1D1]"
                 }`}
               >
                 Escalas
               </button>
             </div>
 
-            {activeEventTab === 'datos' ? (
+            {activeEventTab === "datos" ? (
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                   Club organizador
@@ -713,6 +762,65 @@ export function AdminEventsSection({
                   </select>
                 </label>
 
+                <div className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-3 md:col-span-2">
+                  <label className="flex cursor-pointer items-center gap-3 text-sm text-white">
+                    <input
+                      type="checkbox"
+                      checked={eventForm.participantModelEditingEnabled}
+                      onChange={(event) =>
+                        setEventForm((prev) => ({
+                          ...prev,
+                          participantModelEditingEnabled: event.target.checked,
+                          participantModelEditingDeadlineDate: event.target.checked
+                            ? prev.participantModelEditingDeadlineDate
+                            : "",
+                          participantModelEditingDeadlineTime: event.target.checked
+                            ? prev.participantModelEditingDeadlineTime
+                            : "",
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-[#555] bg-[#161616] accent-[#5B68F1]"
+                    />
+                    Permitir editar maquetas enviadas
+                  </label>
+                  <p className="mt-1 text-xs text-[#9C9C9C]">
+                    Solo se podran editar maquetas en estado ENVIADA mientras el evento este activo.
+                  </p>
+
+                  {eventForm.participantModelEditingEnabled ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
+                        Fecha limite de edicion
+                        <input
+                          type="date"
+                          value={eventForm.participantModelEditingDeadlineDate}
+                          onChange={(event) =>
+                            setEventForm((prev) => ({
+                              ...prev,
+                              participantModelEditingDeadlineDate: event.target.value,
+                            }))
+                          }
+                          className="h-10 rounded-lg border border-[#2D2D2D] bg-[#161616] px-3 text-sm text-white outline-none [color-scheme:dark]"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
+                        Hora limite de edicion
+                        <input
+                          type="time"
+                          value={eventForm.participantModelEditingDeadlineTime}
+                          onChange={(event) =>
+                            setEventForm((prev) => ({
+                              ...prev,
+                              participantModelEditingDeadlineTime: event.target.value,
+                            }))
+                          }
+                          className="h-10 rounded-lg border border-[#2D2D2D] bg-[#161616] px-3 text-sm text-white outline-none [color-scheme:dark]"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+                </div>
+
                 <div className="md:col-span-2">
                   <p className="text-xs text-[#A8A8A8]">Imagen del evento (opcional)</p>
                   <div className="mt-2 flex items-center gap-3 rounded-xl border border-dashed border-[#2D2D2D] bg-[#101010] p-3">
@@ -740,7 +848,7 @@ export function AdminEventsSection({
                         disabled={isEventImageUploading || isEventModalPending}
                         className="inline-flex h-9 items-center justify-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
                       >
-                        {isEventImageUploading ? 'Subiendo...' : 'Seleccionar imagen'}
+                        {isEventImageUploading ? "Subiendo..." : "Seleccionar imagen"}
                       </button>
                       {eventForm.imageUrl ? (
                         <button
@@ -748,7 +856,7 @@ export function AdminEventsSection({
                           onClick={() =>
                             setEventForm((prev) => ({
                               ...prev,
-                              imageUrl: '',
+                              imageUrl: "",
                             }))
                           }
                           disabled={isEventImageUploading || isEventModalPending}
@@ -781,21 +889,22 @@ export function AdminEventsSection({
                     className="min-h-[96px] rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-sm text-white outline-none"
                   />
                 </label>
-
               </div>
             ) : null}
 
-            {activeEventTab === 'categorias' ? (
+            {activeEventTab === "categorias" ? (
               <div>
                 <p className="mb-4 text-sm text-[#AAAAAA]">
-                  Selecciona exactamente las categorias disponibles. Puedes marcar padres para seleccionar o desmarcar todo su descendiente.
+                  Selecciona exactamente las categorias disponibles. Puedes marcar padres para
+                  seleccionar o desmarcar todo su descendiente.
                 </p>
                 <p className="mb-3 text-xs text-[#9C9C9C]">
                   Seleccionadas: {selectedLeafCount} de {totalLeafCount} categorias.
                 </p>
                 {eventModalCategoryTree.length === 0 ? (
                   <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
-                    No hay categorias creadas aun. Puedes vincularlas despues en la seccion Categorias.
+                    No hay categorias creadas aun. Puedes vincularlas despues en la seccion
+                    Categorias.
                   </p>
                 ) : (
                   <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
@@ -812,10 +921,10 @@ export function AdminEventsSection({
                             key={node.id}
                             className={`rounded-xl border px-3 py-2 ${
                               selectionState.checked
-                                ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.12)]'
+                                ? "border-[#5B68F1] bg-[rgba(91,104,241,0.12)]"
                                 : selectionState.indeterminate
-                                  ? 'border-[#3f478f] bg-[rgba(63,71,143,0.15)]'
-                                  : 'border-[#2D2D2D] bg-[#121212]'
+                                  ? "border-[#3f478f] bg-[rgba(63,71,143,0.15)]"
+                                  : "border-[#2D2D2D] bg-[#121212]"
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -836,7 +945,7 @@ export function AdminEventsSection({
                                   onClick={() => toggleCategoryNodeExpanded(node.id)}
                                   className="rounded-md border border-[#2D2D2D] px-2 py-1 text-[11px] text-white"
                                 >
-                                  {isExpanded ? 'Ocultar' : 'Ver'}
+                                  {isExpanded ? "Ocultar" : "Ver"}
                                 </button>
                               ) : null}
                             </div>
@@ -853,11 +962,10 @@ export function AdminEventsSection({
                     })}
                   </div>
                 )}
-
               </div>
             ) : null}
 
-            {activeEventTab === 'escalas' ? (
+            {activeEventTab === "escalas" ? (
               <div>
                 <div className="overflow-hidden rounded-xl border border-[#2D2D2D] bg-[#0D0D0F]">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#1E1E23] px-4 py-4">
@@ -870,12 +978,14 @@ export function AdminEventsSection({
                           Escalas permitidas por categoria
                         </p>
                         <p className="mt-0.5 truncate text-xs text-[#8E8E95]">
-                          {eventModalMode === 'create' ? 'Crear evento' : 'Editar evento'} - Selecciona una especialidad para configurar sus escalas
+                          {eventModalMode === "create" ? "Crear evento" : "Editar evento"} -
+                          Selecciona una especialidad para configurar sus escalas
                         </p>
                       </div>
                     </div>
                     <span className="inline-flex items-center rounded-full border border-[#14532d] bg-[rgba(20,83,45,0.22)] px-3 py-1 text-xs font-semibold text-[#4ADE80]">
-                      {step3ScaleProgress.configuredCount} / {step3ScaleProgress.totalCount} configuradas
+                      {step3ScaleProgress.configuredCount} / {step3ScaleProgress.totalCount}{" "}
+                      configuradas
                     </span>
                   </div>
 
@@ -886,12 +996,16 @@ export function AdminEventsSection({
                           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
                           <input
                             value={eventModalScaleCategorySearch}
-                            onChange={(event) => setEventModalScaleCategorySearch(event.target.value)}
+                            onChange={(event) =>
+                              setEventModalScaleCategorySearch(event.target.value)
+                            }
                             placeholder="Buscar categoria..."
                             className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
                           />
                         </label>
-                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">CATEGORIAS</p>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">
+                          CATEGORIAS
+                        </p>
                       </div>
                       <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
                         {filteredStep3ScaleCategories.length === 0 ? (
@@ -908,14 +1022,17 @@ export function AdminEventsSection({
                                 onClick={() => selectStep3ScaleCategory(category.id)}
                                 className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
                                   selected
-                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
-                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)]"
+                                    : "border-transparent bg-[#111116] hover:border-[#2B2B32]"
                                 }`}
                               >
                                 <div>
-                                  <p className="text-sm font-semibold text-white">{category.name}</p>
+                                  <p className="text-sm font-semibold text-white">
+                                    {category.name}
+                                  </p>
                                   <p className="text-[11px] text-[#7C7C86]">
-                                    {category.subcategoriesCount} subcategorias · {category.specialtiesCount} especialidades
+                                    {category.subcategoriesCount} subcategorias ·{" "}
+                                    {category.specialtiesCount} especialidades
                                   </p>
                                 </div>
                                 <ChevronRight className="h-4 w-4 text-[#6D72B8]" />
@@ -932,12 +1049,16 @@ export function AdminEventsSection({
                           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
                           <input
                             value={eventModalScaleSubcategorySearch}
-                            onChange={(event) => setEventModalScaleSubcategorySearch(event.target.value)}
+                            onChange={(event) =>
+                              setEventModalScaleSubcategorySearch(event.target.value)
+                            }
                             placeholder="Buscar subcategoria..."
                             className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
                           />
                         </label>
-                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">SUBCATEGORIAS</p>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">
+                          SUBCATEGORIAS
+                        </p>
                       </div>
                       <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
                         {filteredStep3ScaleSubcategories.length === 0 ? (
@@ -946,7 +1067,8 @@ export function AdminEventsSection({
                           </p>
                         ) : (
                           filteredStep3ScaleSubcategories.map((subcategory) => {
-                            const selected = eventModalSelectedScaleSubcategoryId === subcategory.id;
+                            const selected =
+                              eventModalSelectedScaleSubcategoryId === subcategory.id;
                             return (
                               <button
                                 key={`scale-subcategory-${subcategory.categoryId}-${subcategory.id}`}
@@ -954,12 +1076,14 @@ export function AdminEventsSection({
                                 onClick={() => selectStep3ScaleSubcategory(subcategory.id)}
                                 className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
                                   selected
-                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
-                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)]"
+                                    : "border-transparent bg-[#111116] hover:border-[#2B2B32]"
                                 }`}
                               >
                                 <div>
-                                  <p className="text-sm font-semibold text-white">{subcategory.name}</p>
+                                  <p className="text-sm font-semibold text-white">
+                                    {subcategory.name}
+                                  </p>
                                   <p className="text-[11px] text-[#7C7C86]">
                                     {subcategory.specialtiesCount} especialidades
                                   </p>
@@ -978,12 +1102,16 @@ export function AdminEventsSection({
                           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#64646D]" />
                           <input
                             value={eventModalScaleSpecialtySearch}
-                            onChange={(event) => setEventModalScaleSpecialtySearch(event.target.value)}
+                            onChange={(event) =>
+                              setEventModalScaleSpecialtySearch(event.target.value)
+                            }
                             placeholder="Buscar especialidad..."
                             className="h-9 w-full rounded-md border border-[#24242A] bg-[#121216] pl-8 pr-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
                           />
                         </label>
-                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">ESPECIALIDADES</p>
+                        <p className="mt-2 text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">
+                          ESPECIALIDADES
+                        </p>
                       </div>
                       <div className="max-h-[280px] overflow-y-auto px-2 py-2 lg:max-h-[420px]">
                         {filteredStep3ScaleSpecialties.length === 0 ? (
@@ -1000,8 +1128,8 @@ export function AdminEventsSection({
                                 onClick={() => selectStep3ScaleSpecialty(specialty.id)}
                                 className={`mb-1 w-full rounded-md border px-3 py-2 text-left ${
                                   selected
-                                    ? 'border-[#5B68F1] bg-[rgba(91,104,241,0.16)]'
-                                    : 'border-transparent bg-[#111116] hover:border-[#2B2B32]'
+                                    ? "border-[#5B68F1] bg-[rgba(91,104,241,0.16)]"
+                                    : "border-transparent bg-[#111116] hover:border-[#2B2B32]"
                                 }`}
                               >
                                 <p className="text-sm font-semibold text-white">{specialty.name}</p>
@@ -1017,13 +1145,17 @@ export function AdminEventsSection({
 
                     <section className="bg-[#0D0D0F]">
                       <div className="border-b border-[#1E1E23] px-3 py-2">
-                        <p className="text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">ESCALAS PERMITIDAS</p>
+                        <p className="text-[10px] font-semibold tracking-[1.6px] text-[#5E5E66]">
+                          ESCALAS PERMITIDAS
+                        </p>
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
                               onClick={markAllStep3ScaleDraft}
-                              disabled={!eventModalSelectedScaleLeafId || availableScales.length === 0}
+                              disabled={
+                                !eventModalSelectedScaleLeafId || availableScales.length === 0
+                              }
                               className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D5D5DB] disabled:opacity-40"
                             >
                               <Check className="h-3.5 w-3.5" />
@@ -1067,35 +1199,39 @@ export function AdminEventsSection({
                                   onClick={() => toggleStep3ScaleDraftId(scale.id)}
                                   className={`mb-1 flex w-full items-center justify-between rounded-md border px-3 py-2 text-left ${
                                     checked
-                                      ? 'border-[#166534] bg-[rgba(22,101,52,0.25)]'
-                                      : 'border-[#2B2B31] bg-[#141419]'
+                                      ? "border-[#166534] bg-[rgba(22,101,52,0.25)]"
+                                      : "border-[#2B2B31] bg-[#141419]"
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
                                     <span
                                       className={`inline-flex h-4 w-4 items-center justify-center rounded-sm border ${
                                         checked
-                                          ? 'border-[#22C55E] bg-[#22C55E] text-[#04140A]'
-                                          : 'border-[#4A4A52] bg-transparent'
+                                          ? "border-[#22C55E] bg-[#22C55E] text-[#04140A]"
+                                          : "border-[#4A4A52] bg-transparent"
                                       }`}
                                     >
                                       {checked ? <Check className="h-3 w-3" /> : null}
                                     </span>
                                     <div>
-                                      <p className={`text-sm font-semibold ${checked ? 'text-[#4ADE80]' : 'text-[#E5E5E8]'}`}>
+                                      <p
+                                        className={`text-sm font-semibold ${checked ? "text-[#4ADE80]" : "text-[#E5E5E8]"}`}
+                                      >
                                         {scale.value}
                                       </p>
-                                      <p className="text-[11px] text-[#6F6F76]">Escala disponible del catalogo</p>
+                                      <p className="text-[11px] text-[#6F6F76]">
+                                        Escala disponible del catalogo
+                                      </p>
                                     </div>
                                   </div>
                                   <span
                                     className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
                                       checked
-                                        ? 'bg-[rgba(34,197,94,0.18)] text-[#4ADE80]'
-                                        : 'bg-[#1E1E23] text-[#7D7D86]'
+                                        ? "bg-[rgba(34,197,94,0.18)] text-[#4ADE80]"
+                                        : "bg-[#1E1E23] text-[#7D7D86]"
                                     }`}
                                   >
-                                    {checked ? 'ACTIVA' : 'INACTIVA'}
+                                    {checked ? "ACTIVA" : "INACTIVA"}
                                   </span>
                                 </button>
                               );
@@ -1119,7 +1255,9 @@ export function AdminEventsSection({
                         <Layers className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-base font-semibold text-white">Grupos MultiEscala</p>
+                        <p className="truncate text-base font-semibold text-white">
+                          Grupos MultiEscala
+                        </p>
                         <p className="mt-0.5 truncate text-xs text-[#8E8E95]">
                           Define grupos de escalas que compiten juntas por especialidad.
                         </p>
@@ -1153,106 +1291,106 @@ export function AdminEventsSection({
                       </p>
                     ) : null}
 
-                    {!eventModalScaleGroupsLoading && eventModalSelectedScaleLeafId ? (
-                      (() => {
-                        const groups = eventModalScaleGroupsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
-                        const allowedScaleIds =
-                          eventModalScaleIdsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
-                        const allowedScales = availableScales.filter((scale) =>
-                          allowedScaleIds.includes(scale.id),
-                        );
-
-                        if (allowedScales.length === 0) {
-                          return (
-                            <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
-                              Primero activa escalas permitidas para esta especialidad.
-                            </p>
+                    {!eventModalScaleGroupsLoading && eventModalSelectedScaleLeafId
+                      ? (() => {
+                          const groups =
+                            eventModalScaleGroupsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
+                          const allowedScaleIds =
+                            eventModalScaleIdsByCategoryId[eventModalSelectedScaleLeafId] ?? [];
+                          const allowedScales = availableScales.filter((scale) =>
+                            allowedScaleIds.includes(scale.id),
                           );
-                        }
 
-                        if (groups.length === 0) {
+                          if (allowedScales.length === 0) {
+                            return (
+                              <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                                Primero activa escalas permitidas para esta especialidad.
+                              </p>
+                            );
+                          }
+
+                          if (groups.length === 0) {
+                            return (
+                              <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
+                                Aun no hay grupos configurados para esta especialidad.
+                              </p>
+                            );
+                          }
+
                           return (
-                            <p className="rounded-md border border-[#24242A] bg-[#111116] px-3 py-2 text-xs text-[#6F6F76]">
-                              Aun no hay grupos configurados para esta especialidad.
-                            </p>
-                          );
-                        }
+                            <div className="space-y-3">
+                              {groups.map((group, index) => (
+                                <div
+                                  key={`scale-group-${eventModalSelectedScaleLeafId}-${index}`}
+                                  className="rounded-lg border border-[#24242A] bg-[#111116] p-3"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <input
+                                      value={group.name}
+                                      onChange={(event) =>
+                                        updateScaleGroupName(
+                                          eventModalSelectedScaleLeafId,
+                                          index,
+                                          event.target.value,
+                                        )
+                                      }
+                                      placeholder="Nombre del grupo"
+                                      className="h-9 w-full min-w-[220px] flex-1 rounded-md border border-[#2D2D2D] bg-[#121216] px-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        removeScaleGroup(eventModalSelectedScaleLeafId, index)
+                                      }
+                                      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3B1D1D] bg-[rgba(76,21,21,0.35)] px-3 text-xs font-semibold text-[#FCA5A5]"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                      Quitar
+                                    </button>
+                                  </div>
 
-                        return (
-                          <div className="space-y-3">
-                            {groups.map((group, index) => (
-                              <div
-                                key={`scale-group-${eventModalSelectedScaleLeafId}-${index}`}
-                                className="rounded-lg border border-[#24242A] bg-[#111116] p-3"
-                              >
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                  <input
-                                    value={group.name}
-                                    onChange={(event) =>
-                                      updateScaleGroupName(
-                                        eventModalSelectedScaleLeafId,
-                                        index,
-                                        event.target.value,
-                                      )
-                                    }
-                                    placeholder="Nombre del grupo"
-                                    className="h-9 w-full min-w-[220px] flex-1 rounded-md border border-[#2D2D2D] bg-[#121216] px-3 text-xs text-white outline-none placeholder:text-[#5E5E66]"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      removeScaleGroup(eventModalSelectedScaleLeafId, index)
-                                    }
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#3B1D1D] bg-[rgba(76,21,21,0.35)] px-3 text-xs font-semibold text-[#FCA5A5]"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Quitar
-                                  </button>
-                                </div>
-
-                                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                                  {allowedScales.map((scale) => {
-                                    const checked = group.scaleIds.includes(scale.id);
-                                    return (
-                                      <button
-                                        key={`group-scale-${eventModalSelectedScaleLeafId}-${index}-${scale.id}`}
-                                        type="button"
-                                        onClick={() =>
-                                          toggleScaleGroupScaleId(
-                                            eventModalSelectedScaleLeafId,
-                                            index,
-                                            scale.id,
-                                          )
-                                        }
-                                        className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs font-semibold ${
-                                          checked
-                                            ? 'border-[#166534] bg-[rgba(22,101,52,0.25)] text-[#4ADE80]'
-                                            : 'border-[#2B2B31] bg-[#141419] text-[#E5E5E8]'
-                                        }`}
-                                      >
-                                        <span>{scale.value}</span>
-                                        <span
-                                          className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
+                                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                                    {allowedScales.map((scale) => {
+                                      const checked = group.scaleIds.includes(scale.id);
+                                      return (
+                                        <button
+                                          key={`group-scale-${eventModalSelectedScaleLeafId}-${index}-${scale.id}`}
+                                          type="button"
+                                          onClick={() =>
+                                            toggleScaleGroupScaleId(
+                                              eventModalSelectedScaleLeafId,
+                                              index,
+                                              scale.id,
+                                            )
+                                          }
+                                          className={`flex items-center justify-between rounded-md border px-3 py-2 text-left text-xs font-semibold ${
                                             checked
-                                              ? 'bg-[rgba(34,197,94,0.18)] text-[#4ADE80]'
-                                              : 'bg-[#1E1E23] text-[#7D7D86]'
+                                              ? "border-[#166534] bg-[rgba(22,101,52,0.25)] text-[#4ADE80]"
+                                              : "border-[#2B2B31] bg-[#141419] text-[#E5E5E8]"
                                           }`}
                                         >
-                                          {checked ? 'ACTIVA' : 'INACTIVA'}
-                                        </span>
-                                      </button>
-                                    );
-                                  })}
+                                          <span>{scale.value}</span>
+                                          <span
+                                            className={`rounded px-2 py-0.5 text-[10px] font-semibold ${
+                                              checked
+                                                ? "bg-[rgba(34,197,94,0.18)] text-[#4ADE80]"
+                                                : "bg-[#1E1E23] text-[#7D7D86]"
+                                            }`}
+                                          >
+                                            {checked ? "ACTIVA" : "INACTIVA"}
+                                          </span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })()
-                    ) : null}
+                              ))}
+                            </div>
+                          );
+                        })()
+                      : null}
                   </div>
                 </div>
-
               </div>
             ) : null}
 
@@ -1265,17 +1403,20 @@ export function AdminEventsSection({
             <div className="mt-5 border-t border-[#2D2D2D] pt-3">
               <button
                 type="button"
-                disabled={isEventModalPending || (eventModalMode === 'create' ? !canCreateEvents : !canUpdateEvents)}
+                disabled={
+                  isEventModalPending ||
+                  (eventModalMode === "create" ? !canCreateEvents : !canUpdateEvents)
+                }
                 onClick={() => void handleFinalizeWithGuard()}
                 className="inline-flex h-11 w-full min-w-0 items-center justify-center rounded-xl bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {isEventModalPending
-                  ? eventModalMode === 'create'
-                    ? 'Creando...'
-                    : 'Guardando...'
-                  : eventModalMode === 'create'
-                    ? 'Crear evento'
-                    : 'Guardar cambios'}
+                  ? eventModalMode === "create"
+                    ? "Creando..."
+                    : "Guardando..."
+                  : eventModalMode === "create"
+                    ? "Crear evento"
+                    : "Guardar cambios"}
               </button>
             </div>
           </div>
@@ -1286,8 +1427,12 @@ export function AdminEventsSection({
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4">
           <div className="w-full max-w-xl rounded-2xl border border-[#4B1F2A] bg-[#161616] p-5 sm:p-6">
             <div className="mb-3">
-              <p className="text-xs font-semibold tracking-[1.4px] text-[#FCA5A5]">CONFIRMACION DE BORRADO</p>
-              <h4 className={`${headingClassName} mt-1 text-[20px] font-semibold text-white`}>Eliminar evento</h4>
+              <p className="text-xs font-semibold tracking-[1.4px] text-[#FCA5A5]">
+                CONFIRMACION DE BORRADO
+              </p>
+              <h4 className={`${headingClassName} mt-1 text-[20px] font-semibold text-white`}>
+                Eliminar evento
+              </h4>
               <p className="mt-1 text-sm text-[#BFBFBF]">{eventDeleteImpactModal.eventName}</p>
             </div>
 
@@ -1311,22 +1456,31 @@ export function AdminEventsSection({
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-3">
                     <p className="text-[11px] text-[#9C9C9C]">Vinculos evento-categoria</p>
-                    <p className="text-lg font-semibold text-white">{eventDeleteImpactModal.impact.eventCategories}</p>
+                    <p className="text-lg font-semibold text-white">
+                      {eventDeleteImpactModal.impact.eventCategories}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-3">
                     <p className="text-[11px] text-[#9C9C9C]">Asignaciones de jueces</p>
-                    <p className="text-lg font-semibold text-white">{eventDeleteImpactModal.impact.judgeAssignments}</p>
+                    <p className="text-lg font-semibold text-white">
+                      {eventDeleteImpactModal.impact.judgeAssignments}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-3">
                     <p className="text-[11px] text-[#9C9C9C]">Inscripciones</p>
-                    <p className="text-lg font-semibold text-white">{eventDeleteImpactModal.impact.registrations}</p>
+                    <p className="text-lg font-semibold text-white">
+                      {eventDeleteImpactModal.impact.registrations}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] p-3">
                     <p className="text-[11px] text-[#9C9C9C]">Maquetas registradas</p>
-                    <p className="text-lg font-semibold text-white">{eventDeleteImpactModal.impact.models}</p>
+                    <p className="text-lg font-semibold text-white">
+                      {eventDeleteImpactModal.impact.models}
+                    </p>
                   </div>
                 </div>
-                {eventDeleteImpactModal.impact.registrations > 0 || eventDeleteImpactModal.impact.models > 0 ? (
+                {eventDeleteImpactModal.impact.registrations > 0 ||
+                eventDeleteImpactModal.impact.models > 0 ? (
                   <p className="rounded-xl border border-[#7f1d1d] bg-[#7f1d1d]/20 px-4 py-3 text-sm text-[#fca5a5]">
                     Advertencia: esta accion puede eliminar inscripciones y maquetas ya cargadas.
                   </p>
@@ -1355,8 +1509,8 @@ export function AdminEventsSection({
                 className="inline-flex h-10 items-center justify-center rounded-lg bg-[#7f1d1d] px-4 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {pendingAction === `event:delete:${eventDeleteImpactModal.eventId}`
-                  ? 'Eliminando...'
-                  : 'Eliminar definitivamente'}
+                  ? "Eliminando..."
+                  : "Eliminar definitivamente"}
               </button>
             </div>
           </div>
@@ -1365,4 +1519,3 @@ export function AdminEventsSection({
     </>
   );
 }
-

@@ -15,6 +15,7 @@ import type { JudgeReviewCriteria } from "@/domain/judge/judge.types";
 import { getApiBaseUrl } from "@/core/api-base-url";
 import { ImgWithSkeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 import { judgeHeadingFont } from "./judge-heading-font";
 
 type JudgeReviewPageProps = {
@@ -112,6 +113,7 @@ export function JudgeReviewPage({
   const [criteriaDraft, setCriteriaDraft] = useState<JudgeReviewCriteria>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  useRealtimeDirtyForm(["judge", "model", "event"], Object.keys(criteriaDraft).length > 0);
   const startReviewTriggeredRef = useRef(false);
 
   useEffect(() => {

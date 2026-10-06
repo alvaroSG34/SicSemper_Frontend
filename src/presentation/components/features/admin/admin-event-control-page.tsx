@@ -3,12 +3,26 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Outfit } from "next/font/google";
-import { ArrowLeft, Eye, FileText, Image as ImageIcon, Medal, ShieldCheck, ShieldX } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Eye,
+  FileText,
+  Image as ImageIcon,
+  Medal,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  ShieldX,
+  Trash2,
+  X,
+} from "lucide-react";
 import { createAdminAccessMatrix } from "@/presentation/components/features/admin/admin-access-matrix";
 import { useAdminEventControl } from "@/presentation/components/features/admin/use-admin-event-control";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
-import { adminEventsService } from "@/application/admin/services/admin-events.service";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -24,6 +38,24 @@ const dateFormatter = new Intl.DateTimeFormat("es-BO", {
 });
 
 type EventControlTab = "resumen" | "participantes" | "maquetas";
+
+type EditableModelFile = {
+  key: string;
+  id?: string;
+  file?: File;
+  fileName: string;
+  mimeType: string;
+  publicUrl?: string | null;
+};
+
+type EditingModelState = {
+  id: string;
+  nombreModelo: string;
+  brand: string;
+  description: string;
+  files: EditableModelFile[];
+};
+const adminModelEditDomains = ["admin", "model", "event"] as const;
 
 const formatDateTime = (value: string | null | undefined) => {
   if (!value) {
@@ -68,6 +100,12 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
   const loadSummary = useAdminStore((state) => state.loadSummary);
 
   const [activeTab, setActiveTab] = useState<EventControlTab>("resumen");
+  const [editingModel, setEditingModel] = useState<EditingModelState | null>(null);
+  useRealtimeDirtyForm([...adminModelEditDomains], Boolean(editingModel));
+  const [modelPendingDeletion, setModelPendingDeletion] = useState<{
+    id: string;
+    nombreModelo: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!dashboard && !summarySnapshot) {
@@ -87,6 +125,8 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
   const canReadEventControl = access.module.events.read;
   const canManageUsers = access.module.users.update;
   const canManagePodiumTieBreak = isSuperadmin;
+  const canEditModels = access.module.events.update;
+  const canDeleteModels = access.module.events.delete;
 
   const {
     loading,
@@ -117,6 +157,8 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     selectedModelDetail,
     setSelectedModelDetail,
     openModelDetail,
+    updateModel,
+    deleteModel,
     selectedTieBreakContext,
     selectTieBreakContext,
     podiumTieBreakState,
@@ -130,7 +172,79 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
     eventId,
     canManageUsers,
     canManagePodiumTieBreak,
+    canEditModels,
+    canDeleteModels,
   });
+
+  const startModelEditing = () => {
+    if (!selectedModelDetail || !canEditModels) return;
+    const files = [...selectedModelDetail.media.images, ...selectedModelDetail.media.documents]
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .map((file) => ({
+        key: file.id,
+        id: file.id,
+        fileName: file.fileName,
+        mimeType: file.mimeType,
+        publicUrl: file.publicUrl,
+      }));
+    setEditingModel({
+      id: selectedModelDetail.model.id,
+      nombreModelo: selectedModelDetail.model.nombreModelo,
+      brand: selectedModelDetail.model.brand,
+      description: selectedModelDetail.model.description,
+      files,
+    });
+  };
+
+  const addModelFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    setEditingModel((current) =>
+      current
+        ? {
+            ...current,
+            files: [
+              ...current.files,
+              ...Array.from(fileList).map((file) => ({
+                key: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
+                file,
+                fileName: file.name,
+                mimeType: file.type,
+              })),
+            ],
+          }
+        : current,
+    );
+  };
+
+  const moveEditingFile = (index: number, direction: "up" | "down") => {
+    setEditingModel((current) => {
+      if (!current) return current;
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= current.files.length) return current;
+      const files = [...current.files];
+      const [file] = files.splice(index, 1);
+      files.splice(target, 0, file);
+      return { ...current, files };
+    });
+  };
+
+  const saveModelEditing = async () => {
+    if (!editingModel) return;
+    const saved = await updateModel({
+      modelId: editingModel.id,
+      nombreModelo: editingModel.nombreModelo,
+      brand: editingModel.brand,
+      description: editingModel.description,
+      files: editingModel.files.map((file) => file.file ?? { id: file.id! }),
+    });
+    if (saved) setEditingModel(null);
+  };
+
+  const confirmModelDeletion = async () => {
+    if (!modelPendingDeletion) return;
+    const deleted = await deleteModel(modelPendingDeletion.id);
+    if (deleted) setModelPendingDeletion(null);
+  };
 
 
 
@@ -942,13 +1056,40 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                   Código {selectedModelDetail.model.code} · {selectedModelDetail.owner.name}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedModelDetail(null)}
-                className="inline-flex h-8 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs text-white"
-              >
-                Cerrar
-              </button>
+              <div className="flex items-center gap-2">
+                {canEditModels ? (
+                  <button
+                    type="button"
+                    onClick={startModelEditing}
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[#5B68F1] px-3 text-xs font-semibold text-white"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Editar
+                  </button>
+                ) : null}
+                {canDeleteModels ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModelPendingDeletion({
+                        id: selectedModelDetail.model.id,
+                        nombreModelo: selectedModelDetail.model.nombreModelo,
+                      })
+                    }
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[#7f1d1d] px-3 text-xs font-semibold text-[#fca5a5]"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Eliminar
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setSelectedModelDetail(null)}
+                  className="inline-flex h-8 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs text-white"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -1030,6 +1171,214 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                   ) : null}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editingModel ? (
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/80 p-4">
+          <form
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void saveModelEditing();
+            }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h4 className={`${outfit.className} text-xl font-semibold text-white`}>
+                  Editar maqueta
+                </h4>
+                <p className="mt-1 text-xs text-[#9C9C9C]">
+                  Solo se modifican los datos descriptivos y los adjuntos. Los datos de competencia se conservan.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingModel(null)}
+                disabled={pendingAction === `model:update:${editingModel.id}`}
+                className="text-[#B8B8B8] hover:text-white disabled:opacity-50"
+                aria-label="Cerrar edición"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="space-y-1.5 text-xs text-[#B8B8B8]">
+                Nombre de la maqueta
+                <input
+                  required
+                  value={editingModel.nombreModelo}
+                  onChange={(event) =>
+                    setEditingModel((current) =>
+                      current ? { ...current, nombreModelo: event.target.value } : current,
+                    )
+                  }
+                  className="h-10 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none focus:border-[#5B68F1]"
+                />
+              </label>
+              <label className="space-y-1.5 text-xs text-[#B8B8B8]">
+                Marca
+                <input
+                  required
+                  value={editingModel.brand}
+                  onChange={(event) =>
+                    setEditingModel((current) =>
+                      current ? { ...current, brand: event.target.value } : current,
+                    )
+                  }
+                  className="h-10 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none focus:border-[#5B68F1]"
+                />
+              </label>
+            </div>
+            <label className="mt-4 block space-y-1.5 text-xs text-[#B8B8B8]">
+              Descripción
+              <textarea
+                value={editingModel.description}
+                onChange={(event) =>
+                  setEditingModel((current) =>
+                    current ? { ...current, description: event.target.value } : current,
+                  )
+                }
+                rows={4}
+                className="w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-2 text-sm text-white outline-none focus:border-[#5B68F1]"
+              />
+            </label>
+
+            <div className="mt-5 rounded-xl border border-[#2D2D2D] bg-[#101010] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-white">Adjuntos</p>
+                  <p className="text-[11px] text-[#9C9C9C]">Máximo 5 imágenes y 2 PDF. Usa las flechas para cambiar el orden.</p>
+                </div>
+                <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-[#5B68F1] px-3 text-xs font-semibold text-white">
+                  <Plus className="h-3.5 w-3.5" />
+                  Agregar archivos
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    className="hidden"
+                    onChange={(event) => {
+                      addModelFiles(event.target.files);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="mt-3 space-y-2">
+                {editingModel.files.length === 0 ? (
+                  <p className="text-xs text-[#9C9C9C]">Sin adjuntos.</p>
+                ) : (
+                  editingModel.files.map((file, index) => (
+                    <div
+                      key={file.key}
+                      className="flex items-center gap-2 rounded-lg border border-[#2D2D2D] bg-[#151515] px-2 py-2"
+                    >
+                      {file.mimeType === "application/pdf" ? (
+                        <FileText className="h-4 w-4 shrink-0 text-[#B8B8B8]" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 shrink-0 text-[#B8B8B8]" />
+                      )}
+                      <span className="min-w-0 flex-1 truncate text-xs text-white">{file.fileName}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveEditingFile(index, "up")}
+                          disabled={index === 0}
+                          className="rounded p-1 text-[#B8B8B8] hover:text-white disabled:opacity-30"
+                          aria-label="Mover archivo arriba"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveEditingFile(index, "down")}
+                          disabled={index === editingModel.files.length - 1}
+                          className="rounded p-1 text-[#B8B8B8] hover:text-white disabled:opacity-30"
+                          aria-label="Mover archivo abajo"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEditingModel((current) =>
+                              current
+                                ? { ...current, files: current.files.filter((entry) => entry.key !== file.key) }
+                                : current,
+                            )
+                          }
+                          className="rounded p-1 text-[#fca5a5] hover:text-red-300"
+                          aria-label={`Quitar ${file.fileName}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingModel(null)}
+                disabled={pendingAction === `model:update:${editingModel.id}`}
+                className="h-9 rounded-lg border border-[#2D2D2D] px-4 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={pendingAction === `model:update:${editingModel.id}`}
+                className="h-9 rounded-lg bg-[#5B68F1] px-4 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                {pendingAction === `model:update:${editingModel.id}` ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      {modelPendingDeletion ? (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#7f1d1d] bg-[#161616] p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-[#7f1d1d]/30 p-2 text-[#fca5a5]">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className={`${outfit.className} text-xl font-semibold text-white`}>Eliminar maqueta</h4>
+                <p className="mt-2 text-sm text-[#B8B8B8]">
+                  Se eliminara <span className="font-semibold text-white">{modelPendingDeletion.nombreModelo}</span>.
+                  Dejará de aparecer en listados, vitrinas, rankings y controles normales. Se conservarán sus archivos y revisiones históricas.
+                </p>
+              </div>
+            </div>
+            <p className="mt-4 rounded-lg border border-[#7f1d1d]/70 bg-[#7f1d1d]/15 px-3 py-2 text-xs text-[#fca5a5]">
+              Si participa en un desempate manual, se retirará de esa decisión sin cambiar el orden de las demás maquetas.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setModelPendingDeletion(null)}
+                disabled={pendingAction === `model:delete:${modelPendingDeletion.id}`}
+                className="h-9 rounded-lg border border-[#2D2D2D] px-4 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmModelDeletion()}
+                disabled={pendingAction === `model:delete:${modelPendingDeletion.id}`}
+                className="h-9 rounded-lg bg-[#b91c1c] px-4 text-xs font-semibold text-white hover:bg-[#dc2626] disabled:opacity-50"
+              >
+                {pendingAction === `model:delete:${modelPendingDeletion.id}` ? "Eliminando..." : "Eliminar maqueta"}
+              </button>
             </div>
           </div>
         </div>
