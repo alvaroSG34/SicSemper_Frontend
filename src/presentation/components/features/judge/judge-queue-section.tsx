@@ -133,7 +133,7 @@ export function JudgeQueueSection({
             type="text"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
-            placeholder="Buscar por modelo, codigo o participante"
+            placeholder="Buscar por modelo o codigo"
             className="h-10 rounded-xl border border-[#303030] bg-[#111111] px-3 text-sm text-white outline-none focus:border-[#5B68F1]"
           />
           <select
@@ -179,7 +179,7 @@ export function JudgeQueueSection({
           <div className="overflow-hidden rounded-xl border border-[#2B2B2B] bg-[#151515]">
             <div className="grid grid-cols-[52px_2fr_1.1fr_1.1fr_160px] gap-2 border-b border-[#262626] bg-[#1A1A1A] px-4 py-3 text-[11px] font-semibold tracking-[0.4px] text-[#9C9C9C] uppercase">
               <span>#</span>
-              <span>Nombre / Equipo</span>
+              <span>Maqueta</span>
               <span>Estado</span>
               <span>Calificacion</span>
               <span>Accion</span>
@@ -202,7 +202,7 @@ export function JudgeQueueSection({
                   <span className="text-xs text-[#8C8C8C]">{String(rowNumber).padStart(2, "0")}</span>
                   <div className="min-w-0 text-left">
                     <p className="truncate font-semibold text-white">{item.project}</p>
-                    <p className="truncate text-xs text-[#9A9A9A]">{item.participantName}</p>
+                    <p className="truncate text-xs text-[#9A9A9A]">Codigo: {item.code}</p>
                   </div>
                   <span className="inline-flex w-fit rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-xs text-[#8BA3FF]">
                     {item.status}
@@ -246,7 +246,7 @@ export function JudgeQueueSection({
                   <div className="flex flex-col items-start gap-1 text-left">
                     <p className="text-sm font-semibold text-white">{item.project}</p>
                     <p className="text-xs text-[#999999]">
-                      {item.code} · {item.category} · {item.participantName}
+                      {item.code} · {item.category}
                     </p>
                     <p className="text-xs text-[#777777]">{item.eventName}</p>
                   </div>

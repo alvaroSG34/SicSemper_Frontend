@@ -13,6 +13,7 @@ import type {
   CreateAdminPayload,
   CreateEventPayload,
   EventCategoryOption,
+  EventCategoryScaleMode,
   EventDeleteImpact,
   JudgePermissionCode,
   JudgePermissionEntry,
@@ -72,12 +73,14 @@ export type AdminStoreState = {
     payload: CreateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ) => Promise<CatalogEvent>;
   updateEvent: (payload: UpdateEventPayload) => Promise<void>;
   updateEventAndLinkCategories: (
     payload: UpdateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ) => Promise<CatalogEvent>;
   getEventDeleteImpact: (eventId: string) => Promise<EventDeleteImpact>;
   createEventCategoryLink: (payload: {
@@ -103,6 +106,10 @@ export type AdminStoreState = {
   updateSubcategory: (payload: { id: string; categoryId: string; name: string }) => Promise<void>;
   removeSubcategory: (subcategoryId: string) => Promise<void>;
   assignJudgeScope: (payload: AssignJudgeScopePayload) => Promise<void>;
+  syncJudgeAssignments: (payload: {
+    eventId: string;
+    assignments: Array<{ judgeUserId: string; eventCategoryId: string; scaleIds: string[] }>;
+  }) => Promise<void>;
   removeJudgeScope: (assignmentId: string) => Promise<void>;
   adminPermissionsMap: Record<string, AdminPermissionEntry[]>;
   adminPermissionsLoading: Record<string, boolean>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, MapPin, Sparkles, Users, X } from "lucide-react";
+import { CalendarDays, MapPin, Sparkles, TriangleAlert, Users, X } from "lucide-react";
 import { Outfit } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
 import type {
@@ -157,8 +157,20 @@ export function ParticipantEventsExplorer({
         <span>{visibleEvents.length}</span>
       </div>
       {!canUploadModels ? (
-        <div className="mb-4 rounded-xl border border-[#f59e0b]/40 bg-[#7c2d12]/20 px-3 py-2 text-xs text-[#fdba74]">
-          Tu perfil aun no esta verificado. Puedes explorar eventos, pero no subir maquetas.
+        <div
+          role="status"
+          className="mb-4 flex items-center gap-3 rounded-xl border border-[#f59e0b] bg-[#3b230d] px-3 py-3"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-[#fbbf24]">Perfil sin verificar</p>
+            <p className="mt-0.5 text-xs leading-4 text-[#f5d6a6]">
+              Tu perfil aún no está verificado. Puedes explorar eventos, pero no subir maquetas.
+            </p>
+          </div>
+          <TriangleAlert
+            className="h-5 w-5 shrink-0 text-[#fbbf24]"
+            aria-hidden="true"
+          />
         </div>
       ) : null}
 

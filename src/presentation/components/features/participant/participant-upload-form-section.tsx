@@ -61,7 +61,12 @@ export function ParticipantUploadFormSection({
     "upload",
   );
 
-  console.log("Upload Form Loading Debug in Component", { loading, error, eventName, hasScales: scales.length });
+  console.log("Upload Form Loading Debug in Component", {
+    loading,
+    error,
+    eventName,
+    hasScales: scales.length,
+  });
 
   const submitModel = useParticipantStore((state) => state.submitModel);
   const flowError = useParticipantStore((state) => state.flowError);
@@ -83,7 +88,10 @@ export function ParticipantUploadFormSection({
       escalaId: scales[0]?.id ?? "",
     },
   });
-  useRealtimeDirtyForm(["participant", "event", "model"], form.formState.isDirty || selectedFiles.length > 0 || isSubmitting);
+  useRealtimeDirtyForm(
+    ["participant", "event", "model"],
+    form.formState.isDirty || selectedFiles.length > 0 || isSubmitting,
+  );
 
   useEffect(() => {
     if (!form.getValues("escalaId") && scales[0]?.id) {
@@ -240,7 +248,8 @@ export function ParticipantUploadFormSection({
     return (
       <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
         <p className="rounded-xl border border-[#8B1D1D] bg-[#451414] px-4 py-3 text-sm text-[#FFB4B4]">
-          No hay escalas configuradas para esta categoria final en el evento. Contacta a un administrador.
+          No hay escalas configuradas para esta categoria final en el evento. Contacta a un
+          administrador.
         </p>
       </section>
     );
@@ -248,9 +257,17 @@ export function ParticipantUploadFormSection({
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
-      <p className="inline-flex rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-3 py-1 text-xs font-semibold tracking-[1px] text-[#8BA3FF]">
-        PASO 4 DE 4
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={backHref}
+          className="inline-flex h-9 items-center justify-center rounded-[18px] border border-[#6875F5] bg-[#5B68F1] px-4 text-xs font-semibold text-white shadow-[0_0_18px_rgba(91,104,241,0.28)] transition hover:bg-[#6A76FF] hover:shadow-[0_0_22px_rgba(91,104,241,0.45)]"
+        >
+          Volver
+        </Link>
+        <p className="inline-flex shrink-0 rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-3 py-1 text-xs font-semibold tracking-[1px] text-[#8BA3FF]">
+          PASO 4 DE 4
+        </p>
+      </div>
       <h2 className={`${outfit.className} mt-4 text-3xl font-bold text-white sm:text-4xl`}>
         Formulario de maqueta
       </h2>
@@ -276,9 +293,7 @@ export function ParticipantUploadFormSection({
           <p className="text-sm text-[#D5DBFF]">
             {flowSuccessMessage ?? "Maqueta enviada correctamente."}
           </p>
-          <p className="mt-2 text-sm font-semibold text-white">
-            Deseas subir otra maqueta?
-          </p>
+          <p className="mt-2 text-sm font-semibold text-white">Deseas subir otra maqueta?</p>
 
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
@@ -319,9 +334,7 @@ export function ParticipantUploadFormSection({
               className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
             />
             {form.formState.errors.marca ? (
-              <span className="text-xs text-[#fca5a5]">
-                {form.formState.errors.marca.message}
-              </span>
+              <span className="text-xs text-[#fca5a5]">{form.formState.errors.marca.message}</span>
             ) : null}
           </label>
 
@@ -395,12 +408,6 @@ export function ParticipantUploadFormSection({
           ) : null}
 
           <div className="flex gap-3 md:col-span-2">
-            <Link
-              href={backHref}
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-[#2D2D2D] px-4 text-sm font-semibold text-white"
-            >
-              Volver
-            </Link>
             <button
               type="submit"
               disabled={isSubmitting || !isParticipantVerified}

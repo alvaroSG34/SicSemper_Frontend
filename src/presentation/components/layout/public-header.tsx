@@ -148,11 +148,15 @@ export function PublicHeader({
 
   const getAuthButtonClasses = (action: "login" | "register") => {
     const isActive = activeAuthAction === action;
+    const isLandingRegister = action === "register" && activeAuthAction === null;
+
     return [
-      "inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full border px-7 text-[15px] font-semibold tracking-[0.2px] transition-all duration-300 ease-out will-change-transform motion-reduce:transform-none",
-      isActive
+      `inline-flex h-[34px] items-center justify-center whitespace-nowrap rounded-full border px-[10px] text-[9px] font-semibold transition-all duration-300 ease-out will-change-transform motion-reduce:transform-none xl:h-11 xl:w-auto xl:px-7 xl:text-[15px] xl:tracking-[0.2px] ${action === "register" ? "w-[92px]" : "w-[76px]"}`,
+      isActive || isLandingRegister
         ? "border-[color:var(--landing-pink)] bg-[color:var(--landing-pink)] text-white shadow-[0_10px_24px_rgba(83,184,180,0.35)]"
-        : "border-white/70 text-white hover:-translate-y-[1px] hover:border-white hover:bg-white/10 hover:shadow-[0_8px_18px_rgba(0,0,0,0.28)] active:translate-y-0",
+        : action === "register"
+          ? "border-white/25 bg-transparent tracking-[0.2px] text-white hover:border-white/60 hover:bg-white/10 xl:border-white/70 xl:hover:border-white xl:hover:bg-white/10"
+          : "border-white/25 text-white tracking-[0.4px] hover:-translate-y-[1px] hover:border-white/60 hover:bg-white/10 hover:shadow-[0_8px_18px_rgba(0,0,0,0.28)] active:translate-y-0 xl:border-white/70 xl:tracking-[0.2px]",
     ]
       .join(" ")
       .trim();
@@ -162,13 +166,14 @@ export function PublicHeader({
 
   return (
     <header className={`sticky top-0 z-50 w-full ${getBackgroundClass(variant)}`}>
-      <div className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center justify-center px-5 sm:h-[78px] sm:px-6 md:h-[84px] md:px-8 lg:grid lg:h-[84px] lg:grid-cols-[auto_1fr_auto] lg:justify-normal lg:gap-8 lg:px-16">
-        <Link href="/" className="flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap sm:gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--landing-pink)] text-[12px] text-white sm:h-9 sm:w-9">
-            ▼
+      <div className="relative mx-auto flex h-[80px] w-full max-w-[1440px] items-center justify-between gap-4 border-b border-[#53B8B466] bg-transparent px-4 xl:grid xl:h-[84px] xl:border-0 xl:bg-transparent xl:grid-cols-[auto_1fr_auto] xl:justify-normal xl:gap-8 xl:px-16">
+        <Link href="/" className="flex h-fit w-[150px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap xl:w-auto xl:justify-start">
+          <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[15px] bg-[color:var(--landing-pink)] text-[14px] font-bold text-white">
+            <span className="xl:hidden">✦</span>
+            <span className="hidden xl:inline">▼</span>
           </span>
           <span
-            className={`min-w-0 max-w-[calc(100vw-6.5rem)] overflow-hidden whitespace-nowrap text-[28px] leading-none font-bold sm:max-w-none sm:text-[34px] md:text-[42px] lg:text-[52px] ${
+            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >
@@ -176,7 +181,7 @@ export function PublicHeader({
           </span>
         </Link>
 
-        <nav className="hidden items-center justify-center gap-8 lg:flex xl:gap-10">
+        <nav className="hidden items-center justify-center gap-8 xl:flex xl:gap-10">
           {HEADER_LINKS.map((link, index) =>
             isLandingPage ? (
               <a
@@ -200,7 +205,7 @@ export function PublicHeader({
         </nav>
 
         {loggedIn ? (
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-1 sm:gap-2 xl:gap-3">
             {!isLandingPage && availableRoles.length > 1 && currentRole ? (
               <label className="flex items-center gap-2 rounded-full border border-white/25 bg-black/30 px-3 py-2 text-xs text-white">
                 <span className="font-semibold opacity-90">Rol</span>
@@ -221,7 +226,7 @@ export function PublicHeader({
 
             <Link
               href={dashboardHref}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-[#5865f2] bg-[#5865f2] px-6 text-[14px] font-semibold text-white transition-colors hover:bg-[#4f5be0]"
+              className="inline-flex h-9 items-center justify-center rounded-full border border-[#5865f2] bg-[#5865f2] px-2 text-[10px] font-semibold text-white transition-colors hover:bg-[#4f5be0] sm:h-10 sm:px-3 sm:text-[11px] xl:h-11 xl:px-6 xl:text-[14px]"
             >
               MI PANEL
             </Link>
@@ -230,21 +235,24 @@ export function PublicHeader({
               type="button"
               onClick={() => void handleLogout()}
               disabled={isLoggingOut}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-white/70 px-6 text-[14px] font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-70"
+              className="inline-flex h-9 items-center justify-center rounded-full border border-white/70 px-2 text-[10px] font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-70 sm:h-10 sm:px-3 sm:text-[11px] xl:h-11 xl:px-6 xl:text-[14px]"
             >
               {isLoggingOut ? "CERRANDO..." : "CERRAR SESIÓN"}
             </button>
           </div>
         ) : (
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-1 sm:gap-2 xl:gap-3">
             <Link href="/login" className={getAuthButtonClasses("login")}>
-              INICIAR SESIÓN
+              <span className="xl:hidden">ENTRAR</span>
+              <span className="hidden xl:inline">INICIAR SESIÓN</span>
             </Link>
             <Link href="/register" className={getAuthButtonClasses("register")}>
-              REGISTRARSE
+              <span className="xl:hidden">REGÍSTRATE</span>
+              <span className="hidden xl:inline">REGISTRARSE</span>
             </Link>
           </div>
         )}
+
       </div>
     </header>
   );

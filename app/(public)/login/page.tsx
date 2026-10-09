@@ -37,7 +37,7 @@ function LeftPanel() {
         <div className="absolute bottom-[-26px] right-[-30px] h-[450px] w-[450px] rounded-[175px] bg-[radial-gradient(circle,rgba(236,72,153,0.1)_0%,rgba(236,72,153,0)_70%)] opacity-50" />
         <div className="absolute left-[200px] top-[-50px] h-[400px] w-[400px] rounded-[160px] bg-[radial-gradient(circle,rgba(59,130,246,0.1)_0%,rgba(59,130,246,0)_70%)] opacity-50" />
 
-        <div className="absolute left-[110px] top-[162px] flex h-[700px] w-[500px] flex-col items-center justify-center gap-12 p-[60px]">
+        <div className="absolute left-[110px] top-[80px] flex h-[700px] w-[500px] flex-col items-center justify-center gap-12 p-[60px]">
           <p className="text-center text-2xl font-semibold tracking-[3px] text-[#7C3AED] opacity-90">
             Plataforma
           </p>
@@ -103,13 +103,13 @@ function RightPanel({
   onSubmit,
 }: RightPanelProps) {
   return (
-    <section className="login-panel-right-enter relative min-h-screen bg-[#0a0a0a] px-6 pb-12 pt-28 md:px-10 xl:px-0 xl:pb-0 xl:pt-0">
-      <div className="relative mx-auto h-full min-h-screen w-full max-w-[720px]">
+    <section className="login-panel-right-enter relative min-h-screen overflow-hidden bg-[#0a0a0a] px-6 pb-12 pt-28 md:px-10 xl:px-0 xl:pb-12 xl:pt-[204px]">
+      <div className="relative mx-auto w-full max-w-[720px]">
         <div className="pointer-events-none absolute left-[100px] top-[200px] h-1 w-1 rounded-full bg-[#8b5cf6] opacity-60" />
         <div className="pointer-events-none absolute left-[600px] top-[300px] h-[3px] w-[3px] rounded-full bg-[#ec4899] opacity-50" />
         <div className="pointer-events-none absolute left-[150px] top-[700px] h-[5px] w-[5px] rounded-full bg-[#a78bfa] opacity-40" />
 
-        <div className="login-form-enter relative mx-auto w-full max-w-[520px] xl:absolute xl:left-[83px] xl:top-[204px]">
+        <div className="login-form-enter relative mx-auto w-full max-w-[520px]">
           <div className="flex w-full flex-col items-center gap-2 text-center">
             <LockKeyhole className="h-11 w-11 text-[#facc15]" />
             <h2 className="text-[32px] font-bold leading-[1.2] tracking-[-0.5px] text-white">
@@ -277,7 +277,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#0a0a0a]">
+    <main className="min-h-screen overflow-x-clip bg-[#0a0a0a] xl:bg-[linear-gradient(to_right,#dcdcdc_0%,#dcdcdc_50%,#0a0a0a_50%,#0a0a0a_100%)]">
       <AutoPublicHeader />
 
       <div className="relative w-full xl:min-h-screen">

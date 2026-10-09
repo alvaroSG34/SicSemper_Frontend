@@ -30,6 +30,7 @@ describe("ParticipantHomeSection", () => {
         imageAlt: "x",
       },
       kpis: [],
+      isParticipantVerified: true,
       clubRanking: {
         enabled: true,
         clubName: "Club Uno",
@@ -47,5 +48,30 @@ describe("ParticipantHomeSection", () => {
 
     expect(screen.getByText("Tu posicion en el club")).toBeTruthy();
     expect(screen.getByText("Club Uno")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Subir Maqueta" })).toBeTruthy();
+  });
+
+  it("hides upload action when the participant is not verified", () => {
+    useParticipantHomeMock.mockReturnValue({
+      challenge: {
+        eventId: "event-1",
+        eyebrow: "Reto",
+        title: "Evento",
+        categoryLine: "Categoria",
+        organizer: "Club",
+        startDate: null,
+        countdown: { days: "00", hours: "00", minutes: "00" },
+        imageAlt: "x",
+      },
+      kpis: [],
+      isParticipantVerified: false,
+      clubRanking: null,
+      isStartingUploadFromNextChallenge: false,
+      handleStartUploadFromNextChallenge: vi.fn(),
+    });
+
+    render(<ParticipantHomeSection onStartUpload={vi.fn()} />);
+
+    expect(screen.queryByRole("button", { name: "Subir Maqueta" })).toBeNull();
   });
 });

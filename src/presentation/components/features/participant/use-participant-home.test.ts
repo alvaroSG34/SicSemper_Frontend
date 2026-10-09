@@ -74,6 +74,7 @@ describe("useParticipantHome", () => {
     const { result } = renderHook(() => useParticipantHome({ onStartUpload: vi.fn() }));
 
     expect(result.current.challenge?.eventId).toBe("event-1");
+    expect(result.current.isParticipantVerified).toBe(true);
     expect(result.current.kpis).toHaveLength(1);
     expect(result.current.clubRanking?.position).toBe(2);
     expect(result.current.isStartingUploadFromNextChallenge).toBe(false);
@@ -108,5 +109,22 @@ describe("useParticipantHome", () => {
     });
 
     expect(selectEvent).not.toHaveBeenCalled();
+  });
+
+  it("no inicia la subida para un participante no verificado", () => {
+    currentDashboard = {
+      ...dashboard,
+      profile: { ...dashboard.profile, verified: false },
+    };
+    const onStartUpload = vi.fn();
+    const { result } = renderHook(() => useParticipantHome({ onStartUpload }));
+
+    act(() => {
+      result.current.handleStartUploadFromNextChallenge();
+    });
+
+    expect(result.current.isParticipantVerified).toBe(false);
+    expect(selectEvent).not.toHaveBeenCalled();
+    expect(onStartUpload).not.toHaveBeenCalled();
   });
 });

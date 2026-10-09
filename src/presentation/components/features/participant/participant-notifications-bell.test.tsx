@@ -13,7 +13,7 @@ const refreshMock = vi.fn();
 
 const baseItem: ParticipantNotificationItem = {
   id: "notification-1",
-  type: "MAQUETA_ENVIADA",
+  type: "MAQUETA_CALIFICADA",
   severity: "BAJA",
   title: "Maqueta enviada",
   detail: "Tu maqueta fue enviada.",

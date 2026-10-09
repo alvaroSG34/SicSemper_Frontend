@@ -123,11 +123,5 @@ export function RealtimeSync() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [handleInvalidation, initialized, user]);
-  return <RealtimeSyncPendingNotice />;
-}
-
-function RealtimeSyncPendingNotice() {
-  const pendingDomains = useRealtimeDirtyStore((state) => state.pendingDomains);
-  if (!pendingDomains.length) return null;
-  return <div className="fixed bottom-4 right-4 z-[100] max-w-sm rounded-xl border border-amber-400/40 bg-[#211b0b] p-4 text-sm text-amber-100 shadow-2xl"><p className="font-semibold">Hay cambios externos pendientes.</p><p className="mt-1 text-amber-100/80">Tu borrador se conserva. Guarda o cancela la edición antes de actualizar.</p><button type="button" onClick={() => window.dispatchEvent(new Event(PENDING_REFRESH_EVENT))} className="mt-3 rounded-lg bg-amber-300 px-3 py-1.5 text-xs font-bold text-black">Actualizar ahora</button></div>;
+  return null;
 }

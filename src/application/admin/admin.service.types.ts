@@ -25,6 +25,7 @@ import type {
   CatalogCategory,
   CatalogEvent,
   EventCategoryScaleConfig,
+  EventCategoryScaleMode,
   EventCategoryScaleGroup,
   EventCategoryScaleGroupInput,
   EventCategoryOption,
@@ -81,11 +82,13 @@ export interface AdminService {
     payload: CreateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ): Promise<CatalogEvent>;
   updateEventAndLinkCategories(
     payload: UpdateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ): Promise<CatalogEvent>;
   listEventCategoryScales(
     eventId: string,
@@ -101,7 +104,11 @@ export interface AdminService {
   }>;
   syncEventCategoryScales(
     eventId: string,
-    items: Array<{ eventCategoryId: string; scaleIds: string[] }>,
+    items: Array<{
+      eventCategoryId: string;
+      scaleMode: EventCategoryScaleMode;
+      scaleIds: string[];
+    }>,
   ): Promise<void>;
   listEventCategoryScaleGroups(
     eventId: string,
@@ -203,6 +210,10 @@ export interface AdminService {
   updateSubcategory(payload: UpdateSubcategoryPayload): Promise<CatalogSubcategory>;
   removeSubcategory(subcategoryId: string): Promise<void>;
   assignJudgeScope(payload: AssignJudgeScopePayload): Promise<JudgeAssignmentScope>;
+  syncJudgeAssignments(payload: {
+    eventId: string;
+    assignments: Array<{ judgeUserId: string; eventCategoryId: string; scaleIds: string[] }>;
+  }): Promise<{ created: number; updated: number; deleted: number }>;
   removeJudgeScope(assignmentId: string): Promise<void>;
   listJudgePermissions(judgeUserId: string): Promise<JudgePermissionEntry[]>;
   grantJudgePermission(judgeUserId: string, permission: JudgePermissionCode): Promise<JudgePermissionEntry[]>;

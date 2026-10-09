@@ -18,7 +18,7 @@ const adminErrorMessages: Record<string, string> = {
   JUDGE_ASSIGNMENT_ALREADY_EXISTS: "Ese alcance ya esta asignado para el juez seleccionado.",
   JUDGE_ASSIGNMENT_NOT_FOUND: "La asignacion seleccionada ya no existe o fue eliminada.",
   JUDGE_SELF_REVIEW_SCOPE_CONFLICT:
-    "No puedes asignar este alcance: el juez ya tiene maquetas propias dentro de esa categoria.",
+    "No puedes asignar este alcance: el juez ya tiene maquetas propias en una de las escalas seleccionadas.",
   JUDGE_ROLE_REQUIRED: "Debes seleccionar un usuario con rol de juez.",
   USER_IS_NOT_JUDGE: "El usuario seleccionado no tiene rol de juez activo.",
   EVENT_NOT_FOUND: "El evento seleccionado no existe o ya no esta disponible.",

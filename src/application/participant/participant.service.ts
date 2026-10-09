@@ -168,7 +168,7 @@ const participantErrorMessages: Record<string, string> = {
   SUBCATEGORY_MUST_BE_LEAF: "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
   JUDGE_ASSIGNED_TO_SUBCATEGORY_CONFLICT:
-    "No puedes concursar en esta subcategoria porque tienes una asignacion activa como juez.",
+    "No puedes concursar en esta escala porque tienes una asignacion activa como juez.",
   PARTICIPANT_VERIFICATION_REQUIRED: "Debes verificar tu perfil para subir o registrar maquetas.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
   EVENT_ACCESS_FORBIDDEN: "Sube una maqueta al evento para poder ver todos los participantes",

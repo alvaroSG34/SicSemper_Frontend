@@ -33,7 +33,7 @@ describe("AdminNotificationsBell", () => {
       items: [
         {
           id: "notification-1",
-          type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO",
+          type: "ROL_USUARIO_ACTUALIZADO",
           severity: "MEDIA",
           title: "Evento actualizado",
           detail: "Se actualizo el evento principal.",
@@ -123,7 +123,7 @@ describe("AdminNotificationsBell", () => {
       items: [
         {
           id: "notification-1",
-          type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO",
+          type: "ROL_USUARIO_ACTUALIZADO",
           severity: "MEDIA",
           title: "Evento actualizado",
           detail: "Se actualizo el evento principal.",

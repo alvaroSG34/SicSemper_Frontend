@@ -1,6 +1,7 @@
 import type {
   ApiJudgeAssignmentScope,
   ApiJudgePermissionEntry,
+  ApiJudgeAssignmentSyncSummary,
 } from "@/application/admin/contracts/admin-judges.contract";
 import {
   mapApiJudgeAssignmentToJudgeAssignmentScope,
@@ -18,6 +19,7 @@ type BackendJudgePermissionEntry = ApiJudgePermissionEntry;
 export const adminJudgesService: Pick<
   AdminService,
   | "assignJudgeScope"
+  | "syncJudgeAssignments"
   | "removeJudgeScope"
   | "listJudgePermissions"
   | "grantJudgePermission"
@@ -33,6 +35,19 @@ export const adminJudgesService: Pick<
       return mapApiJudgeAssignmentToJudgeAssignmentScope(assignment);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo asignar el alcance del juez."));
+    }
+  },
+  async syncJudgeAssignments(payload) {
+    try {
+      return await apiRequest<ApiJudgeAssignmentSyncSummary>(
+        `/admin/events/${payload.eventId}/judge-assignments`,
+        {
+          method: "PUT",
+          body: { assignments: payload.assignments },
+        },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron guardar las asignaciones."));
     }
   },
   async removeJudgeScope(assignmentId) {

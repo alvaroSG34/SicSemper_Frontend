@@ -23,9 +23,16 @@ const baseChallenge: ParticipantNextChallenge = {
 
 describe("ParticipantNextChallenge", () => {
   it("shows organizer when there is active event", () => {
-    render(<ParticipantNextChallengeCard challenge={baseChallenge} />);
+    render(<ParticipantNextChallengeCard challenge={baseChallenge} canUploadModels />);
 
     expect(screen.getByText("Organiza: SICSEMPER")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Subir Maqueta" })).toBeTruthy();
+  });
+
+  it("hides upload action when participant is not verified", () => {
+    render(<ParticipantNextChallengeCard challenge={baseChallenge} canUploadModels={false} />);
+
+    expect(screen.queryByRole("button", { name: "Subir Maqueta" })).toBeNull();
   });
 
   it("hides organizer in empty state without eventId", () => {

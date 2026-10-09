@@ -133,6 +133,7 @@ export function AdminEventsSection({
     eventModalError,
     eventModalScaleConfigLoading,
     eventModalScaleIdsByCategoryId,
+    eventModalScaleModeByCategoryId,
     availableScales,
     eventModalScaleGroupsByCategoryId,
     eventModalScaleGroupsLoading,
@@ -153,6 +154,7 @@ export function AdminEventsSection({
     selectStep3ScaleSpecialty,
     step3ScaleProgress,
     activeStep3ScaleSpecialty,
+    activeStep3ScaleMode,
     eventModalScaleDraftIds,
     markAllStep3ScaleDraft,
     clearStep3ScaleDraft,
@@ -186,6 +188,14 @@ export function AdminEventsSection({
     canReadJudgeAssignments,
   });
 
+  const [managedEventId, setManagedEventId] = useState<string | null>(null);
+  const [judgeAssignmentSuccessMessage, setJudgeAssignmentSuccessMessage] = useState<string | null>(null);
+
+  const handleAssignmentsSaved = () => {
+    setJudgeAssignmentSuccessMessage("Asignaciones guardadas correctamente.");
+    setManagedEventId(null);
+  };
+
   const {
     selectedEventId,
     setSelectedEventId,
@@ -198,9 +208,14 @@ export function AdminEventsSection({
     assignJudgeToEventDraft,
     unassignJudgeFromEventDraft,
     judgeValidationIssues,
+    availableScales: judgeAvailableScales,
+    getScaleSelectionState,
+    toggleJudgeScale,
+    selectAllJudgeScales,
     pendingAssignmentAction,
     assignmentFeedback,
     handleSaveAssignments,
+    refreshAvailableScales,
   } = useAdminJudgeAssignments({
     users,
     assignments,
@@ -209,9 +224,8 @@ export function AdminEventsSection({
     subcategories,
     eventCategories,
     canManageJudgeAssignments,
+    onAssignmentsSaved: handleAssignmentsSaved,
   });
-
-  const [managedEventId, setManagedEventId] = useState<string | null>(null);
   const [expandedCategoryNodeIds, setExpandedCategoryNodeIds] = useState<Set<string>>(new Set());
 
   const managedEvent = useMemo(
@@ -230,6 +244,8 @@ export function AdminEventsSection({
   }, [managedEvent, selectedEventId, setSelectedEventId]);
 
   const handleOpenJudgeManager = (eventId: string) => {
+    setJudgeAssignmentSuccessMessage(null);
+    refreshAvailableScales();
     setManagedEventId(eventId);
     setSelectedEventId(eventId);
   };
@@ -334,6 +350,12 @@ export function AdminEventsSection({
             }`}
           >
             {actionFeedback.message}
+          </p>
+        ) : null}
+
+        {judgeAssignmentSuccessMessage ? (
+          <p className="mb-4 rounded-xl border border-[#14532d] bg-[#052e16] px-4 py-3 text-sm text-[#86efac]">
+            {judgeAssignmentSuccessMessage}
           </p>
         ) : null}
 
@@ -489,6 +511,11 @@ export function AdminEventsSection({
               </p>
             ) : null}
 
+            <p className="mb-4 rounded-xl border border-[#F59E0B]/40 bg-[#2C2110] px-4 py-3 text-sm text-[#FDE68A]">
+              <span className="font-semibold">Recuerda:</span> primero debes promover al usuario al rol de juez
+              desde la sección Jueces. Solo los usuarios con ese rol aparecen en esta lista.
+            </p>
+
             {!isManagingEventReady ? (
               <p className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-4 py-3 text-sm text-[#9C9C9C]">
                 Preparando gestor de asignaciones...
@@ -509,6 +536,10 @@ export function AdminEventsSection({
                 onUnassignJudge={unassignJudgeFromEventDraft}
                 onToggleJudgeNode={toggleJudgeCategoryNode}
                 getJudgeNodeSelectionState={getJudgeNodeSelectionState}
+                availableScales={judgeAvailableScales}
+                getScaleSelectionState={getScaleSelectionState}
+                onToggleJudgeScale={toggleJudgeScale}
+                onSelectAllJudgeScales={selectAllJudgeScales}
                 validationIssues={judgeValidationIssues}
                 leftTitle="Lista de jueces no asignados"
                 rightTitle="Lista de jueces asignados"
@@ -522,7 +553,7 @@ export function AdminEventsSection({
                     isAssignmentPending || !canManageJudgeAssignments || !isManagingEventReady
                   }
                   onClick={() => void handleSaveAssignments()}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
+                  className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {isAssignmentPending ? "Guardando asignaciones..." : "Guardar asignaciones"}
                 </button>
@@ -984,8 +1015,8 @@ export function AdminEventsSection({
                       </div>
                     </div>
                     <span className="inline-flex items-center rounded-full border border-[#14532d] bg-[rgba(20,83,45,0.22)] px-3 py-1 text-xs font-semibold text-[#4ADE80]">
-                      {step3ScaleProgress.configuredCount} / {step3ScaleProgress.totalCount}{" "}
-                      configuradas
+                      {step3ScaleProgress.configuredCount} de {step3ScaleProgress.totalCount}{" "}
+                      listas
                     </span>
                   </div>
 
@@ -1134,7 +1165,9 @@ export function AdminEventsSection({
                               >
                                 <p className="text-sm font-semibold text-white">{specialty.name}</p>
                                 <p className="mt-0.5 text-[11px] text-[#41D87D]">
-                                  {specialty.activeScalesCount} escalas activas
+                                  {specialty.activeScalesCount > 0
+                                    ? `${specialty.activeScalesCount} escalas activas`
+                                    : "Configuración pendiente"}
                                 </p>
                               </button>
                             );
@@ -1154,7 +1187,9 @@ export function AdminEventsSection({
                               type="button"
                               onClick={markAllStep3ScaleDraft}
                               disabled={
-                                !eventModalSelectedScaleLeafId || availableScales.length === 0
+                                !eventModalSelectedScaleLeafId ||
+                                activeStep3ScaleMode !== "SELECTED" ||
+                                availableScales.length === 0
                               }
                               className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#D5D5DB] disabled:opacity-40"
                             >
@@ -1164,14 +1199,16 @@ export function AdminEventsSection({
                             <button
                               type="button"
                               onClick={clearStep3ScaleDraft}
-                              disabled={!eventModalSelectedScaleLeafId}
+                              disabled={
+                                !eventModalSelectedScaleLeafId || activeStep3ScaleMode !== "SELECTED"
+                              }
                               className="inline-flex h-8 items-center rounded-md border border-[#2D2D2D] px-3 text-xs font-semibold text-[#B6B6BD] disabled:opacity-40"
                             >
                               Limpiar
                             </button>
                           </div>
                           <span className="rounded-full bg-[#17171C] px-2.5 py-1 text-[10px] font-semibold text-[#9A9AA4]">
-                            {eventModalScaleDraftIds.length} / {availableScales.length} activas
+                            {`${eventModalScaleDraftIds.length} / ${availableScales.length} activas`}
                           </span>
                         </div>
                       </div>
@@ -1189,7 +1226,19 @@ export function AdminEventsSection({
                           </p>
                         ) : null}
 
-                        {!eventModalScaleConfigLoading && activeStep3ScaleSpecialty
+                        {!eventModalScaleConfigLoading &&
+                        activeStep3ScaleSpecialty &&
+                        activeStep3ScaleMode === "SELECTED"
+                          && availableScales.length > 0
+                          && eventModalScaleDraftIds.length === 0 ? (
+                          <p className="mb-2 rounded-md border border-[#7A5510] bg-[rgba(122,85,16,0.18)] px-3 py-3 text-xs text-[#FCD34D]">
+                            Esta categoría no tiene escalas configuradas y no podrá recibir maquetas hasta configurarla.
+                          </p>
+                        ) : null}
+
+                        {!eventModalScaleConfigLoading &&
+                        activeStep3ScaleSpecialty &&
+                        activeStep3ScaleMode === "SELECTED"
                           ? availableScales.map((scale) => {
                               const checked = eventModalScaleDraftIds.includes(scale.id);
                               return (
@@ -1241,7 +1290,7 @@ export function AdminEventsSection({
 
                       <div className="border-t border-[#1E1E23] px-3 py-2">
                         <p className="text-center text-[11px] text-[#6F6F76]">
-                          Los cambios se guardan automaticamente al marcar o desmarcar escalas.
+                          Los cambios se guardan al guardar el evento.
                         </p>
                       </div>
                     </section>

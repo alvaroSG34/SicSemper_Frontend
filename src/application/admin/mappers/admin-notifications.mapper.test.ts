@@ -8,7 +8,7 @@ describe("admin-notifications.mapper", () => {
   it("maps notification item preserving read state and metadata", () => {
     const mapped = mapApiAdminNotificationItem({
       id: "notification-1",
-      type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO",
+      type: "ROL_USUARIO_ACTUALIZADO",
       severity: "MEDIA",
       title: "Evento actualizado",
       detail: "Se actualizo el evento prueba.",
@@ -21,7 +21,7 @@ describe("admin-notifications.mapper", () => {
 
     expect(mapped).toEqual({
       id: "notification-1",
-      type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO",
+      type: "ROL_USUARIO_ACTUALIZADO",
       severity: "MEDIA",
       title: "Evento actualizado",
       detail: "Se actualizo el evento prueba.",
@@ -38,7 +38,7 @@ describe("admin-notifications.mapper", () => {
       items: [
         {
           id: "notification-1",
-          type: "ALERTA_SISTEMA",
+          type: "PARTICIPANTE_BANEADO",
           severity: "ALTA",
           title: "Alerta",
           detail: "Detalle",

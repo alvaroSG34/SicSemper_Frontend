@@ -12,7 +12,7 @@ describe("admin-service.shared", () => {
     const message = toErrorMessage(error, "fallback");
 
     expect(message).toBe(
-      "No puedes asignar este alcance: el juez ya tiene maquetas propias dentro de esa categoria.",
+      "No puedes asignar este alcance: el juez ya tiene maquetas propias en una de las escalas seleccionadas.",
     );
   });
 });

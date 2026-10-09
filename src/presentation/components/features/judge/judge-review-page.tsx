@@ -256,7 +256,6 @@ export function JudgeReviewPage({
             <h3 className={`${judgeHeadingFont.className} mt-2 text-3xl font-bold text-white`}>
               {modelDetail.nombreModelo}
             </h3>
-            <p className="mt-1 text-sm text-[#AAAAAA]">{modelDetail.participant.name}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span
                 className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
@@ -289,9 +288,6 @@ export function JudgeReviewPage({
               </p>
               <p>
                 <span className="text-[#8E8E8E]">Marca:</span> {modelDetail.brand || "No registrada"}
-              </p>
-              <p>
-                <span className="text-[#8E8E8E]">Participante:</span> {modelDetail.participant.name}
               </p>
             </div>
             <p className="mt-3 text-[#AAAAAA]">{modelDetail.description || "Sin descripcion registrada."}</p>

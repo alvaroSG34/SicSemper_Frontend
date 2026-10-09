@@ -1,4 +1,5 @@
 import type { components, operations } from "@/infrastructure/api/generated/backend-api.types";
+import type { EventCategoryScaleMode } from "@/domain/admin/admin.types";
 
 export type ApiAdminEvent = components["schemas"]["AdminEvent"] & {
   participantModelEditingEnabled?: boolean;
@@ -30,6 +31,7 @@ export type ApiAdminEventCategoryScalesResponse = {
     categoryName: string;
     categoryParentId: string | null;
     categoryParentName: string | null;
+    scaleMode: EventCategoryScaleMode;
     scaleIds: string[];
     scaleValues: string[];
   }>;
@@ -38,6 +40,7 @@ export type ApiAdminEventCategoryScalesResponse = {
 export type ApiAdminSyncEventCategoryScalesRequest = {
   items: Array<{
     eventCategoryId: string;
+    scaleMode: EventCategoryScaleMode;
     scaleIds: string[];
   }>;
 };

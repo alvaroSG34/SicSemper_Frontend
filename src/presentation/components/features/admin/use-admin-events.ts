@@ -6,6 +6,7 @@ import type {
   CatalogEventStatus,
   CatalogScale,
   CatalogSubcategory,
+  EventCategoryScaleMode,
   EventCategoryOption,
   EventDeleteImpact,
   JudgeAssignmentScope,
@@ -81,6 +82,7 @@ type Step3ScaleSpecialtyItem = {
   name: string;
   pathLabel: string;
   activeScalesCount: number;
+  scaleMode: EventCategoryScaleMode;
   isConfigured: boolean;
 };
 
@@ -156,6 +158,9 @@ export const useAdminEvents = ({
   useRealtimeDirtyForm(["admin", "event", "model"], eventModalMode !== null);
   const [eventModalScaleIdsByCategoryId, setEventModalScaleIdsByCategoryId] = useState<
     Record<string, string[]>
+  >({});
+  const [eventModalScaleModeByCategoryId, setEventModalScaleModeByCategoryId] = useState<
+    Record<string, EventCategoryScaleMode>
   >({});
   const [eventModalScaleGroupsByCategoryId, setEventModalScaleGroupsByCategoryId] = useState<
     Record<string, EventScaleGroupDraft[]>
@@ -420,6 +425,7 @@ export const useAdminEvents = ({
       }
 
       const scaleIds = eventModalScaleIdsByCategoryId[leafId] ?? [];
+      const scaleMode = eventModalScaleModeByCategoryId[leafId] ?? "SELECTED";
       const specialtyName = leaf?.name ?? categoryNameByLeafId.get(leafId) ?? leafId;
       specialties.push({
         id: leafId,
@@ -430,6 +436,7 @@ export const useAdminEvents = ({
           categoryNameByLeafId.get(leafId) ??
           `${rootCategory.name} > ${subcategoryName} > ${specialtyName}`,
         activeScalesCount: scaleIds.length,
+        scaleMode,
         isConfigured: scaleIds.length > 0,
       });
     });
@@ -475,6 +482,8 @@ export const useAdminEvents = ({
     categoriesById,
     categoryNameByLeafId,
     eventModalScaleIdsByCategoryId,
+    eventModalScaleModeByCategoryId,
+    scales,
     selectedLeafCategoryIds,
     subcategoriesById,
   ]);
@@ -579,13 +588,14 @@ export const useAdminEvents = ({
 
   const step3ScaleProgress = useMemo(() => {
     const configuredCount = selectedLeafCategoryIds.filter(
-      (leafId) => (eventModalScaleIdsByCategoryId[leafId] ?? []).length > 0,
+      (leafId) =>
+        (eventModalScaleIdsByCategoryId[leafId] ?? []).length > 0,
     ).length;
     return {
       configuredCount,
       totalCount: selectedLeafCategoryIds.length,
     };
-  }, [eventModalScaleIdsByCategoryId, selectedLeafCategoryIds]);
+  }, [eventModalScaleIdsByCategoryId, eventModalScaleModeByCategoryId, selectedLeafCategoryIds]);
 
   const activeStep3ScaleSpecialty = useMemo(
     () =>
@@ -595,10 +605,16 @@ export const useAdminEvents = ({
     [eventModalSelectedScaleLeafId, step3ScaleCatalog.specialties],
   );
 
+  const activeStep3ScaleMode = activeStep3ScaleSpecialty?.scaleMode ?? "SELECTED";
+
   const markAllStep3ScaleDraft = useCallback(() => {
     const nextScaleIds = scales.map((scale) => scale.id);
     setEventModalScaleDraftIds(nextScaleIds);
     if (eventModalSelectedScaleLeafId) {
+      setEventModalScaleModeByCategoryId((prev) => ({
+        ...prev,
+        [eventModalSelectedScaleLeafId]: "SELECTED",
+      }));
       setEventModalScaleIdsByCategoryId((prev) => ({
         ...prev,
         [eventModalSelectedScaleLeafId]: nextScaleIds,
@@ -607,6 +623,12 @@ export const useAdminEvents = ({
   }, [eventModalSelectedScaleLeafId, scales]);
 
   const clearStep3ScaleDraft = useCallback(() => {
+    if (eventModalSelectedScaleLeafId) {
+      setEventModalScaleModeByCategoryId((prev) => ({
+        ...prev,
+        [eventModalSelectedScaleLeafId]: "SELECTED",
+      }));
+    }
     setEventModalScaleDraftIds([]);
     if (eventModalSelectedScaleLeafId) {
       setEventModalScaleIdsByCategoryId((prev) => ({
@@ -624,6 +646,10 @@ export const useAdminEvents = ({
           : [...current, scaleId];
         const deduped = Array.from(new Set(next));
         if (eventModalSelectedScaleLeafId) {
+          setEventModalScaleModeByCategoryId((prev) => ({
+            ...prev,
+            [eventModalSelectedScaleLeafId]: "SELECTED",
+          }));
           setEventModalScaleIdsByCategoryId((prev) => ({
             ...prev,
             [eventModalSelectedScaleLeafId]: deduped,
@@ -755,6 +781,13 @@ export const useAdminEvents = ({
       }
       return next;
     });
+    setEventModalScaleModeByCategoryId((prev) => {
+      const next: Record<string, EventCategoryScaleMode> = {};
+      for (const categoryId of eventModalSelectedLeafIds) {
+        next[categoryId] = prev[categoryId] ?? "SELECTED";
+      }
+      return next;
+    });
   }, [eventModalSelectedLeafIds]);
 
   useEffect(() => {
@@ -768,6 +801,10 @@ export const useAdminEvents = ({
   }, [eventModalSelectedLeafIds]);
 
   const updateCategoryScaleIds = useCallback((categoryId: string, scaleIds: string[]) => {
+    setEventModalScaleModeByCategoryId((prev) => ({
+      ...prev,
+      [categoryId]: "SELECTED",
+    }));
     setEventModalScaleIdsByCategoryId((prev) => ({
       ...prev,
       [categoryId]: Array.from(new Set(scaleIds)),
@@ -854,6 +891,7 @@ export const useAdminEvents = ({
     setActiveEventTab("datos");
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleModeByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleGroupsLoading(false);
     setEventModalScaleCategorySearch("");
@@ -909,6 +947,7 @@ export const useAdminEvents = ({
       });
     setEventModalSelectedLeafIds(normalizedLeafIds);
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleModeByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleCategorySearch("");
     setEventModalScaleSubcategorySearch("");
@@ -932,6 +971,15 @@ export const useAdminEvents = ({
           const next: Record<string, string[]> = {};
           for (const categoryId of normalizedLeafIds) {
             next[categoryId] = scaleIdsByCategoryId[categoryId] ?? prev[categoryId] ?? [];
+          }
+          return next;
+        });
+        setEventModalScaleModeByCategoryId(() => {
+          const next: Record<string, EventCategoryScaleMode> = {};
+          for (const categoryId of normalizedLeafIds) {
+            // Missing mode means this is an old strict allow-list response.
+            // Existing ALL records are brought back as pending explicit selections.
+            next[categoryId] = "SELECTED";
           }
           return next;
         });
@@ -999,6 +1047,7 @@ export const useAdminEvents = ({
     setActiveEventTab("datos");
     setEventModalSelectedLeafIds(new Set());
     setEventModalScaleIdsByCategoryId({});
+    setEventModalScaleModeByCategoryId({});
     setEventModalScaleGroupsByCategoryId({});
     setEventModalScaleCategorySearch("");
     setEventModalScaleSubcategorySearch("");
@@ -1147,16 +1196,6 @@ export const useAdminEvents = ({
     }
 
     const allCategoryIds = collectSelectedLeafCategoryIds();
-    const categoriesWithoutScales = allCategoryIds.filter(
-      (categoryId) => (eventModalScaleIdsByCategoryId[categoryId] ?? []).length === 0,
-    );
-    if (categoriesWithoutScales.length > 0) {
-      setEventModalError(
-        "Cada categoria final seleccionada debe tener al menos una escala permitida.",
-      );
-      return;
-    }
-
     const scalesByCategoryId = allCategoryIds.reduce<Record<string, string[]>>(
       (accumulator, categoryId) => {
         accumulator[categoryId] = eventModalScaleIdsByCategoryId[categoryId] ?? [];
@@ -1164,17 +1203,29 @@ export const useAdminEvents = ({
       },
       {},
     );
+    const scaleModesByCategoryId = allCategoryIds.reduce<Record<string, EventCategoryScaleMode>>(
+      (accumulator, categoryId) => {
+        accumulator[categoryId] = "SELECTED";
+        return accumulator;
+      },
+      {},
+    );
 
     const groupsByCategoryId = allCategoryIds.reduce<Record<string, EventScaleGroupDraft[]>>(
       (accumulator, categoryId) => {
-        accumulator[categoryId] = eventModalScaleGroupsByCategoryId[categoryId] ?? [];
+        const scaleIds = eventModalScaleIdsByCategoryId[categoryId] ?? [];
+        accumulator[categoryId] = scaleIds.length > 0
+          ? eventModalScaleGroupsByCategoryId[categoryId] ?? []
+          : [];
         return accumulator;
       },
       {},
     );
 
     for (const categoryId of allCategoryIds) {
-      const allowedScaleIds = new Set(eventModalScaleIdsByCategoryId[categoryId] ?? []);
+      const allowedScaleIds = new Set(
+        eventModalScaleIdsByCategoryId[categoryId] ?? [],
+      );
       const groups = groupsByCategoryId[categoryId] ?? [];
       for (const group of groups) {
         const trimmedName = group.name.trim();
@@ -1214,6 +1265,7 @@ export const useAdminEvents = ({
             },
             allCategoryIds,
             scalesByCategoryId,
+            scaleModesByCategoryId,
           );
           eventId = createdEvent.id;
         } else if (eventModalTargetId) {
@@ -1233,6 +1285,7 @@ export const useAdminEvents = ({
             },
             allCategoryIds,
             scalesByCategoryId,
+            scaleModesByCategoryId,
           );
           eventId = updatedEvent.id;
         }
@@ -1240,7 +1293,9 @@ export const useAdminEvents = ({
         if (eventId) {
           await Promise.all(
             allCategoryIds.map((categoryId) => {
-              const allowedScaleIds = new Set(eventModalScaleIdsByCategoryId[categoryId] ?? []);
+              const allowedScaleIds = new Set(
+                eventModalScaleIdsByCategoryId[categoryId] ?? [],
+              );
               const groups = (groupsByCategoryId[categoryId] ?? []).map((group) => ({
                 name: group.name.trim(),
                 scaleIds: group.scaleIds.filter((scaleId) => allowedScaleIds.has(scaleId)),
@@ -1357,6 +1412,7 @@ export const useAdminEvents = ({
     eventModalError,
     eventModalScaleConfigLoading,
     eventModalScaleIdsByCategoryId,
+    eventModalScaleModeByCategoryId,
     eventModalScaleGroupsByCategoryId,
     eventModalScaleGroupsLoading,
     availableScales: scales,
@@ -1378,6 +1434,7 @@ export const useAdminEvents = ({
     selectStep3ScaleSpecialty,
     step3ScaleProgress,
     activeStep3ScaleSpecialty,
+    activeStep3ScaleMode,
     eventModalScaleDraftIds,
     markAllStep3ScaleDraft,
     clearStep3ScaleDraft,

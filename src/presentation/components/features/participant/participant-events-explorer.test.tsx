@@ -13,8 +13,8 @@ const events: ParticipantEventDetail[] = [
     imageUrl: null,
     status: "ACTIVO",
     place: "La Paz",
-    startDate: "2026-06-01T16:40:00.000Z",
-    endDate: "2026-06-02T17:47:00.000Z",
+    startDate: "2027-06-01T16:40:00.000Z",
+    endDate: "2027-06-02T17:47:00.000Z",
     description: "Descripcion del evento",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -26,8 +26,8 @@ const events: ParticipantEventDetail[] = [
     imageUrl: null,
     status: "PAUSADO",
     place: "Cochabamba",
-    startDate: "2026-07-01T16:40:00.000Z",
-    endDate: "2026-07-02T17:47:00.000Z",
+    startDate: "2027-07-01T16:40:00.000Z",
+    endDate: "2027-07-02T17:47:00.000Z",
     description: "Descripcion del evento 2",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -116,7 +116,9 @@ describe("ParticipantEventsExplorer", () => {
     );
 
     expect(
-      screen.getByText("No hay eventos proximos por ahora. Vuelve mas tarde para descubrir nuevas competencias."),
+      screen.getByText(
+        "No hay eventos proximos por ahora. Vuelve mas tarde para descubrir nuevas competencias.",
+      ),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Refrescar" })).toBeTruthy();
   });
@@ -198,7 +200,9 @@ describe("ParticipantEventsExplorer", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Pasados" }));
-    const uploadButton = screen.getByRole("button", { name: "Evento finalizado" }) as HTMLButtonElement;
+    const uploadButton = screen.getByRole("button", {
+      name: "Evento finalizado",
+    }) as HTMLButtonElement;
     expect(uploadButton.disabled).toBe(true);
 
     fireEvent.click(uploadButton);

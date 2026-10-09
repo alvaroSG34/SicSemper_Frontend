@@ -57,6 +57,7 @@ describe('admin-judges.mapper', () => {
       categoryName: 'Bodybuilding',
       categoryParentId: null,
       categoryParentName: null,
+      scaleIds: ['scale-1'],
       createdAt: '2026-03-16T12:00:00.000Z',
     });
 
@@ -65,6 +66,7 @@ describe('admin-judges.mapper', () => {
       judgeUserId: 'judge-1',
       eventId: 'event-1',
       eventCategoryId: 'event-category-1',
+      scaleIds: ['scale-1'],
       createdAt: '2026-03-16T12:00:00.000Z',
     });
   });
@@ -74,12 +76,14 @@ describe('admin-judges.mapper', () => {
       judgeUserId: 'judge-1',
       eventId: 'event-1',
       eventCategoryId: 'event-category-1',
+      scaleIds: ['scale-1'],
     });
 
     expect(result).toEqual({
       judgeUserId: 'judge-1',
       eventId: 'event-1',
       eventCategoryId: 'event-category-1',
+      scaleIds: ['scale-1'],
     });
   });
 

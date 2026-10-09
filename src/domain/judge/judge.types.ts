@@ -40,7 +40,6 @@ export type JudgeKpis = {
 export type JudgeQueueItem = {
   id: Identifier;
   project: string;
-  participantName: string;
   eventName: string;
   category: string;
   priority: JudgePriority;
@@ -55,7 +54,6 @@ export type JudgeQueueItem = {
 export type JudgeRecentReview = {
   id: Identifier;
   project: string;
-  participantName: string;
   scoreLabel: string;
   result: string;
   updatedAt: string;
@@ -90,7 +88,6 @@ export type JudgeModelListItem = {
   id: Identifier;
   project: string;
   code: string;
-  participantName: string;
   eventName: string;
   category: string;
   priority: JudgePriority;
@@ -128,10 +125,6 @@ export type JudgeModelDetail = {
   status: JudgeQueueStatus;
   finalScore: number | null;
   finalReviewedAt: string | null;
-  participant: {
-    id: Identifier;
-    name: string;
-  };
   event: {
     id: Identifier;
     name: string;
@@ -224,8 +217,7 @@ export type JudgeNotificationType =
   | "PERMISO_OTORGADO"
   | "PERMISO_REVOCADO"
   | "REVISION_REABIERTA"
-  | "ROL_JUEZ_OTORGADO"
-  | "ALERTA_SISTEMA";
+  | "ROL_JUEZ_OTORGADO";
 
 export type JudgeNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
 

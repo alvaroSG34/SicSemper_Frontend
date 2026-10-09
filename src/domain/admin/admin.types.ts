@@ -49,12 +49,15 @@ export type CatalogScale = {
   updatedAt: string;
 };
 
+export type EventCategoryScaleMode = "ALL" | "SELECTED";
+
 export type EventCategoryScaleConfig = {
   eventCategoryId: Identifier;
   categoryId: Identifier;
   categoryName: string;
   categoryParentId: Identifier | null;
   categoryParentName: string | null;
+  scaleMode: EventCategoryScaleMode;
   scaleIds: Identifier[];
   scaleValues: string[];
 };
@@ -77,6 +80,7 @@ export type JudgeAssignmentScope = {
   judgeUserId: Identifier;
   eventId: Identifier;
   eventCategoryId: Identifier;
+  scaleIds: Identifier[];
   createdAt: string;
 };
 
@@ -486,6 +490,7 @@ export type ScaleDeleteImpact = {
   scaleValue: string;
   eventCategoryRules: number;
   models: number;
+  judgeAssignments: number;
 };
 
 export type CreateClubPayload = {
@@ -565,6 +570,7 @@ export type AssignJudgeScopePayload = {
   judgeUserId: Identifier;
   eventId: Identifier;
   eventCategoryId: Identifier;
+  scaleIds?: Identifier[];
 };
 
 export type JudgePermissionCode =
@@ -596,14 +602,9 @@ export type AdminPermissionEntry = {
 };
 
 export type AdminNotificationType =
-  | "EVENTO_CREADO_ACTUALIZADO_ELIMINADO"
-  | "ASIGNACION_JUEZ_CREADA_ELIMINADA"
-  | "PERMISO_JUEZ_OTORGADO_REVOCADO"
-  | "PERMISO_ADMIN_OTORGADO_REVOCADO"
   | "ROL_USUARIO_ACTUALIZADO"
   | "PARTICIPANTE_BANEADO"
   | "PARTICIPANTE_REHABILITADO"
-  | "ALERTA_SISTEMA"
   | "NUEVO_REGISTRO_PARTICIPANTE";
 
 export type AdminNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";

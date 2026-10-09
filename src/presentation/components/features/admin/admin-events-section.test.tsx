@@ -145,6 +145,7 @@ const buildAdminEventsHookReturn = () => ({
   pendingAssignmentAction: null,
   assignmentFeedback: null,
   handleSaveAssignments: vi.fn(),
+  refreshAvailableScales: vi.fn(),
 });
 
 const renderSection = (canReadJudgeAssignments = true) =>
@@ -182,6 +183,12 @@ describe('AdminEventsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gestionar jueces' }));
 
     expect(screen.getByText('Gestionar jueces por evento')).toBeTruthy();
+    expect(mockUseAdminJudgeAssignments.mock.results[0]?.value.refreshAvailableScales).toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        /primero debes promover al usuario al rol de juez desde la sección Jueces/i,
+      ),
+    ).toBeTruthy();
     expect(screen.getAllByText('Evento Modal QA').length).toBeGreaterThan(1);
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
