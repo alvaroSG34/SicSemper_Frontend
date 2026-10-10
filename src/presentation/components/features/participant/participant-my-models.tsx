@@ -329,21 +329,21 @@ export function ParticipantMyModels({
     return (
       <div
         id={`model-detail-${model.id}`}
-        className="border-t border-[#333333] bg-[#181818] p-4 sm:p-5 xl:p-6"
+        className="w-full min-w-0 border-t border-[#333333] bg-[#181818] p-3.5 sm:p-5 xl:p-6"
       >
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-          <div className="space-y-4">
+        <div className="grid w-full min-w-0 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="min-w-0 space-y-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xl font-semibold leading-tight text-white sm:text-2xl">
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-lg font-semibold leading-tight text-white sm:text-2xl">
                   {model.nombreModelo}
                 </p>
-                <p className="mt-1 text-base font-medium text-[#D8D8D8] sm:text-lg">
+                <p className="mt-1 break-words text-sm font-medium text-[#D8D8D8] sm:text-lg">
                   {model.marca}
                 </p>
               </div>
               <span
-                className={`inline-flex rounded-full border px-3 py-1.5 text-sm font-semibold leading-none ${
+                className={`inline-flex shrink-0 rounded-full border px-3 py-1.5 text-xs sm:text-sm font-semibold leading-none ${
                   statusStyles[model.status]
                 }`}
               >
@@ -356,7 +356,7 @@ export function ParticipantMyModels({
                 <button
                   type="button"
                   onClick={() => openEditModel(model)}
-                  className="inline-flex h-10 items-center justify-center rounded-lg border border-[#5B68F1] px-4 text-sm font-semibold text-[#DDE3FF] transition hover:bg-[#5B68F1]/20"
+                  className="inline-flex h-9 sm:h-10 items-center justify-center rounded-lg border border-[#5B68F1] px-3.5 sm:px-4 text-xs sm:text-sm font-semibold text-[#DDE3FF] transition hover:bg-[#5B68F1]/20"
                 >
                   Editar maqueta
                 </button>
@@ -365,7 +365,7 @@ export function ParticipantMyModels({
                     type="button"
                     disabled={deletingModelId === model.id}
                     onClick={() => requestDeleteModel(model)}
-                    className="inline-flex h-10 items-center justify-center rounded-lg border border-[#B91C1C] px-4 text-sm font-semibold text-[#FECACA] transition hover:bg-[#7F1D1D]/30 disabled:opacity-60"
+                    className="inline-flex h-9 sm:h-10 items-center justify-center rounded-lg border border-[#B91C1C] px-3.5 sm:px-4 text-xs sm:text-sm font-semibold text-[#FECACA] transition hover:bg-[#7F1D1D]/30 disabled:opacity-60"
                   >
                     {deletingModelId === model.id ? "Eliminando..." : "Eliminar maqueta"}
                   </button>
@@ -379,46 +379,46 @@ export function ParticipantMyModels({
               </p>
             ) : null}
 
-            <div className="grid gap-2 md:grid-cols-3">
-              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-3">
+              <div className="min-w-0 rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#C8C8C8]">
                   Evento
                 </p>
-                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">
+                <p className="mt-1 text-sm sm:text-base leading-relaxed text-[#E2E2E2] break-words">
                   {model.eventName}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">
+              <div className="min-w-0 rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#C8C8C8]">
                   Categoria
                 </p>
-                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">
+                <p className="mt-1 text-sm sm:text-base leading-relaxed text-[#E2E2E2] break-words">
                   {model.categoryName}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
-                <p className="text-sm font-semibold uppercase tracking-[1px] text-[#C8C8C8]">
+              <div className="min-w-0 rounded-lg border border-[#3A3A3A] bg-[#131313] px-3 py-2">
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#C8C8C8]">
                   Subcategoria
                 </p>
-                <p className="mt-1 text-base leading-relaxed text-[#E2E2E2] break-words">
+                <p className="mt-1 text-sm sm:text-base leading-relaxed text-[#E2E2E2] break-words">
                   {model.subcategoryName ?? "Sin subcategoria"}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-sm text-[#E1E1E1]">
-              <div className="flex w-full flex-col overflow-hidden rounded-lg border border-[#4A79EE]/60 bg-gradient-to-r from-[#1C2A5A] to-[#101A36] shadow-[0_0_0_1px_rgba(59,107,234,0.2)] sm:w-auto sm:flex-row sm:items-stretch">
-                <span className="inline-flex items-center gap-1.5 border-b border-[#4A79EE]/60 px-3 py-2 text-sm font-semibold uppercase tracking-[1px] text-[#D3E0FF] sm:border-b-0 sm:border-r">
-                  <Tag className="h-4 w-4" />
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-[#E1E1E1]">
+              <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-lg border border-[#4A79EE]/60 bg-gradient-to-r from-[#1C2A5A] to-[#101A36] ring-1 ring-[#4A79EE]/20 sm:w-auto sm:flex-row sm:items-stretch">
+                <span className="inline-flex shrink-0 items-center gap-1.5 border-b border-[#4A79EE]/60 px-3 py-2 text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#D3E0FF] sm:border-b-0 sm:border-r">
+                  <Tag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   Codigo
                 </span>
-                <span className="px-3 py-2 font-mono text-sm tracking-[0.12em] text-[#F8FAFF] break-all sm:text-base">
+                <span className="min-w-0 px-3 py-2 font-mono text-xs sm:text-sm tracking-wide text-[#F8FAFF] break-all sm:text-base">
                   {model.codigo}
                 </span>
                 <button
                   type="button"
                   onClick={() => void copyModelCode(model.id, model.codigo)}
-                  className="inline-flex h-11 w-full items-center justify-center gap-1.5 border-t border-[#4A79EE]/60 px-3 text-sm font-semibold text-[#E2EBFF] transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70 sm:w-auto sm:justify-start sm:border-l sm:border-t-0"
+                  className="inline-flex h-9 sm:h-11 w-full items-center justify-center gap-1.5 border-t border-[#4A79EE]/60 px-3 text-xs sm:text-sm font-semibold text-[#E2EBFF] transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70 sm:w-auto sm:justify-start sm:border-l sm:border-t-0"
                   aria-label={`Copiar codigo ${model.codigo}`}
                 >
                   {copiedModelId === model.id ? (
@@ -435,11 +435,11 @@ export function ParticipantMyModels({
                 </button>
               </div>
 
-              <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
+              <span className="inline-flex min-h-9 sm:min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-xs sm:text-sm">
                 Escala: {model.escalaValue}
               </span>
-              <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-sm">
-                <ImageIcon className="h-4 w-4" />
+              <span className="inline-flex min-h-9 sm:min-h-11 items-center gap-1.5 rounded-full border border-[#414141] px-3 text-xs sm:text-sm">
+                <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 {model.files.length} archivo(s)
               </span>
             </div>
@@ -472,7 +472,7 @@ export function ParticipantMyModels({
             ) : (
               <>
                 <section className="space-y-3">
-                  <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-[#CDCDCD]">
                     Imagenes
                   </p>
 
@@ -530,7 +530,7 @@ export function ParticipantMyModels({
                 </section>
 
                 <section className="space-y-3">
-                  <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#CDCDCD]">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-[#CDCDCD]">
                     PDF
                   </p>
 
@@ -626,44 +626,44 @@ export function ParticipantMyModels({
 
   return (
     <>
-      <article className="rounded-3xl border border-[#353535] bg-[#161616] p-6 sm:p-7 xl:p-9">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <h3 className={`${outfit.className} text-3xl font-semibold leading-tight text-white`}>
+      <article className="w-full min-w-0 rounded-2xl sm:rounded-3xl border border-[#353535] bg-[#161616] p-3.5 sm:p-6 xl:p-8">
+        <div className="mb-5 sm:mb-6 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <h3 className={`${outfit.className} text-2xl sm:text-3xl font-semibold leading-tight text-white`}>
             Mis Maquetas
           </h3>
-          <span className="text-sm font-medium uppercase tracking-[1.4px] text-[#B4B4B4]">
+          <span className="text-xs sm:text-sm font-medium uppercase tracking-wider text-[#B4B4B4]">
             {models.length} registros
           </span>
         </div>
 
         {!showSkeleton && models.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-[#353535] bg-[#111111] px-4 py-3">
-                <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#B7B7B7]">
+            <div className="grid w-full min-w-0 grid-cols-3 gap-2 sm:gap-3">
+              <div className="min-w-0 rounded-xl border border-[#353535] bg-[#111111] px-2.5 py-2.5 sm:px-4 sm:py-3 text-center sm:text-left">
+                <p className="truncate text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#B7B7B7]">
                   Total
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-white">{models.length}</p>
+                <p className="mt-1 truncate text-xl sm:text-2xl font-semibold text-white">{models.length}</p>
               </div>
-              <div className="rounded-xl border border-[#353535] bg-[#111111] px-4 py-3">
-                <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#B7B7B7]">
+              <div className="min-w-0 rounded-xl border border-[#353535] bg-[#111111] px-2.5 py-2.5 sm:px-4 sm:py-3 text-center sm:text-left">
+                <p className="truncate text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#B7B7B7]">
                   Enviadas
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-[#BFDBFE]">
+                <p className="mt-1 truncate text-xl sm:text-2xl font-semibold text-[#BFDBFE]">
                   {modelsByStatus.ENVIADA}
                 </p>
               </div>
-              <div className="rounded-xl border border-[#353535] bg-[#111111] px-4 py-3">
-                <p className="text-sm font-semibold uppercase tracking-[1.2px] text-[#B7B7B7]">
+              <div className="min-w-0 rounded-xl border border-[#353535] bg-[#111111] px-2.5 py-2.5 sm:px-4 sm:py-3 text-center sm:text-left">
+                <p className="truncate text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#B7B7B7]">
                   Archivos
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-[#D1D5DB]">{totalFiles}</p>
+                <p className="mt-1 truncate text-xl sm:text-2xl font-semibold text-[#D1D5DB]">{totalFiles}</p>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-5">
-              <label className="relative flex items-center md:col-span-2">
-                <Search className="pointer-events-none absolute left-3 h-5 w-5 text-[#9B9B9B]" />
+            <div className="mt-4 sm:mt-5 grid w-full min-w-0 grid-cols-1 gap-2.5 sm:gap-3 md:grid-cols-5">
+              <label className="relative flex w-full min-w-0 items-center md:col-span-2">
+                <Search className="pointer-events-none absolute left-3 h-4 w-4 sm:h-5 sm:w-5 text-[#9B9B9B]" />
                 <input
                   value={searchTerm}
                   onChange={(event) => {
@@ -671,71 +671,79 @@ export function ParticipantMyModels({
                     setExpandedModelId(null);
                   }}
                   placeholder="Buscar por nombre, codigo, marca o evento"
-                  className="h-11 w-full rounded-lg border border-[#3A3A3A] bg-[#101010] pl-11 pr-3 text-base text-white placeholder:text-[#9C9C9C] outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+                  className="h-10 sm:h-11 w-full min-w-0 max-w-full rounded-lg border border-[#3A3A3A] bg-[#101010] pl-9 sm:pl-11 pr-3 text-sm sm:text-base text-white placeholder:text-[#9C9C9C] outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
                 />
               </label>
 
-              <select
-                value={eventFilter}
-                onChange={(event) => {
-                  setEventFilter(event.target.value);
-                  setExpandedModelId(null);
-                }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
-              >
-                <option value="ALL">Todos los eventos</option>
-                {eventOptions.map((eventOption) => (
-                  <option key={eventOption.id} value={eventOption.id}>
-                    {eventOption.name}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full min-w-0">
+                <select
+                  value={eventFilter}
+                  onChange={(event) => {
+                    setEventFilter(event.target.value);
+                    setExpandedModelId(null);
+                  }}
+                  className="h-10 sm:h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-sm sm:text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+                >
+                  <option value="ALL">Todos los eventos</option>
+                  {eventOptions.map((eventOption) => (
+                    <option key={eventOption.id} value={eventOption.id}>
+                      {eventOption.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <select
-                value={categoryFilter}
-                onChange={(event) => {
-                  setCategoryFilter(event.target.value);
-                  setSubcategoryFilter("ALL");
-                  setExpandedModelId(null);
-                }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
-              >
-                <option value="ALL">Todas las categorias</option>
-                {categoryOptions.map((categoryOption) => (
-                  <option key={categoryOption.id} value={categoryOption.id}>
-                    {categoryOption.name}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full min-w-0">
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => {
+                    setCategoryFilter(event.target.value);
+                    setSubcategoryFilter("ALL");
+                    setExpandedModelId(null);
+                  }}
+                  className="h-10 sm:h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-sm sm:text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+                >
+                  <option value="ALL">Todas las categorias</option>
+                  {categoryOptions.map((categoryOption) => (
+                    <option key={categoryOption.id} value={categoryOption.id}>
+                      {categoryOption.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <select
-                value={subcategoryFilter}
-                onChange={(event) => {
-                  setSubcategoryFilter(event.target.value);
-                  setExpandedModelId(null);
-                }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
-              >
-                <option value="ALL">Todas las subcategorias</option>
-                {subcategoryOptions.map((subcategoryOption) => (
-                  <option key={subcategoryOption.id} value={subcategoryOption.id}>
-                    {subcategoryOption.name}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full min-w-0">
+                <select
+                  value={subcategoryFilter}
+                  onChange={(event) => {
+                    setSubcategoryFilter(event.target.value);
+                    setExpandedModelId(null);
+                  }}
+                  className="h-10 sm:h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-sm sm:text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+                >
+                  <option value="ALL">Todas las subcategorias</option>
+                  {subcategoryOptions.map((subcategoryOption) => (
+                    <option key={subcategoryOption.id} value={subcategoryOption.id}>
+                      {subcategoryOption.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <select
-                value={sortBy}
-                onChange={(event) => {
-                  setSortBy(event.target.value as SortOption);
-                  setExpandedModelId(null);
-                }}
-                className="h-11 rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40 md:col-span-5"
-              >
-                <option value="recent">Orden: Mas recientes</option>
-                <option value="oldest">Orden: Mas antiguas</option>
-                <option value="name">Orden: Nombre A-Z</option>
-              </select>
+              <div className="w-full min-w-0 md:col-span-5">
+                <select
+                  value={sortBy}
+                  onChange={(event) => {
+                    setSortBy(event.target.value as SortOption);
+                    setExpandedModelId(null);
+                  }}
+                  className="h-10 sm:h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-sm sm:text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
+                >
+                  <option value="recent">Orden: Mas recientes</option>
+                  <option value="oldest">Orden: Mas antiguas</option>
+                  <option value="name">Orden: Nombre A-Z</option>
+                </select>
+              </div>
             </div>
           </>
         ) : null}
@@ -776,26 +784,26 @@ export function ParticipantMyModels({
 
             {filteredModels.length > 0 ? (
               <>
-                <div className="space-y-3 overflow-x-hidden lg:hidden">
+                <div className="w-full min-w-0 space-y-3 overflow-x-hidden lg:hidden">
                   {filteredModels.map((model) => {
                     const isExpanded = expandedModelId === model.id;
                     return (
                       <article
                         key={`mobile-${model.id}`}
-                        className="overflow-hidden rounded-2xl border border-[#383838] bg-[#1A1A1A]"
+                        className="w-full min-w-0 overflow-hidden rounded-xl sm:rounded-2xl border border-[#383838] bg-[#1A1A1A]"
                       >
-                        <div className="space-y-3 p-4">
+                        <div className="space-y-3 p-3.5 sm:p-4">
                           <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-lg font-semibold text-white">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-base sm:text-lg font-semibold text-white">
                                 {model.nombreModelo}
                               </p>
-                              <p className="truncate text-sm text-[#D2D2D2]">{model.marca}</p>
+                              <p className="truncate text-xs sm:text-sm text-[#D2D2D2]">{model.marca}</p>
                             </div>
                             <button
                               type="button"
                               onClick={() => toggleModelExpand(model.id)}
-                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
+                              className="inline-flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-[#4A4A4A] text-[#E1E1E1] transition hover:border-[#6A6A6A] hover:bg-[#222222] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA6FF]/70"
                               aria-expanded={isExpanded}
                               aria-label={
                                 isExpanded
@@ -804,44 +812,44 @@ export function ParticipantMyModels({
                               }
                             >
                               <ChevronDown
-                                className={`h-5 w-5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                                className={`h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
                               />
                             </button>
                           </div>
 
-                          <div className="grid gap-2 text-sm text-[#D7D7D7] sm:grid-cols-2">
-                            <p>
+                          <div className="grid gap-2 text-xs sm:text-sm text-[#D7D7D7] sm:grid-cols-2">
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Evento:</span>{" "}
-                              <span className="break-words">{model.eventName}</span>
+                              <span>{model.eventName}</span>
                             </p>
-                            <p>
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Categoria:</span>{" "}
-                              <span className="break-words">{model.categoryName}</span>
+                              <span>{model.categoryName}</span>
                             </p>
-                            <p>
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Subcategoria:</span>{" "}
-                              <span className="break-words">
+                              <span>
                                 {model.subcategoryName ?? "Sin subcategoria"}
                               </span>
                             </p>
-                            <p>
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Escala:</span> {model.escalaValue}
                             </p>
-                            <p>
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Archivos:</span> {model.files.length}
                             </p>
-                            <p>
+                            <p className="min-w-0 break-words">
                               <span className="text-[#AFAFAF]">Enviado:</span>{" "}
                               {formatDate(model.createdAt)}
                             </p>
-                            <p>
+                            <p className="min-w-0 break-all">
                               <span className="text-[#AFAFAF]">Codigo:</span>{" "}
-                              <span className="break-all">{model.codigo}</span>
+                              <span>{model.codigo}</span>
                             </p>
                           </div>
 
                           <span
-                            className={`inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold leading-none ${
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold leading-none ${
                               statusStyles[model.status]
                             }`}
                           >
@@ -854,15 +862,15 @@ export function ParticipantMyModels({
                   })}
                 </div>
 
-                <div className="hidden overflow-x-auto rounded-2xl border border-[#383838] bg-[#1A1A1A] lg:block">
-                  <div className="min-w-[980px]">
-                    <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] border-b border-[#393939] bg-[#141414] px-4 py-3 text-sm font-semibold uppercase tracking-[1px] text-[#D0D0D0] sm:px-5">
+                <div className="hidden w-full overflow-x-auto rounded-2xl border border-[#383838] bg-[#1A1A1A] lg:block">
+                  <div className="w-full min-w-full">
+                    <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_auto] border-b border-[#393939] bg-[#141414] px-4 py-3 text-sm font-semibold uppercase tracking-wider text-[#D0D0D0] sm:px-5">
                       <p>Nombre</p>
                       <p>Marca</p>
                       <p>Evento</p>
                       <p>Categoria</p>
                       <p>Subcategoria</p>
-                      <p className="text-center">Detalle</p>
+                      <p className="text-center px-2">Detalle</p>
                     </div>
 
                     {filteredModels.map((model) => {
@@ -873,7 +881,7 @@ export function ParticipantMyModels({
                           key={model.id}
                           className="border-b border-[#333333] last:border-b-0"
                         >
-                          <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_72px] items-center gap-3 px-4 py-3.5 text-sm text-[#E2E2E2] sm:px-5">
+                          <div className="grid grid-cols-[1.2fr_1fr_1.2fr_1fr_1fr_auto] items-center gap-3 px-4 py-3.5 text-sm text-[#E2E2E2] sm:px-5">
                             <p className="truncate text-base font-semibold text-white">
                               {model.nombreModelo}
                             </p>
@@ -883,7 +891,7 @@ export function ParticipantMyModels({
                             <p className="truncate">
                               {model.subcategoryName ?? "Sin subcategoria"}
                             </p>
-                            <div className="flex justify-center">
+                            <div className="flex justify-center px-2">
                               <button
                                 type="button"
                                 onClick={() => toggleModelExpand(model.id)}
