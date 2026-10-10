@@ -38,6 +38,7 @@ type AdminMutationsStoreSlice = Pick<
   | "updateSubcategory"
   | "removeSubcategory"
   | "assignJudgeScope"
+  | "syncJudgeAssignments"
   | "removeJudgeScope"
 >;
 
@@ -115,12 +116,18 @@ export const createAdminMutationsStoreSlice: StateCreator<
       await adminService.createEvent(payload);
     });
   },
-  createEventAndLinkCategories: async (payload, categoryIds, scalesByCategoryId) => {
+  createEventAndLinkCategories: async (
+    payload,
+    categoryIds,
+    scalesByCategoryId,
+    scaleModesByCategoryId,
+  ) => {
     const created = await executeMutation(set, async () =>
       adminService.createEventAndLinkCategories(
         payload,
         categoryIds,
         scalesByCategoryId,
+        scaleModesByCategoryId,
       ),
     );
 
@@ -139,12 +146,14 @@ export const createAdminMutationsStoreSlice: StateCreator<
     payload,
     categoryIds,
     scalesByCategoryId,
+    scaleModesByCategoryId,
   ) => {
     const updated = await executeMutation(set, async () =>
       adminService.updateEventAndLinkCategories(
         payload,
         categoryIds,
         scalesByCategoryId,
+        scaleModesByCategoryId,
       ),
     );
 
@@ -239,6 +248,11 @@ export const createAdminMutationsStoreSlice: StateCreator<
   assignJudgeScope: async (payload) => {
     await executeMutation(set, async () => {
       await adminService.assignJudgeScope(payload);
+    });
+  },
+  syncJudgeAssignments: async (payload) => {
+    await executeMutation(set, async () => {
+      await adminService.syncJudgeAssignments(payload);
     });
   },
   removeJudgeScope: async (assignmentId) => {

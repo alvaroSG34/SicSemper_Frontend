@@ -1,11 +1,6 @@
 import type { Identifier } from "@/core/types";
 
-export type ParticipantSidebarItemId =
-  | "inicio"
-  | "eventos"
-  | "maquetas"
-  | "resultados"
-  | "perfil";
+export type ParticipantSidebarItemId = "inicio" | "eventos" | "maquetas" | "resultados" | "perfil";
 
 export type ParticipantSidebarIcon =
   | "home"
@@ -204,6 +199,8 @@ export type ParticipantModel = {
   descripcion: string;
   codigo: string;
   status: ParticipantModelStatus;
+  canEdit: boolean;
+  editingDeadline: string | null;
   createdAt: string;
   updatedAt: string;
   eventName: string;
@@ -234,6 +231,14 @@ export type CreateParticipantModelPayload = {
   files: ParticipantUploadFileInput[];
 };
 
+export type UpdateParticipantModelPayload = {
+  modelId: Identifier;
+  nombreModelo: string;
+  marca: string;
+  descripcion?: string;
+  files: Array<{ id: Identifier } | ParticipantUploadFileInput>;
+};
+
 export type ParticipantDashboardData = {
   sidebarItems: ParticipantSidebarItem[];
   profile: ParticipantProfile;
@@ -244,15 +249,9 @@ export type ParticipantDashboardData = {
 };
 
 export type ParticipantNotificationType =
-  | "MAQUETA_ENVIADA"
-  | "MAQUETA_EN_REVISION"
   | "MAQUETA_CALIFICADA"
-  | "REVISION_REABIERTA"
-  | "EVENTO_INSCRITO_ACTUALIZADO"
-  | "EVENTO_INSCRITO_PAUSADO_ELIMINADO"
   | "CUENTA_PARTICIPANTE_SUSPENDIDA"
-  | "CUENTA_PARTICIPANTE_REHABILITADA"
-  | "ALERTA_SISTEMA";
+  | "CUENTA_PARTICIPANTE_REHABILITADA";
 
 export type ParticipantNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
 
@@ -321,11 +320,7 @@ export type ParticipantShowcaseModelItem = {
   createdAt: string;
 };
 
-export type ParticipantShowcaseSortOption =
-  | "SCORE_DESC"
-  | "SCORE_ASC"
-  | "DATE_DESC"
-  | "DATE_ASC";
+export type ParticipantShowcaseSortOption = "SCORE_DESC" | "SCORE_ASC" | "DATE_DESC" | "DATE_ASC";
 
 export type ParticipantShowcaseModelsPage = {
   items: ParticipantShowcaseModelItem[];
@@ -391,4 +386,3 @@ export type ParticipantShowcaseModelDetail = {
     judgeBreakdown: ParticipantShowcaseJudgeBreakdownItem[];
   };
 };
-

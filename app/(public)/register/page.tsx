@@ -477,7 +477,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#000000] text-white">
+    <main className="relative min-h-screen overflow-x-clip bg-[#000000] text-white">
       <AutoPublicHeader />
 
       <section className="relative mx-auto flex w-full max-w-[1522px] justify-center px-6 pb-16 pt-8 md:px-10 md:pt-10">
@@ -697,7 +697,7 @@ export default function RegisterPage() {
                   value={form.birthDate}
                   onChange={handleChange("birthDate")}
                   onBlur={handleBlur("birthDate")}
-                  className={inputClassName}
+                  className={`${inputClassName} [color-scheme:dark]`}
                   autoComplete="bday"
                 />
               </div>
@@ -970,8 +970,6 @@ export default function RegisterPage() {
     </main>
   );
 }
-
-
 
 
 

@@ -13,8 +13,8 @@ const events: ParticipantEventDetail[] = [
     imageUrl: null,
     status: "ACTIVO",
     place: "La Paz",
-    startDate: "2026-06-01T16:40:00.000Z",
-    endDate: "2026-06-02T17:47:00.000Z",
+    startDate: "2027-06-01T16:40:00.000Z",
+    endDate: "2027-06-02T17:47:00.000Z",
     description: "Descripcion del evento",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -26,8 +26,8 @@ const events: ParticipantEventDetail[] = [
     imageUrl: null,
     status: "PAUSADO",
     place: "Cochabamba",
-    startDate: "2026-07-01T16:40:00.000Z",
-    endDate: "2026-07-02T17:47:00.000Z",
+    startDate: "2027-07-01T16:40:00.000Z",
+    endDate: "2027-07-02T17:47:00.000Z",
     description: "Descripcion del evento 2",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -61,14 +61,14 @@ describe("ParticipantEventsExplorer", () => {
     expect(screen.getByText("PAUSADO")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Subir maqueta" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Ver maquetas" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Ver participantes" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Ver podio" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Mas detalles" })).toHaveLength(2);
   });
 
-  it("triggers callbacks for upload, models and participants", async () => {
+  it("triggers callbacks for upload, models and podium", async () => {
     const onStartUpload = vi.fn().mockResolvedValue(true);
     const onGoToMyModelsByEvent = vi.fn();
-    const onOpenParticipantsByEvent = vi.fn();
+    const onOpenPodiumByEvent = vi.fn();
 
     render(
       <ParticipantEventsExplorer
@@ -83,7 +83,7 @@ describe("ParticipantEventsExplorer", () => {
         onStartUpload={onStartUpload}
         onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={onGoToMyModelsByEvent}
-        onOpenParticipantsByEvent={onOpenParticipantsByEvent}
+        onOpenPodiumByEvent={onOpenPodiumByEvent}
       />,
     );
 
@@ -93,8 +93,8 @@ describe("ParticipantEventsExplorer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ver maquetas" }));
     expect(onGoToMyModelsByEvent).toHaveBeenCalledWith("event-1");
 
-    fireEvent.click(screen.getByRole("button", { name: "Ver participantes" }));
-    expect(onOpenParticipantsByEvent).toHaveBeenCalledWith("event-1");
+    fireEvent.click(screen.getByRole("button", { name: "Ver podio" }));
+    expect(onOpenPodiumByEvent).toHaveBeenCalledWith("event-1");
   });
 
   it("renders improved empty state", () => {
@@ -116,13 +116,15 @@ describe("ParticipantEventsExplorer", () => {
     );
 
     expect(
-      screen.getByText("No hay eventos proximos por ahora. Vuelve mas tarde para descubrir nuevas competencias."),
+      screen.getByText(
+        "No hay eventos proximos por ahora. Vuelve mas tarde para descubrir nuevas competencias.",
+      ),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Refrescar" })).toBeTruthy();
   });
 
-  it("allows switching to past events filter and keeps participants action", () => {
-    const onOpenParticipantsByEvent = vi.fn();
+  it("allows switching to past events filter and keeps podium action", () => {
+    const onOpenPodiumByEvent = vi.fn();
     const pastEvent: ParticipantEventDetail = {
       id: "event-past-1",
       name: "Copa Historica",
@@ -151,7 +153,7 @@ describe("ParticipantEventsExplorer", () => {
         onStartUpload={vi.fn().mockResolvedValue(true)}
         onRefresh={vi.fn().mockResolvedValue(undefined)}
         onGoToMyModelsByEvent={vi.fn()}
-        onOpenParticipantsByEvent={onOpenParticipantsByEvent}
+        onOpenPodiumByEvent={onOpenPodiumByEvent}
       />,
     );
 
@@ -159,8 +161,8 @@ describe("ParticipantEventsExplorer", () => {
     expect(screen.getByText("Eventos pasados")).toBeTruthy();
     expect(screen.getByText("Copa Historica")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Ver participantes" }));
-    expect(onOpenParticipantsByEvent).toHaveBeenCalledWith("event-past-1");
+    fireEvent.click(screen.getByRole("button", { name: "Ver podio" }));
+    expect(onOpenPodiumByEvent).toHaveBeenCalledWith("event-past-1");
   });
 
   it("blocks upload button in past events", () => {
@@ -198,7 +200,9 @@ describe("ParticipantEventsExplorer", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Pasados" }));
-    const uploadButton = screen.getByRole("button", { name: "Evento finalizado" }) as HTMLButtonElement;
+    const uploadButton = screen.getByRole("button", {
+      name: "Evento finalizado",
+    }) as HTMLButtonElement;
     expect(uploadButton.disabled).toBe(true);
 
     fireEvent.click(uploadButton);

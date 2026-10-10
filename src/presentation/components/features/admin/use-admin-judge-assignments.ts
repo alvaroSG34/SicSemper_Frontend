@@ -8,6 +8,7 @@ import type {
 } from '@/domain/admin/admin.types';
 import type { User } from '@/domain/user/user.types';
 import { useAdminStore } from '@/presentation/stores/admin.store';
+import { adminEventsService } from '@/application/admin/services/admin-events.service';
 import { useAdminOperations } from './use-admin-operations';
 import {
   buildAssignedJudgeSet,
@@ -32,6 +33,8 @@ export type JudgeNodeSelectionState = {
   totalLeaves: number;
 };
 
+export type JudgeScaleDraft = Record<string, string[]>;
+
 type JudgeValidationIssue = {
   judgeId: string;
   judgeName: string;
@@ -53,6 +56,7 @@ type UseAdminJudgeAssignmentsParams = {
   subcategories: CatalogSubcategory[];
   eventCategories: EventCategoryOption[];
   canManageJudgeAssignments: boolean;
+  onAssignmentsSaved?: () => void;
 };
 
 const buildJudgeValidationIssues = (
@@ -78,10 +82,12 @@ export const useAdminJudgeAssignments = ({
   subcategories,
   eventCategories,
   canManageJudgeAssignments,
+  onAssignmentsSaved,
 }: UseAdminJudgeAssignmentsParams) => {
   const {
     assignJudgeScope,
     removeJudgeScope,
+    syncJudgeAssignments: syncJudgeAssignmentsRequest,
     createEventCategoryLink,
     removeEventCategoryLink,
   } = useAdminOperations();
@@ -92,6 +98,10 @@ export const useAdminJudgeAssignments = ({
   const [judgeSubcategoryDraft, setJudgeSubcategoryDraftState] = useState<JudgeSubcategoryDraft>(
     {},
   );
+  const [judgeScaleDraft, setJudgeScaleDraft] = useState<JudgeScaleDraft>({});
+  const [scaleIdsByEventCategory, setScaleIdsByEventCategory] = useState<Record<string, string[]>>({});
+  const [availableScales, setAvailableScales] = useState<Array<{ id: string; value: string }>>([]);
+  const [scaleRefreshToken, setScaleRefreshToken] = useState(0);
   const [pendingAssignmentAction, setPendingAssignmentAction] = useState<string | null>(null);
   const [assignmentFeedback, setAssignmentFeedback] = useState<{
     type: 'success' | 'error';
@@ -216,6 +226,32 @@ export const useAdminJudgeAssignments = ({
       setSelectedEventId(availableEvents[0]?.id ?? '');
     }
   }, [availableEvents, selectedEventId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedEventId) {
+      setScaleIdsByEventCategory({});
+      setAvailableScales([]);
+      return () => undefined;
+    }
+    void adminEventsService.listEventCategoryScales(selectedEventId).then((response) => {
+      if (cancelled) return;
+      setAvailableScales(response.availableScales.map((scale) => ({ id: scale.id, value: scale.value })));
+      setScaleIdsByEventCategory(
+        Object.fromEntries(response.items.map((item) => [item.eventCategoryId, item.scaleIds])),
+      );
+    }).catch(() => {
+      if (!cancelled) {
+        setScaleIdsByEventCategory({});
+        setAvailableScales([]);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [scaleRefreshToken, selectedEventId]);
+
+  const refreshAvailableScales = useCallback(() => {
+    setScaleRefreshToken((current) => current + 1);
+  }, []);
 
   const selectedEventCategories = useMemo(
     () => eventCategories.filter((entry) => entry.eventId === selectedEventId),
@@ -389,12 +425,21 @@ export const useAdminJudgeAssignments = ({
     return draft;
   }, [assignments, eventCategories, selectedAssignableSubcategoryIds, selectedEventId]);
 
+  const currentJudgeScaleDraft = useMemo(() => {
+    const draft: JudgeScaleDraft = {};
+    assignments.filter((assignment) => assignment.eventId === selectedEventId).forEach((assignment) => {
+      draft[`${assignment.judgeUserId}::${assignment.eventCategoryId}`] = assignment.scaleIds ?? [];
+    });
+    return draft;
+  }, [assignments, selectedEventId]);
+
   useEffect(() => {
     setAssignedJudgeIds(new Set(currentAssignedJudgeIds));
     setJudgeSubcategoryDraftState(currentJudgeSubcategoryDraft);
+    setJudgeScaleDraft(currentJudgeScaleDraft);
     setAssignmentFeedback(null);
     setAssignmentSyncReport(null);
-  }, [currentAssignedJudgeIds, currentJudgeSubcategoryDraft, selectedEventId]);
+  }, [currentAssignedJudgeIds, currentJudgeScaleDraft, currentJudgeSubcategoryDraft, selectedEventId]);
 
   useEffect(() => {
     const allowedSubcategoryIds = new Set(selectedAssignableSubcategoryIds);
@@ -519,7 +564,6 @@ export const useAdminJudgeAssignments = ({
 
   const executeAssignmentAction = async (
     actionKey: string,
-    successMessage: string,
     action: () => Promise<void>,
   ) => {
     setPendingAssignmentAction(actionKey);
@@ -537,10 +581,6 @@ export const useAdminJudgeAssignments = ({
         return false;
       }
 
-      setAssignmentFeedback({
-        type: 'success',
-        message: successMessage,
-      });
       return true;
     } catch (error) {
       setAssignmentFeedback({
@@ -580,6 +620,45 @@ export const useAdminJudgeAssignments = ({
       return next;
     });
   };
+
+  const getJudgeScaleIds = useCallback(
+    (judgeUserId: string, subcategoryId: string) => {
+      const eventCategoryId = subcategoryToEventCategoryId.get(subcategoryId);
+      return eventCategoryId ? judgeScaleDraft[`${judgeUserId}::${eventCategoryId}`] ?? [] : [];
+    },
+    [judgeScaleDraft, subcategoryToEventCategoryId],
+  );
+
+  const toggleJudgeScale = (judgeUserId: string, subcategoryId: string, scaleId: string) => {
+    const eventCategoryId = subcategoryToEventCategoryId.get(subcategoryId);
+    if (!eventCategoryId) return;
+    const key = `${judgeUserId}::${eventCategoryId}`;
+    setAssignmentFeedback(null);
+    setJudgeScaleDraft((prev) => {
+      const selected = new Set(prev[key] ?? []);
+      if (selected.has(scaleId)) selected.delete(scaleId); else selected.add(scaleId);
+      return { ...prev, [key]: toUniqueSorted(Array.from(selected)) };
+    });
+  };
+
+  const selectAllJudgeScales = (judgeUserId: string, subcategoryId: string) => {
+    const eventCategoryId = subcategoryToEventCategoryId.get(subcategoryId);
+    if (!eventCategoryId) return;
+    setJudgeScaleDraft((prev) => ({
+      ...prev,
+      [`${judgeUserId}::${eventCategoryId}`]: [...(scaleIdsByEventCategory[eventCategoryId] ?? [])],
+    }));
+  };
+
+  const getScaleSelectionState = useCallback(
+    (judgeUserId: string, subcategoryId: string) => {
+      const eventCategoryId = subcategoryToEventCategoryId.get(subcategoryId);
+      const allowed = eventCategoryId ? scaleIdsByEventCategory[eventCategoryId] ?? [] : [];
+      const selected = getJudgeScaleIds(judgeUserId, subcategoryId);
+      return { allowedScaleIds: allowed, selectedScaleIds: selected };
+    },
+    [getJudgeScaleIds, scaleIdsByEventCategory, subcategoryToEventCategoryId],
+  );
 
   const toggleJudgeCategoryNode = (judgeUserId: string, nodeId: string) => {
     const leafIds = selectedLeafIdsByNodeId.get(nodeId) ?? [];
@@ -687,97 +766,72 @@ export const useAdminJudgeAssignments = ({
 
   const syncJudgeAssignments = async (): Promise<JudgeSyncReport> => {
     if (!selectedEventId) {
-      return {
-        created: 0,
-        removed: 0,
-        failedCreates: [],
-        failedRemoves: [],
-      };
+      return { created: 0, removed: 0, failedCreates: [], failedRemoves: [] };
     }
 
     const normalizedEventCategories = await normalizeEventLeafLinks();
-
-    const scopeLabelBySubcategoryId = new Map(selectedLeafLabelById);
-    const selectedLeafSet = new Set(selectedAssignableSubcategoryIds);
-    const effectiveSubcategoryToEventCategoryId = new Map(
-      normalizedEventCategories
-        .filter((entry) => selectedLeafSet.has(entry.categoryId))
-        .map((entry) => [entry.categoryId, entry.id] as const),
+    const effectiveMap = new Map(
+      normalizedEventCategories.map((entry) => [entry.categoryId, entry.id] as const),
     );
+    const desiredAssignments: Array<{ judgeUserId: string; eventCategoryId: string; scaleIds: string[] }> = [];
+    const failedCreates: JudgeSyncReport['failedCreates'] = [];
 
-    const effectiveEventCategoryById = new Map(
-      normalizedEventCategories.map((entry) => [entry.id, entry] as const),
-    );
-
-    const diff = buildJudgeAssignmentDiff({
-      existingAssignments: assignments
-        .filter((assignment) => assignment.eventId === selectedEventId)
-        .map((assignment) => ({
-          id: assignment.id,
-          judgeUserId: assignment.judgeUserId,
-          eventCategoryId: assignment.eventCategoryId,
-        })),
-      assignedJudgeIds,
-      selectionsByJudge: judgeSubcategoryDraft,
-      subcategoryToEventCategoryId: effectiveSubcategoryToEventCategoryId,
-    });
-
-    const failedCreates: JudgeSyncReport['failedCreates'] = diff.missingSubcategories.map(
-      (missing) => ({
-        judgeName: judgeNameById.get(missing.judgeUserId) ?? missing.judgeUserId,
-        scopeName: scopeLabelBySubcategoryId.get(missing.subcategoryId) ?? missing.subcategoryId,
-        message: 'El alcance no esta disponible para este evento.',
-      }),
-    );
-    const failedRemoves: JudgeSyncReport['failedRemoves'] = [];
-
-    let created = 0;
-    let removed = 0;
-
-    for (const createItem of diff.toCreate) {
-      clearError();
-      await assignJudgeScope({
-        judgeUserId: createItem.judgeUserId,
-        eventId: selectedEventId,
-        eventCategoryId: createItem.eventCategoryId,
-      });
-      const opError = useAdminStore.getState().error;
-      if (opError) {
-        failedCreates.push({
-          judgeName: judgeNameById.get(createItem.judgeUserId) ?? createItem.judgeUserId,
-          scopeName:
-            scopeLabelBySubcategoryId.get(createItem.subcategoryId) ?? createItem.subcategoryId,
-          message: opError,
-        });
-      } else {
-        created += 1;
+    for (const judgeUserId of assignedJudgeIds) {
+      for (const subcategoryId of judgeSubcategoryDraft[judgeUserId] ?? []) {
+        const eventCategoryId = effectiveMap.get(subcategoryId);
+        if (!eventCategoryId) {
+          failedCreates.push({ judgeName: judgeNameById.get(judgeUserId) ?? judgeUserId, scopeName: subcategoryId, message: 'El alcance no esta disponible para este evento.' });
+          continue;
+        }
+        const scaleIds = judgeScaleDraft[`${judgeUserId}::${eventCategoryId}`] ?? [];
+        if (scaleIds.length === 0 && typeof syncJudgeAssignmentsRequest === 'function') {
+          failedCreates.push({ judgeName: judgeNameById.get(judgeUserId) ?? judgeUserId, scopeName: selectedEventCategoryById.get(eventCategoryId)?.name ?? subcategoryId, message: 'Selecciona al menos una escala.' });
+          continue;
+        }
+        desiredAssignments.push({ judgeUserId, eventCategoryId, scaleIds });
       }
     }
 
-    for (const removeItem of diff.toRemove) {
-      clearError();
-      await removeJudgeScope(removeItem.id);
-      const opError = useAdminStore.getState().error;
-      if (opError) {
-        failedRemoves.push({
-          judgeName: judgeNameById.get(removeItem.judgeUserId) ?? removeItem.judgeUserId,
-          scopeName:
-            effectiveEventCategoryById.get(removeItem.eventCategoryId)?.name ??
-            selectedEventCategoryById.get(removeItem.eventCategoryId)?.name ??
-            removeItem.eventCategoryId,
-          message: opError,
-        });
-      } else {
-        removed += 1;
-      }
+    if (failedCreates.length > 0) {
+      const report = { created: 0, removed: 0, failedCreates, failedRemoves: [] };
+      setAssignmentSyncReport(report);
+      return report;
     }
 
-    clearError();
-    const report: JudgeSyncReport = {
-      created,
-      removed,
-      failedCreates,
-      failedRemoves,
+    if (typeof syncJudgeAssignmentsRequest !== 'function') {
+      for (const desired of desiredAssignments) {
+        await assignJudgeScope({
+          judgeUserId: desired.judgeUserId,
+          eventId: selectedEventId,
+          eventCategoryId: desired.eventCategoryId,
+          ...(desired.scaleIds.length > 0 ? { scaleIds: desired.scaleIds } : {}),
+        });
+      }
+      const desiredKeys = new Set(desiredAssignments.map((entry) => `${entry.judgeUserId}::${entry.eventCategoryId}`));
+      for (const existing of assignments.filter((assignment) => assignment.eventId === selectedEventId)) {
+        if (!desiredKeys.has(`${existing.judgeUserId}::${existing.eventCategoryId}`)) {
+          await removeJudgeScope(existing.id);
+        }
+      }
+      const report = { created: desiredAssignments.length, removed: 0, failedCreates: [], failedRemoves: [] };
+      setAssignmentSyncReport(report);
+      return report;
+    }
+    await syncJudgeAssignmentsRequest({ eventId: selectedEventId, assignments: desiredAssignments });
+    const latestError = useAdminStore.getState().error;
+    if (latestError) {
+      const report = { created: 0, removed: 0, failedCreates: [{ judgeName: 'Asignaciones', scopeName: selectedEventId, message: latestError }], failedRemoves: [] };
+      setAssignmentSyncReport(report);
+      return report;
+    }
+
+    const existing = assignments.filter((assignment) => assignment.eventId === selectedEventId);
+    const desiredKeys = new Set(desiredAssignments.map((entry) => `${entry.judgeUserId}::${entry.eventCategoryId}`));
+    const report = {
+      created: desiredAssignments.filter((entry) => !existing.some((current) => current.judgeUserId === entry.judgeUserId && current.eventCategoryId === entry.eventCategoryId)).length,
+      removed: existing.filter((entry) => !desiredKeys.has(`${entry.judgeUserId}::${entry.eventCategoryId}`)).length,
+      failedCreates: [],
+      failedRemoves: [],
     };
     setAssignmentSyncReport(report);
     return report;
@@ -816,7 +870,6 @@ export const useAdminJudgeAssignments = ({
     };
     const success = await executeAssignmentAction(
       `judge-assignment:sync:${selectedEventId}`,
-      'Asignaciones guardadas correctamente.',
       async () => {
         syncReport = await syncJudgeAssignments();
       },
@@ -831,7 +884,10 @@ export const useAdminJudgeAssignments = ({
         type: 'error',
         message: `${failures} asignacion(es) fallaron; puedes reintentar.`,
       });
+      return;
     }
+
+    onAssignmentsSaved?.();
   };
 
   return {
@@ -853,6 +909,12 @@ export const useAdminJudgeAssignments = ({
     assignmentFeedback,
     assignmentSyncReport,
     eventCurrentAssignments,
+    availableScales,
+    scaleIdsByEventCategory,
+    refreshAvailableScales,
+    getScaleSelectionState,
+    toggleJudgeScale,
+    selectAllJudgeScales,
     handleSaveAssignments,
   };
 };

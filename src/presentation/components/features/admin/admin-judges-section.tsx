@@ -1,8 +1,6 @@
 import { ImageWithSkeleton } from '@/presentation/components/ui';
 import type { JudgeAssignmentScope } from '@/domain/admin/admin.types';
 import type { User } from '@/domain/user/user.types';
-import { AdminJudgePermissionsModal } from './admin-judge-permissions-modal';
-import { useAdminJudgePermissions } from './use-admin-judge-permissions';
 import { useAdminJudges } from './use-admin-judges';
 
 type AdminJudgesSectionProps = {
@@ -10,9 +8,6 @@ type AdminJudgesSectionProps = {
   assignments: JudgeAssignmentScope[];
   headingClassName: string;
   canManageJudgeRole: boolean;
-  canCreateJudge: boolean;
-  canReadJudgePermissions: boolean;
-  canManageJudgePermissions: boolean;
 };
 
 const getJudgeInitial = (user: User) => {
@@ -49,9 +44,6 @@ export function AdminJudgesSection({
   assignments,
   headingClassName,
   canManageJudgeRole,
-  canCreateJudge,
-  canReadJudgePermissions,
-  canManageJudgePermissions,
 }: AdminJudgesSectionProps) {
   const {
     actionFeedback,
@@ -69,7 +61,6 @@ export function AdminJudgesSection({
     filteredNonJudgeUsers,
     handleAddJudge,
     createJudgeModalOpen,
-    openCreateJudgeModal,
     closeCreateJudgeModal,
     createJudgeForm,
     setCreateJudgeForm,
@@ -77,18 +68,6 @@ export function AdminJudgesSection({
     handleToggleJudgeRole,
     pendingAction,
   } = useAdminJudges({ users, assignments });
-  const {
-    judgePermissionSearch,
-    setJudgePermissionSearch,
-    judgePermissionModal,
-    filteredJudgePermissionEntries,
-    judgePermissionsLoading,
-    judgePermissionsError,
-    openJudgePermissionsModal,
-    closeJudgePermissionsModal,
-    handleToggleJudgePermission,
-  } = useAdminJudgePermissions();
-
   return (
     <section id="jueces" className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -104,15 +83,6 @@ export function AdminJudgesSection({
               className="inline-flex h-8 items-center justify-center rounded-md border border-[#F59E0B]/60 bg-[#2C2110] px-2.5 text-[11px] font-semibold text-white"
             >
               Promover
-            </button>
-          ) : null}
-          {canCreateJudge ? (
-            <button
-              type="button"
-              onClick={openCreateJudgeModal}
-              className="inline-flex h-8 items-center justify-center rounded-md border border-[#10B981]/60 bg-[#10261E] px-2.5 text-[11px] font-semibold text-white"
-            >
-              Crear juez
             </button>
           ) : null}
         </div>
@@ -163,15 +133,6 @@ export function AdminJudgesSection({
                     className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white disabled:opacity-50"
                   >
                     {isRemovingJudge ? 'Procesando...' : 'Quitar Rol'}
-                  </button>
-                ) : null}
-                {canReadJudgePermissions ? (
-                  <button
-                    type="button"
-                    onClick={() => void openJudgePermissionsModal(judge)}
-                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
-                  >
-                    Permisos
                   </button>
                 ) : null}
               </div>
@@ -297,18 +258,6 @@ export function AdminJudgesSection({
         </div>
       ) : null}
 
-      <AdminJudgePermissionsModal
-        headingClassName={headingClassName}
-        modal={judgePermissionModal}
-        search={judgePermissionSearch}
-        onSearchChange={setJudgePermissionSearch}
-        entries={filteredJudgePermissionEntries}
-        loadingMap={judgePermissionsLoading}
-        errorMap={judgePermissionsError}
-        onClose={closeJudgePermissionsModal}
-        onToggle={handleToggleJudgePermission}
-        canManageJudgePermissions={canManageJudgePermissions}
-      />
     </section>
   );
 }

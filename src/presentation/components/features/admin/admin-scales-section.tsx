@@ -13,7 +13,8 @@ type AdminScalesSectionProps = {
 };
 
 type ScaleModalMode = 'create' | 'edit';
-const SCALE_RATIO_PATTERN = /^(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)$/;
+const SCALE_VALUE_MAX_LENGTH = 32;
+const SCALE_VALUE_CONTROL_CHARACTERS_PATTERN = /[\p{C}\p{Zl}\p{Zp}]/u;
 
 export function AdminScalesSection({
   scales,
@@ -111,20 +112,12 @@ export function AdminScalesSection({
       return;
     }
 
-    const match = SCALE_RATIO_PATTERN.exec(value);
-    if (!match) {
-      setScaleModalError('La escala debe tener formato N:N (ej. 1:72) y ambos valores deben ser mayores a 0.');
+    if (value.length > SCALE_VALUE_MAX_LENGTH) {
+      setScaleModalError('El valor de escala no puede superar los 32 caracteres.');
       return;
     }
-    const leftNumber = Number(match[1]);
-    const rightNumber = Number(match[2]);
-    if (
-      !Number.isFinite(leftNumber) ||
-      !Number.isFinite(rightNumber) ||
-      leftNumber <= 0 ||
-      rightNumber <= 0
-    ) {
-      setScaleModalError('La escala debe tener formato N:N (ej. 1:72) y ambos valores deben ser mayores a 0.');
+    if (SCALE_VALUE_CONTROL_CHARACTERS_PATTERN.test(value)) {
+      setScaleModalError('El valor de escala contiene caracteres no permitidos.');
       return;
     }
     setScaleModalError(null);
@@ -307,7 +300,8 @@ export function AdminScalesSection({
                     }))
                   }
                   className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-                  placeholder="Ej. 1:72"
+                  maxLength={SCALE_VALUE_MAX_LENGTH}
+                  placeholder="Ej. 20mm o Escalas Libres"
                 />
               </label>
               {scaleModalError ? (

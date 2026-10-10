@@ -42,6 +42,7 @@ vi.mock('@/presentation/stores/admin.store', () => ({
 vi.mock('@/application/admin/services/admin-events.service', () => ({
   adminEventsService: {
     listEventCategoryScales: vi.fn(),
+    listEventCategoryScaleGroups: vi.fn(),
   },
 }));
 
@@ -192,6 +193,13 @@ describe('useAdminEvents', () => {
       availableScales: [],
       items: [],
     });
+    vi.mocked(adminEventsService.listEventCategoryScaleGroups).mockImplementation(
+      async (eventId, finalCategoryId) => ({
+        eventId,
+        finalCategoryId,
+        groups: [],
+      }),
+    );
   });
 
   it('preloads exact leaves from existing links (including legacy non-leaf links) and saves only leaves', async () => {
@@ -249,6 +257,12 @@ describe('useAdminEvents', () => {
         'leaf-3': ['scale-2'],
         'sub-2': ['scale-2'],
       }),
+      expect.objectContaining({
+        'leaf-1': 'SELECTED',
+        'leaf-2': 'SELECTED',
+        'leaf-3': 'SELECTED',
+        'sub-2': 'SELECTED',
+      }),
     );
   });
 
@@ -284,6 +298,58 @@ describe('useAdminEvents', () => {
     const rootStateAfterSecondRootToggle = result.current.getCategoryNodeSelectionState('cat-1');
     expect(rootStateAfterSecondRootToggle.checked).toBe(false);
     expect(rootStateAfterSecondRootToggle.selectedLeaves).toBe(0);
+  });
+
+  it('defaults new specialties to explicit scale selection', async () => {
+    const { result } = renderHook(useHook);
+    act(() => {
+      result.current.openCreateEventModal();
+      result.current.toggleCategorySelection('leaf-1');
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleModeByCategoryId['leaf-1']).toBe('SELECTED');
+      expect(result.current.step3ScaleProgress.configuredCount).toBe(0);
+    });
+
+    act(() => {
+      result.current.selectStep3ScaleSpecialty('leaf-1');
+    });
+    expect(result.current.step3ScaleProgress.configuredCount).toBe(0);
+
+    act(() => {
+      result.current.updateCategoryScaleIds('leaf-1', ['scale-1']);
+    });
+    expect(result.current.step3ScaleProgress.configuredCount).toBe(1);
+
+  });
+
+  it('saves an event with a pending category that has no scales', async () => {
+    const { result } = renderHook(useHook);
+    act(() => {
+      result.current.openEditEventModal(events[0]!);
+    });
+
+    await waitFor(() => {
+      expect(result.current.eventModalScaleConfigLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.handleFinalizeEventModal();
+    });
+
+    expect(result.current.eventModalError).toBeNull();
+    expect(updateEventAndLinkCategories).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'event-1' }),
+      expect.any(Array),
+      expect.objectContaining({ 'leaf-1': [], 'leaf-2': [], 'leaf-3': [], 'sub-2': [] }),
+      expect.objectContaining({
+        'leaf-1': 'SELECTED',
+        'leaf-2': 'SELECTED',
+        'leaf-3': 'SELECTED',
+        'sub-2': 'SELECTED',
+      }),
+    );
   });
 
   it('computes removals against exact desired leaves and preserves assignment impact', async () => {

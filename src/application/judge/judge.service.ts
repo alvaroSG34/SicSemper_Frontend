@@ -1,6 +1,7 @@
 import type {
   JudgeCategoryNavigationItem,
   JudgeDashboardData,
+  JudgePastEvent,
   JudgeModelDetail,
   JudgeModelListResponse,
   JudgeNotificationsMutationResult,
@@ -19,6 +20,7 @@ const judgeErrorMessages: Record<string, string> = {
   REVIEW_ALREADY_SUBMITTED: "La evaluacion ya fue enviada y esta bloqueada.",
   REVIEW_CRITERIA_INCOMPLETE: "Completa los 3 criterios antes de enviar.",
   REVIEW_CRITERIA_OUT_OF_RANGE: "Cada criterio debe estar entre 0 y 10.",
+  JUDGE_EVENT_READ_ONLY: "Este evento es de solo lectura porque ya finalizó.",
 };
 
 const toErrorMessage = (error: unknown, fallback: string) => {
@@ -41,6 +43,7 @@ const toErrorMessage = (error: unknown, fallback: string) => {
 
 export interface JudgeService {
   getDashboardData(): Promise<JudgeDashboardData>;
+  listPastEvents(): Promise<JudgePastEvent[]>;
   listModels(input: {
     status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
     eventId?: string;
@@ -49,13 +52,14 @@ export interface JudgeService {
     search?: string;
     page?: number;
     pageSize?: number;
+    history?: boolean;
   }): Promise<JudgeModelListResponse>;
   listEventRootCategories(eventId: string): Promise<JudgeCategoryNavigationItem[]>;
   listEventCategoryChildren(
     eventId: string,
     categoryId: string,
   ): Promise<JudgeCategoryNavigationItem[]>;
-  getModelDetail(modelId: string): Promise<JudgeModelDetail>;
+  getModelDetail(modelId: string, history?: boolean, podium?: boolean): Promise<JudgeModelDetail>;
   startReview(modelId: string): Promise<JudgeQueueItem>;
   saveDraft(modelId: string, payload: JudgeSaveDraftPayload): Promise<JudgeReviewMutationResult>;
   submitReview(modelId: string, payload: JudgeSubmitReviewPayload): Promise<JudgeReviewMutationResult>;
@@ -72,6 +76,13 @@ export const judgeService: JudgeService = {
       return await apiRequest<JudgeDashboardData>("/judge/dashboard");
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar el dashboard de juez."));
+    }
+  },
+  async listPastEvents() {
+    try {
+      return await apiRequest<JudgePastEvent[]>("/judge/events/past");
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar los eventos pasados."));
     }
   },
   async listModels(input) {
@@ -94,6 +105,9 @@ export const judgeService: JudgeService = {
       }
       searchParams.set("page", String(input.page ?? 1));
       searchParams.set("pageSize", String(input.pageSize ?? 12));
+      if (input.history) {
+        searchParams.set("history", "true");
+      }
 
       return await apiRequest<JudgeModelListResponse>(`/judge/models?${searchParams.toString()}`);
     } catch (error) {
@@ -118,9 +132,14 @@ export const judgeService: JudgeService = {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias hijas."));
     }
   },
-  async getModelDetail(modelId) {
+  async getModelDetail(modelId, history = false, podium = false) {
     try {
-      return await apiRequest<JudgeModelDetail>(`/judge/models/${modelId}`);
+      const params = new URLSearchParams();
+      if (history) params.set("history", "true");
+      if (podium) params.set("podium", "true");
+      return await apiRequest<JudgeModelDetail>(
+        `/judge/models/${modelId}${params.toString() ? `?${params.toString()}` : ""}`,
+      );
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));
     }

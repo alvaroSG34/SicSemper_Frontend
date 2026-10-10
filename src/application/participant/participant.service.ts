@@ -1,5 +1,6 @@
 import type {
   CreateParticipantModelPayload,
+  UpdateParticipantModelPayload,
   ParticipantCategoryOption,
   ParticipantDashboardData,
   ParticipantEnrollment,
@@ -53,6 +54,8 @@ type BackendParticipantModel = {
   descripcion: string;
   codigo: string;
   status: ParticipantModel["status"];
+  canEdit: boolean;
+  editingDeadline: string | null;
   createdAt: string;
   updatedAt: string;
   eventName: string;
@@ -88,10 +91,7 @@ export interface ParticipantService {
     purpose?: "upload",
   ): Promise<ParticipantSubcategoryOption[]>;
   getScales(): Promise<ParticipantScale[]>;
-  getScalesForEventCategory(
-    eventId: string,
-    finalCategoryId: string,
-  ): Promise<ParticipantScale[]>;
+  getScalesForEventCategory(eventId: string, finalCategoryId: string): Promise<ParticipantScale[]>;
   getScaleGroupsForEventCategory(
     eventId: string,
     finalCategoryId: string,
@@ -110,18 +110,16 @@ export interface ParticipantService {
     storageKey?: string | null;
   }>;
   createModelSubmission(payload: CreateParticipantModelPayload): Promise<ParticipantModel>;
+  updateModel(payload: UpdateParticipantModelPayload): Promise<ParticipantModel>;
+  deleteModel(modelId: string): Promise<{ success: boolean }>;
   getMyModels(userId: string): Promise<ParticipantModel[]>;
   listNotifications(
     page?: number,
     pageSize?: number,
   ): Promise<ParticipantNotificationsPageResponse>;
-  markNotificationAsRead(
-    notificationId: string,
-  ): Promise<ParticipantNotificationsMutationResult>;
+  markNotificationAsRead(notificationId: string): Promise<ParticipantNotificationsMutationResult>;
   markAllNotificationsAsRead(): Promise<ParticipantNotificationsMutationResult>;
-  deleteNotification(
-    notificationId: string,
-  ): Promise<ParticipantNotificationsMutationResult>;
+  deleteNotification(notificationId: string): Promise<ParticipantNotificationsMutationResult>;
   getMyRegisteredEventIds(): Promise<ParticipantRegisteredEvents>;
   getCategoryShowcase(input: {
     eventId: string;
@@ -147,6 +145,12 @@ const participantErrorMessages: Record<string, string> = {
   CI_ALREADY_IN_USE: "Ese CI ya esta registrado.",
   CLUB_NOT_FOUND: "El club seleccionado ya no esta disponible.",
   EVENT_CATEGORY_NOT_AVAILABLE: "La categoria seleccionada no esta disponible para ese evento.",
+  EVENT_NOT_ACTIVE: "El evento ya no esta activo para registrar maquetas.",
+  MODEL_EDITING_DISABLED: "El administrador no habilito modificar maquetas para este evento.",
+  MODEL_EDITING_DEADLINE_EXPIRED: "El plazo para modificar esta maqueta ya vencio.",
+  MODEL_NOT_EDITABLE_STATUS: "Esta maqueta ya esta en revision o calificada y no puede modificarse.",
+  MODEL_FILE_NOT_FOUND: "Uno de los archivos seleccionados ya no pertenece a esta maqueta.",
+  MODEL_FILE_DUPLICATED: "No puedes conservar el mismo archivo mas de una vez.",
   EVENT_NOT_FOUND: "No se encontro el evento seleccionado.",
   FILE_TYPE_INVALID: "Solo se permiten imagenes JPG, PNG, WEBP o PDF.",
   IMAGE_LIMIT_EXCEEDED: "Solo puedes adjuntar hasta 5 imagenes.",
@@ -161,13 +165,11 @@ const participantErrorMessages: Record<string, string> = {
   SCALE_NOT_ALLOWED_FOR_CATEGORY:
     "La escala seleccionada no esta permitida para esta categoria en el evento.",
   SUBCATEGORY_CATEGORY_MISMATCH: "La subcategoria no pertenece a la categoria seleccionada.",
-  SUBCATEGORY_MUST_BE_LEAF:
-    "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
+  SUBCATEGORY_MUST_BE_LEAF: "Debes seleccionar el ultimo nivel disponible de la jerarquia.",
   SUBCATEGORY_REQUIRED: "Debes seleccionar una subcategoria para continuar.",
   JUDGE_ASSIGNED_TO_SUBCATEGORY_CONFLICT:
-    "No puedes concursar en esta subcategoria porque tienes una asignacion activa como juez.",
-  PARTICIPANT_VERIFICATION_REQUIRED:
-    "Debes verificar tu perfil para subir o registrar maquetas.",
+    "No puedes concursar en esta escala porque tienes una asignacion activa como juez.",
+  PARTICIPANT_VERIFICATION_REQUIRED: "Debes verificar tu perfil para subir o registrar maquetas.",
   USER_NOT_FOUND: "No se encontro el participante actual.",
   EVENT_ACCESS_FORBIDDEN: "Sube una maqueta al evento para poder ver todos los participantes",
   CATEGORY_MUST_BE_LEAF: "Debes elegir una categoria final para ver maquetas.",
@@ -276,7 +278,9 @@ export const participantService: ParticipantService = {
   },
   async getCategoriesForEvent(eventId) {
     try {
-      return await apiRequest<ParticipantCategoryOption[]>(`/participant/events/${eventId}/categories`);
+      return await apiRequest<ParticipantCategoryOption[]>(
+        `/participant/events/${eventId}/categories`,
+      );
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias del evento."));
     }
@@ -287,9 +291,7 @@ export const participantService: ParticipantService = {
         `/participant/events/${eventId}/categories/with-models`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudieron cargar las categorias con maquetas."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudieron cargar las categorias con maquetas."));
     }
   },
   async getSubcategoriesForCategory(categoryId, eventId, purpose) {
@@ -334,10 +336,7 @@ export const participantService: ParticipantService = {
       );
     } catch (error) {
       throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudieron cargar las escalas permitidas para esta categoría.",
-        ),
+        toErrorMessage(error, "No se pudieron cargar las escalas permitidas para esta categoría."),
       );
     }
   },
@@ -348,10 +347,7 @@ export const participantService: ParticipantService = {
       );
     } catch (error) {
       throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudieron cargar los grupos de escalas para esta categoría.",
-        ),
+        toErrorMessage(error, "No se pudieron cargar los grupos de escalas para esta categoría."),
       );
     }
   },
@@ -406,6 +402,35 @@ export const participantService: ParticipantService = {
       return mapModel(model);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo registrar la maqueta."));
+    }
+  },
+  async updateModel(payload) {
+    try {
+      const model = await apiRequest<BackendParticipantModel>(
+        `/participant/models/${encodeURIComponent(payload.modelId)}`,
+        {
+          method: "PATCH",
+          body: {
+            nombreModelo: payload.nombreModelo,
+            brand: payload.marca,
+            description: payload.descripcion,
+            files: payload.files,
+          },
+        },
+      );
+      return mapModel(model);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la maqueta."));
+    }
+  },
+  async deleteModel(modelId) {
+    try {
+      return await apiRequest<{ success: boolean }>(
+        `/participant/models/${encodeURIComponent(modelId)}`,
+        { method: "DELETE" },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la maqueta."));
     }
   },
   async getMyModels(_userId) {
@@ -509,7 +534,9 @@ export const participantService: ParticipantService = {
 
       return await apiRequest<ParticipantCategoryShowcase>(path);
     } catch (error) {
-      throw new Error(toErrorMessage(error, "No se pudo cargar el listado de participantes y maquetas."));
+      throw new Error(
+        toErrorMessage(error, "No se pudo cargar el listado de participantes y maquetas."),
+      );
     }
   },
   async getShowcaseModelDetail(input) {
@@ -525,9 +552,7 @@ export const participantService: ParticipantService = {
       const path = query
         ? `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}?${query}`
         : `/participant/events/${encodeURIComponent(input.eventId)}/categories/${encodeURIComponent(input.finalCategoryId)}/showcase/models/${encodeURIComponent(input.modelId)}`;
-      return await apiRequest<ParticipantShowcaseModelDetail>(
-        path,
-      );
+      return await apiRequest<ParticipantShowcaseModelDetail>(path);
     } catch (error) {
       throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));
     }

@@ -65,6 +65,22 @@ describe("useAuthStore", () => {
     expect(useAuthStore.getState().user?.roles).toEqual(["PARTICIPANTE", "JUEZ"]);
   });
 
+  it("refreshes roles received after an administrator changes the account", async () => {
+    useAuthStore.setState({
+      user: makeUser(["PARTICIPANTE"]),
+      currentRole: "PARTICIPANTE",
+      initialized: true,
+      initializing: false,
+    });
+    sessionRoleState.current = "PARTICIPANTE";
+    authServiceMock.getCurrentUser.mockResolvedValue(makeUser(["PARTICIPANTE", "JUEZ"]));
+
+    await useAuthStore.getState().refreshSession();
+
+    expect(useAuthStore.getState().user?.roles).toEqual(["PARTICIPANTE", "JUEZ"]);
+    expect(useAuthStore.getState().currentRole).toBe("PARTICIPANTE");
+  });
+
   it("clears local state on logout even after an active session", async () => {
     useAuthStore.setState({
       user: makeUser(["ADMIN"]),

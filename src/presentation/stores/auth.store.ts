@@ -14,6 +14,7 @@ type AuthStoreState = {
   initializing: boolean;
   hydrateSession: (session: { user: User; currentRole: UserRole | null } | null) => void;
   initializeSession: () => Promise<void>;
+  refreshSession: () => Promise<void>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   register: (payload: RegisterPayload) => Promise<RegisterError | null>;
   logout: () => Promise<void>;
@@ -65,6 +66,29 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
         initialized: true,
         initializing: false,
       });
+    }
+  },
+  refreshSession: async () => {
+    if (get().initializing || !get().user) {
+      return;
+    }
+
+    try {
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        set({ user: null, currentRole: null, initialized: true, initializing: false });
+        return;
+      }
+
+      const activeRole = getCurrentSessionRole();
+      set({
+        user,
+        currentRole: activeRole && user.roles.includes(activeRole) ? activeRole : user.roles[0] ?? null,
+        initialized: true,
+        initializing: false,
+      });
+    } catch {
+      // Una sincronizacion en segundo plano no debe cerrar una sesion valida por un fallo transitorio.
     }
   },
   login: async (email, password, rememberMe = true) => {

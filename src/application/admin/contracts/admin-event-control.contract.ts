@@ -43,6 +43,57 @@ export type ApiAdminEventControlSummary = {
   recentActivity: ApiAdminEventControlSummaryActivity[];
 };
 
+export type ApiAdminEventControlPodiumTreeNode = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  children: string[];
+};
+
+export type ApiAdminEventControlPodiumTree = {
+  eventId: string;
+  eventName: string;
+  rootIds: string[];
+  nodes: ApiAdminEventControlPodiumTreeNode[];
+};
+
+export type ApiAdminEventControlPodiumSegment = {
+  id: string;
+  type: "SCALE" | "GROUP";
+  label: string;
+  scaleId: string | null;
+  groupId: string | null;
+  qualifiedModelsCount: number;
+};
+
+export type ApiAdminEventControlPodiumEntry = {
+  position: number;
+  modelId: string;
+  modelName: string;
+  modelCode: string;
+  participantName: string;
+  finalScore: number;
+  previewImageUrl: string | null;
+};
+
+export type ApiAdminEventControlPodiumResult = {
+  eventId: string;
+  eventName: string;
+  finalCategoryId: string;
+  categoryLabel: string;
+  segmentType: "SCALE" | "GROUP";
+  segmentId: string;
+  segmentLabel: string;
+  podium: ApiAdminEventControlPodiumEntry[];
+  rankings: ApiAdminEventControlPodiumEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  manualTieBreakApplied: boolean;
+  manualTieBreakLabel: string | null;
+};
+
 export type ApiAdminEventControlPage<TItem> = {
   items: TItem[];
   page: number;
@@ -118,6 +169,7 @@ export type ApiAdminEventControlModelRow = {
 
 export type ApiAdminEventControlModelDetail = {
   eventId: string;
+  eventName: string;
   model: {
     id: string;
     nombreModelo: string;

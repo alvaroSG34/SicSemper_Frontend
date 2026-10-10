@@ -137,6 +137,15 @@ export function AdminParticipantsSection({
                       >
                         {statusCfg.label}
                       </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          candidate.verified
+                            ? 'bg-green-900/40 text-green-400'
+                            : 'bg-yellow-900/40 text-yellow-400'
+                        }`}
+                      >
+                        {candidate.verified ? 'Verificado' : 'No verificado'}
+                      </span>
                     </div>
                     <p className="text-xs text-[#8D8D8D]">{candidate.email}</p>
                     {candidate.club ? (

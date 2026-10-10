@@ -11,10 +11,13 @@ import type {
   CatalogEventStatus,
   ClubDeleteImpact,
   CreateAdminPayload,
+  CreateEventPayload,
   EventCategoryOption,
+  EventCategoryScaleMode,
   EventDeleteImpact,
   JudgePermissionCode,
   JudgePermissionEntry,
+  UpdateEventPayload,
 } from "@/domain/admin/admin.types";
 import type { User } from "@/domain/user/user.types";
 
@@ -65,58 +68,25 @@ export type AdminStoreState = {
   banParticipant: (userId: string) => Promise<void>;
   unbanParticipant: (userId: string) => Promise<void>;
   setParticipantVerified: (userId: string, verified: boolean) => Promise<void>;
-  createEvent: (payload: {
-    organizerClubId: string;
-    name: string;
-    status?: CatalogEventStatus;
-    place: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-    imageUrl?: string;
-  }) => Promise<void>;
+  createEvent: (payload: CreateEventPayload) => Promise<void>;
   createEventAndLinkCategories: (
-    payload: {
-      organizerClubId: string;
-      name: string;
-      status?: CatalogEventStatus;
-      place: string;
-      startDate: string;
-      endDate: string;
-      description: string;
-      imageUrl?: string;
-    },
+    payload: CreateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ) => Promise<CatalogEvent>;
-  updateEvent: (payload: {
-    id: string;
-    organizerClubId: string;
-    name: string;
-    status: CatalogEventStatus;
-    place: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-    imageUrl?: string;
-  }) => Promise<void>;
+  updateEvent: (payload: UpdateEventPayload) => Promise<void>;
   updateEventAndLinkCategories: (
-    payload: {
-      id: string;
-      organizerClubId: string;
-      name: string;
-      status: CatalogEventStatus;
-      place: string;
-      startDate: string;
-      endDate: string;
-      description: string;
-      imageUrl?: string;
-    },
+    payload: UpdateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ) => Promise<CatalogEvent>;
   getEventDeleteImpact: (eventId: string) => Promise<EventDeleteImpact>;
-  createEventCategoryLink: (payload: { eventId: string; categoryId: string }) => Promise<EventCategoryOption>;
+  createEventCategoryLink: (payload: {
+    eventId: string;
+    categoryId: string;
+  }) => Promise<EventCategoryOption>;
   removeEventCategoryLink: (eventCategoryId: string) => Promise<void>;
   removeEvent: (eventId: string) => Promise<void>;
   createCategory: (payload: { eventId?: string | null; name: string }) => Promise<void>;
@@ -136,6 +106,10 @@ export type AdminStoreState = {
   updateSubcategory: (payload: { id: string; categoryId: string; name: string }) => Promise<void>;
   removeSubcategory: (subcategoryId: string) => Promise<void>;
   assignJudgeScope: (payload: AssignJudgeScopePayload) => Promise<void>;
+  syncJudgeAssignments: (payload: {
+    eventId: string;
+    assignments: Array<{ judgeUserId: string; eventCategoryId: string; scaleIds: string[] }>;
+  }) => Promise<void>;
   removeJudgeScope: (assignmentId: string) => Promise<void>;
   adminPermissionsMap: Record<string, AdminPermissionEntry[]>;
   adminPermissionsLoading: Record<string, boolean>;

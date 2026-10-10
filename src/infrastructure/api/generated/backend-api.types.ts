@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/sync/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream SSE de invalidaciones para la sesion autenticada */
+        get: operations["syncStream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/dashboard": {
         parameters: {
             query?: never;
@@ -180,6 +197,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/events/{id}/control/podium/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetEventControlPodiumTree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{id}/control/podium/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListEventControlPodiumSegments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{id}/control/podium/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetEventControlPodiumResult"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/categories": {
         parameters: {
             query?: never;
@@ -244,6 +309,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/events/{id}/category-scales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListEventCategoryScales"];
+        put: operations["adminSyncEventCategoryScales"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/event-categories/{id}": {
         parameters: {
             query?: never;
@@ -287,6 +368,22 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["adminRemoveJudgeAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/judge-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["adminSyncJudgeAssignments"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -547,7 +644,7 @@ export interface components {
             activity: components["schemas"]["AdminActivityItem"][];
         };
         /** @enum {string} */
-        AdminNotificationType: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO" | "ASIGNACION_JUEZ_CREADA_ELIMINADA" | "PERMISO_JUEZ_OTORGADO_REVOCADO" | "PERMISO_ADMIN_OTORGADO_REVOCADO" | "ROL_USUARIO_ACTUALIZADO" | "PARTICIPANTE_BANEADO" | "PARTICIPANTE_REHABILITADO" | "ALERTA_SISTEMA" | "NUEVO_REGISTRO_PARTICIPANTE";
+        AdminNotificationType: "ROL_USUARIO_ACTUALIZADO" | "PARTICIPANTE_BANEADO" | "PARTICIPANTE_REHABILITADO" | "NUEVO_REGISTRO_PARTICIPANTE";
         /** @enum {string} */
         AdminNotificationSeverity: "BAJA" | "MEDIA" | "ALTA";
         AdminNotificationItem: {
@@ -627,6 +724,9 @@ export interface components {
             /** Format: date-time */
             endDate: string | null;
             status: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline: string | null;
             description: string | null;
             imageUrl: string | null;
             /** Format: date-time */
@@ -641,6 +741,9 @@ export interface components {
             startDate?: string;
             endDate?: string;
             status?: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled?: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline?: string;
             description?: string;
             imageUrl?: string;
         };
@@ -651,6 +754,9 @@ export interface components {
             startDate?: string;
             endDate?: string;
             status?: components["schemas"]["EventStatus"];
+            participantModelEditingEnabled?: boolean;
+            /** Format: date-time */
+            participantModelEditingDeadline?: string;
             description?: string;
             imageUrl?: string;
         };
@@ -711,10 +817,102 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        /** @enum {string} */
+        EventCategoryScaleMode: "ALL" | "SELECTED";
+        EventCategoryScaleConfig: {
+            eventCategoryId: string;
+            categoryId: string;
+            categoryName: string;
+            categoryParentId: string | null;
+            categoryParentName: string | null;
+            scaleMode: components["schemas"]["EventCategoryScaleMode"];
+            scaleIds: string[];
+            scaleValues: string[];
+        };
+        AdminEventCategoryScalesResponse: {
+            eventId: string;
+            availableScales: {
+                id: string;
+                value: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+            items: components["schemas"]["EventCategoryScaleConfig"][];
+        };
+        SyncEventCategoryScalesRequest: {
+            items: {
+                eventCategoryId: string;
+                scaleMode?: components["schemas"]["EventCategoryScaleMode"];
+                scaleIds: string[];
+            }[];
+        };
         CreateJudgeAssignmentRequest: {
             judgeUserId: string;
             eventId: string;
             eventCategoryId: string;
+            scaleIds?: string[];
+        };
+        SyncJudgeAssignmentsRequest: {
+            assignments: {
+                judgeUserId: string;
+                eventCategoryId: string;
+                scaleIds: string[];
+            }[];
+        };
+        JudgeAssignmentSyncSummary: {
+            created: number;
+            updated: number;
+            deleted: number;
+        };
+        AdminEventControlPodiumTreeNode: {
+            id: string;
+            name: string;
+            parentId: string | null;
+            children: string[];
+        };
+        AdminEventControlPodiumTree: {
+            eventId: string;
+            eventName: string;
+            rootIds: string[];
+            nodes: components["schemas"]["AdminEventControlPodiumTreeNode"][];
+        };
+        AdminEventControlPodiumSegment: {
+            id: string;
+            /** @enum {string} */
+            type: "SCALE" | "GROUP";
+            label: string;
+            scaleId: string | null;
+            groupId: string | null;
+            qualifiedModelsCount: number;
+        };
+        AdminEventControlPodiumEntry: {
+            position: number;
+            modelId: string;
+            modelName: string;
+            modelCode: string;
+            participantName: string;
+            finalScore: number;
+            previewImageUrl: string | null;
+        };
+        AdminEventControlPodiumResult: {
+            eventId: string;
+            eventName: string;
+            finalCategoryId: string;
+            categoryLabel: string;
+            /** @enum {string} */
+            segmentType: "SCALE" | "GROUP";
+            segmentId: string;
+            segmentLabel: string;
+            podium: components["schemas"]["AdminEventControlPodiumEntry"][];
+            rankings: components["schemas"]["AdminEventControlPodiumEntry"][];
+            total: number;
+            page: number;
+            pageSize: number;
+            totalPages: number;
+            manualTieBreakApplied: boolean;
+            manualTieBreakLabel: string | null;
         };
         JudgeAssignmentScope: {
             id: string;
@@ -728,6 +926,7 @@ export interface components {
             categoryName: string;
             categoryParentId: string | null;
             categoryParentName: string | null;
+            scaleIds: string[];
             /** Format: date-time */
             createdAt: string;
         };
@@ -834,6 +1033,33 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    syncStream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Stream text/event-stream; cada evento sync solo contiene dominios invalidados. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Sesion no autenticada */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     adminGetDashboard: {
         parameters: {
             query?: never;
@@ -1147,6 +1373,80 @@ export interface operations {
             };
         };
     };
+    adminGetEventControlPodiumTree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Árbol de categorías con resultados calificados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumTree"];
+                };
+            };
+        };
+    };
+    adminListEventControlPodiumSegments: {
+        parameters: {
+            query: {
+                finalCategoryId: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Escalas y grupos con modelos calificados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumSegment"][];
+                };
+            };
+        };
+    };
+    adminGetEventControlPodiumResult: {
+        parameters: {
+            query: {
+                finalCategoryId: string;
+                scaleId?: string;
+                groupId?: string;
+                page?: number;
+                pageSize?: 20 | 50 | 100;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Podio y posiciones paginadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumResult"];
+                };
+            };
+        };
+    };
     adminCreateCategory: {
         parameters: {
             query?: never;
@@ -1265,6 +1565,54 @@ export interface operations {
             };
         };
     };
+    adminListEventCategoryScales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Escalas permitidas por categoría final */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventCategoryScalesResponse"];
+                };
+            };
+        };
+    };
+    adminSyncEventCategoryScales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncEventCategoryScalesRequest"];
+            };
+        };
+        responses: {
+            /** @description Configuración de escalas reemplazada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventCategoryScalesResponse"];
+                };
+            };
+        };
+    };
     adminRemoveEventCategory: {
         parameters: {
             query?: never;
@@ -1329,6 +1677,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DeleteResponse"];
+                };
+            };
+        };
+    };
+    adminSyncJudgeAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncJudgeAssignmentsRequest"];
+            };
+        };
+        responses: {
+            /** @description Assignment synchronization summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JudgeAssignmentSyncSummary"];
                 };
             };
         };

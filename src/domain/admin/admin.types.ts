@@ -14,6 +14,8 @@ export type CatalogEvent = {
   place?: string;
   startDate?: string;
   endDate?: string;
+  participantModelEditingEnabled?: boolean;
+  participantModelEditingDeadline?: string | null;
   description?: string;
   imageUrl?: string;
   createdAt?: string;
@@ -47,12 +49,15 @@ export type CatalogScale = {
   updatedAt: string;
 };
 
+export type EventCategoryScaleMode = "ALL" | "SELECTED";
+
 export type EventCategoryScaleConfig = {
   eventCategoryId: Identifier;
   categoryId: Identifier;
   categoryName: string;
   categoryParentId: Identifier | null;
   categoryParentName: string | null;
+  scaleMode: EventCategoryScaleMode;
   scaleIds: Identifier[];
   scaleValues: string[];
 };
@@ -75,6 +80,7 @@ export type JudgeAssignmentScope = {
   judgeUserId: Identifier;
   eventId: Identifier;
   eventCategoryId: Identifier;
+  scaleIds: Identifier[];
   createdAt: string;
 };
 
@@ -206,11 +212,7 @@ export type EventDeleteImpact = {
   models: number;
 };
 
-export type EventControlModelSortOption =
-  | "SCORE_DESC"
-  | "SCORE_ASC"
-  | "DATE_DESC"
-  | "DATE_ASC";
+export type EventControlModelSortOption = "SCORE_DESC" | "SCORE_ASC" | "DATE_DESC" | "DATE_ASC";
 
 export type AdminEventControlSummary = {
   eventId: Identifier;
@@ -259,6 +261,57 @@ export type AdminEventControlSummary = {
     actorName: string;
     detail: string;
   }>;
+};
+
+export type AdminEventPodiumTreeNode = {
+  id: Identifier;
+  name: string;
+  parentId: Identifier | null;
+  children: Identifier[];
+};
+
+export type AdminEventPodiumTree = {
+  eventId: Identifier;
+  eventName: string;
+  rootIds: Identifier[];
+  nodes: AdminEventPodiumTreeNode[];
+};
+
+export type AdminEventPodiumSegment = {
+  id: Identifier;
+  type: "SCALE" | "GROUP";
+  label: string;
+  scaleId: Identifier | null;
+  groupId: Identifier | null;
+  qualifiedModelsCount: number;
+};
+
+export type AdminEventPodiumEntry = {
+  position: number;
+  modelId: Identifier;
+  modelName: string;
+  modelCode: string;
+  participantName: string;
+  finalScore: number;
+  previewImageUrl: string | null;
+};
+
+export type AdminEventPodiumResult = {
+  eventId: Identifier;
+  eventName: string;
+  finalCategoryId: Identifier;
+  categoryLabel: string;
+  segmentType: "SCALE" | "GROUP";
+  segmentId: Identifier;
+  segmentLabel: string;
+  podium: AdminEventPodiumEntry[];
+  rankings: AdminEventPodiumEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  manualTieBreakApplied: boolean;
+  manualTieBreakLabel: string | null;
 };
 
 export type AdminTieBreakOption =
@@ -349,6 +402,7 @@ export type AdminEventModelRow = {
 
 export type AdminEventModelDetail = {
   eventId: Identifier;
+  eventName: string;
   model: {
     id: Identifier;
     nombreModelo: string;
@@ -488,6 +542,7 @@ export type ScaleDeleteImpact = {
   scaleValue: string;
   eventCategoryRules: number;
   models: number;
+  judgeAssignments: number;
 };
 
 export type CreateClubPayload = {
@@ -523,6 +578,8 @@ export type CreateEventPayload = {
   description: string;
   imageUrl?: string;
   status?: CatalogEventStatus;
+  participantModelEditingEnabled?: boolean;
+  participantModelEditingDeadline?: string;
 };
 
 export type UpdateEventPayload = {
@@ -535,6 +592,8 @@ export type UpdateEventPayload = {
   description: string;
   imageUrl?: string;
   status: CatalogEventStatus;
+  participantModelEditingEnabled: boolean;
+  participantModelEditingDeadline?: string;
 };
 
 export type CreateCategoryPayload = {
@@ -563,6 +622,7 @@ export type AssignJudgeScopePayload = {
   judgeUserId: Identifier;
   eventId: Identifier;
   eventCategoryId: Identifier;
+  scaleIds?: Identifier[];
 };
 
 export type JudgePermissionCode =
@@ -594,14 +654,9 @@ export type AdminPermissionEntry = {
 };
 
 export type AdminNotificationType =
-  | "EVENTO_CREADO_ACTUALIZADO_ELIMINADO"
-  | "ASIGNACION_JUEZ_CREADA_ELIMINADA"
-  | "PERMISO_JUEZ_OTORGADO_REVOCADO"
-  | "PERMISO_ADMIN_OTORGADO_REVOCADO"
   | "ROL_USUARIO_ACTUALIZADO"
   | "PARTICIPANTE_BANEADO"
   | "PARTICIPANTE_REHABILITADO"
-  | "ALERTA_SISTEMA"
   | "NUEVO_REGISTRO_PARTICIPANTE";
 
 export type AdminNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";

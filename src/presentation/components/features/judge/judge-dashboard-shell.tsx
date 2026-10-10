@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import {
   BadgeCheck,
   ChevronDown,
@@ -141,17 +141,27 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
   const loadDashboard = useJudgeStore((state) => state.loadDashboard);
   const clearError = useJudgeStore((state) => state.clearError);
 
-  const initialLoadRequested = useRef(false);
+  const dashboardRefreshInFlight = useRef(false);
+
+  const refreshDashboard = useCallback(async () => {
+    if (dashboardRefreshInFlight.current) {
+      return;
+    }
+
+    dashboardRefreshInFlight.current = true;
+    try {
+      await loadDashboard();
+    } finally {
+      dashboardRefreshInFlight.current = false;
+    }
+  }, [loadDashboard]);
 
   useEffect(() => {
-    if (!dashboard && !loading && !initialLoadRequested.current) {
-      initialLoadRequested.current = true;
-      void loadDashboard();
-    }
-  }, [dashboard, loading, loadDashboard]);
+    void refreshDashboard();
+  }, [refreshDashboard]);
 
   const handleRetryDashboardLoad = async () => {
-    await loadDashboard();
+    await refreshDashboard();
   };
 
   if (!dashboard) {

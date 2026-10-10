@@ -23,7 +23,7 @@ const makePage = (
   items: [
     {
       id: "notification-1",
-      type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO" as const,
+      type: "ROL_USUARIO_ACTUALIZADO" as const,
       severity: "MEDIA" as const,
       title: "Evento actualizado",
       detail: "Se actualizo el evento principal.",
@@ -124,7 +124,7 @@ describe("useAdminNotifications", () => {
         items: [
           {
             id: "notification-2",
-            type: "EVENTO_CREADO_ACTUALIZADO_ELIMINADO",
+            type: "ROL_USUARIO_ACTUALIZADO",
             severity: "MEDIA",
             title: "Evento actualizado",
             detail: "Se actualizo el evento principal.",

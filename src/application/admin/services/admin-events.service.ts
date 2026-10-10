@@ -56,7 +56,12 @@ export const adminEventsService: Pick<
       throw new Error(toErrorMessage(error, "No se pudo crear el evento."));
     }
   },
-  async createEventAndLinkCategories(payload, categoryIds, scalesByCategoryId) {
+  async createEventAndLinkCategories(
+    payload,
+    categoryIds,
+    scalesByCategoryId,
+    scaleModesByCategoryId = {},
+  ) {
     try {
       const event = await apiRequest<BackendEvent>("/admin/events", {
         method: "POST",
@@ -78,6 +83,7 @@ export const adminEventsService: Pick<
       if (categoryIds.length > 0) {
         const syncItems: ApiAdminSyncEventCategoryScalesRequest["items"] = createdLinks.map((entry) => ({
           eventCategoryId: entry.id,
+          scaleMode: scaleModesByCategoryId[entry.categoryId] ?? "SELECTED",
           scaleIds: scalesByCategoryId[entry.categoryId] ?? [],
         }));
         await apiRequest<ApiAdminEventCategoryScalesResponse>(
@@ -108,7 +114,12 @@ export const adminEventsService: Pick<
       throw new Error(toErrorMessage(error, "No se pudo actualizar el evento."));
     }
   },
-  async updateEventAndLinkCategories(payload, categoryIds, scalesByCategoryId) {
+  async updateEventAndLinkCategories(
+    payload,
+    categoryIds,
+    scalesByCategoryId,
+    scaleModesByCategoryId = {},
+  ) {
     try {
       const dashboard = await getDashboardSnapshot();
       const event = await apiRequest<BackendEvent>(`/admin/events/${payload.id}`, {
@@ -154,6 +165,7 @@ export const adminEventsService: Pick<
       const syncItems: ApiAdminSyncEventCategoryScalesRequest["items"] = effectiveLinks.map(
         (entry) => ({
           eventCategoryId: entry.id,
+          scaleMode: scaleModesByCategoryId[entry.categoryId] ?? "SELECTED",
           scaleIds: scalesByCategoryId[entry.categoryId] ?? [],
         }),
       );

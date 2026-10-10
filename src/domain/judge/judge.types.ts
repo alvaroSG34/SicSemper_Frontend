@@ -40,7 +40,6 @@ export type JudgeKpis = {
 export type JudgeQueueItem = {
   id: Identifier;
   project: string;
-  participantName: string;
   eventName: string;
   category: string;
   priority: JudgePriority;
@@ -55,7 +54,6 @@ export type JudgeQueueItem = {
 export type JudgeRecentReview = {
   id: Identifier;
   project: string;
-  participantName: string;
   scoreLabel: string;
   result: string;
   updatedAt: string;
@@ -73,6 +71,17 @@ export type JudgeAssignedEvent = {
   }>;
 };
 
+export type JudgePastEvent = {
+  id: Identifier;
+  name: string;
+  imageUrl?: string | null;
+  status: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
+  endDate: string | null;
+  modelCount: number;
+  reviewedCount: number;
+  assignedScopes: JudgeAssignedEvent["assignedScopes"];
+};
+
 export type JudgeDashboardData = {
   profile: JudgeProfile;
   summary: JudgeSummary;
@@ -88,11 +97,12 @@ export type JudgeReviewCriteria = Partial<
 
 export type JudgeModelListItem = {
   id: Identifier;
+  categoryId?: Identifier;
   project: string;
   code: string;
-  participantName: string;
   eventName: string;
   category: string;
+  scale?: string;
   priority: JudgePriority;
   dueLabel: string;
   status: JudgeQueueStatus;
@@ -128,10 +138,6 @@ export type JudgeModelDetail = {
   status: JudgeQueueStatus;
   finalScore: number | null;
   finalReviewedAt: string | null;
-  participant: {
-    id: Identifier;
-    name: string;
-  };
   event: {
     id: Identifier;
     name: string;
@@ -224,8 +230,7 @@ export type JudgeNotificationType =
   | "PERMISO_OTORGADO"
   | "PERMISO_REVOCADO"
   | "REVISION_REABIERTA"
-  | "ROL_JUEZ_OTORGADO"
-  | "ALERTA_SISTEMA";
+  | "ROL_JUEZ_OTORGADO";
 
 export type JudgeNotificationSeverity = "BAJA" | "MEDIA" | "ALTA";
 

@@ -9,7 +9,7 @@ import { useParticipantDashboardPage } from "@/presentation/components/features/
 
 function ParticipantDashboardLoading() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#000000] px-4 py-6 text-white sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
+    <main className="relative min-h-screen overflow-hidden bg-[#000000] px-3 py-5 text-white sm:px-6 md:px-8 lg:px-10 xl:px-12 xl:py-12">
       <div className="mx-auto flex h-full w-full max-w-[1400px] flex-col gap-6 md:gap-8 xl:gap-10">
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-2">
@@ -128,10 +128,10 @@ export function ParticipantDashboardShell({
       <div className="relative flex min-h-screen flex-col xl:flex-row">
         <ParticipantSidebar items={sidebarItems} />
 
-        <section className="relative min-h-screen flex-1 px-4 py-6 pb-24 sm:px-6 md:px-8 lg:px-10 xl:px-[50px] xl:py-[50px]">
-          <div className="pointer-events-none absolute right-[120px] top-[380px] hidden h-[120px] w-[120px] rotate-[15deg] rounded-[20px] border-2 border-[#F15BB5] bg-white/10 xl:block" />
+        <section className="relative min-h-screen flex-1 min-w-0 px-3 py-5 pb-24 sm:px-6 md:px-8 lg:px-10 xl:px-12 xl:py-12">
+          <div className="pointer-events-none absolute right-28 top-96 hidden h-28 w-28 rotate-12 rounded-2xl border-2 border-[#F15BB5] bg-white/10 xl:block" />
 
-          <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
+          <div className="relative z-10 flex h-full w-full min-w-0 flex-col gap-5 sm:gap-6 md:gap-8 xl:gap-10">
             <ParticipantMobileSidebar items={sidebarItems} />
 
             <ParticipantHeader profile={dashboard.profile} />

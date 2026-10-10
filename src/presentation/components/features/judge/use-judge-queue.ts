@@ -4,6 +4,7 @@ import { useJudgeQueueSlice } from "@/presentation/stores/judge-queue.slice";
 type UseJudgeQueueOptions = {
   eventId?: string;
   categoryId?: string;
+  history?: boolean;
 };
 
 export const useJudgeQueue = (options?: UseJudgeQueueOptions) => {
@@ -28,15 +29,18 @@ export const useJudgeQueue = (options?: UseJudgeQueueOptions) => {
   useEffect(() => {
     const expectedEventId = options?.eventId;
     const expectedCategoryId = options?.categoryId;
+    const expectedHistory = options?.history ?? false;
     const scopeMismatch =
       modelFilters.eventId !== expectedEventId ||
-      modelFilters.categoryId !== expectedCategoryId;
+      modelFilters.categoryId !== expectedCategoryId ||
+      Boolean(modelFilters.history) !== expectedHistory;
 
     if ((!models && !modelsLoading && !modelsError) || scopeMismatch) {
       void loadModels({
         page: 1,
         eventId: expectedEventId,
         categoryId: expectedCategoryId,
+        history: expectedHistory,
       });
     }
   }, [
@@ -48,6 +52,7 @@ export const useJudgeQueue = (options?: UseJudgeQueueOptions) => {
     loadModels,
     options?.eventId,
     options?.categoryId,
+    options?.history,
   ]);
 
   const queueHeadline = useMemo(() => {

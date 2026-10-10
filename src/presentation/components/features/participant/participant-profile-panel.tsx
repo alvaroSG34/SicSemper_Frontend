@@ -7,6 +7,7 @@ import { z } from "zod";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import type { ParticipantProfileDetails } from "@/domain/participant/participant.types";
 import { ImageWithSkeleton, Skeleton } from "@/presentation/components/ui";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 import { useParticipantProfile } from "./use-participant-profile";
 
 const inputClassName =
@@ -83,6 +84,7 @@ export function ParticipantProfilePanel({ onProfileUpdated }: ParticipantProfile
   });
 
   const photoUrl = watch("photoUrl");
+  useRealtimeDirtyForm(["participant", "session"], isDirty || isPhotoUploading);
 
   const profileInitial = useMemo(() => {
     const source = profile?.name?.trim() ?? "";

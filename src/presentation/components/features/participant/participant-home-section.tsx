@@ -12,6 +12,7 @@ type ParticipantHomeSectionProps = {
 export function ParticipantHomeSection({ onStartUpload }: ParticipantHomeSectionProps) {
   const {
     challenge,
+    isParticipantVerified,
     kpis,
     clubRanking,
     isStartingUploadFromNextChallenge,
@@ -30,6 +31,7 @@ export function ParticipantHomeSection({ onStartUpload }: ParticipantHomeSection
         challenge={challenge}
         onStartUpload={handleStartUploadFromNextChallenge}
         isStartingUpload={isStartingUploadFromNextChallenge}
+        canUploadModels={isParticipantVerified}
       />
       <ParticipantClubRankingCard ranking={clubRanking} />
       <ParticipantKpis kpis={kpis} />

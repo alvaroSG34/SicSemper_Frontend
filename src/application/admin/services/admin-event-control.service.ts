@@ -7,6 +7,9 @@ import type {
   ApiAdminPodiumTieBreakGroupState,
   ApiAdminPodiumTieBreakState,
   ApiAdminEventControlSummary,
+  ApiAdminEventControlPodiumTree,
+  ApiAdminEventControlPodiumSegment,
+  ApiAdminEventControlPodiumResult,
 } from "@/application/admin/contracts/admin-event-control.contract";
 import type { AdminTieBreakOption } from "@/domain/admin/admin.types";
 import type { AdminService } from "@/application/admin/admin.service.types";
@@ -28,10 +31,16 @@ const buildQueryString = (params: Record<string, string | number | boolean | und
 export const adminEventControlService: Pick<
   AdminService,
   | "getEventControlSummary"
+  | "getEventControlPodiumTree"
+  | "listEventControlPodiumSegments"
+  | "getEventControlPodiumResult"
   | "listEventControlParticipants"
   | "getEventControlParticipantDetail"
   | "listEventControlModels"
   | "getEventControlModelDetail"
+  | "uploadEventControlModelFile"
+  | "updateEventControlModel"
+  | "deleteEventControlModel"
   | "getEventPodiumTieBreakCandidates"
   | "getEventPodiumTieBreakGroupCandidates"
   | "setEventPodiumTieBreak"
@@ -46,12 +55,45 @@ export const adminEventControlService: Pick<
         `/admin/events/${eventId}/control/summary`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudo cargar el resumen operativo del evento.",
-        ),
+      throw new Error(toErrorMessage(error, "No se pudo cargar el resumen operativo del evento."));
+    }
+  },
+
+  async getEventControlPodiumTree(eventId) {
+    try {
+      return await apiRequest<ApiAdminEventControlPodiumTree>(
+        `/admin/events/${eventId}/control/podium/tree`,
       );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el árbol del podio."));
+    }
+  },
+
+  async listEventControlPodiumSegments(eventId, finalCategoryId) {
+    try {
+      const query = buildQueryString({ finalCategoryId });
+      return await apiRequest<ApiAdminEventControlPodiumSegment[]>(
+        `/admin/events/${eventId}/control/podium/segments${query}`,
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron cargar los segmentos del podio."));
+    }
+  },
+
+  async getEventControlPodiumResult(input) {
+    try {
+      const query = buildQueryString({
+        finalCategoryId: input.finalCategoryId,
+        scaleId: input.scaleId,
+        groupId: input.groupId,
+        page: input.page ?? 1,
+        pageSize: input.pageSize ?? 20,
+      });
+      return await apiRequest<ApiAdminEventControlPodiumResult>(
+        `/admin/events/${input.eventId}/control/podium/results${query}`,
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo cargar el podio del evento."));
     }
   },
 
@@ -62,7 +104,6 @@ export const adminEventControlService: Pick<
         pageSize: input.pageSize ?? 20,
         search: input.search,
         userStatus: input.userStatus,
-        registrationStatus: input.registrationStatus,
         verified: input.verified,
       });
       return await apiRequest<ApiAdminEventControlPage<ApiAdminEventControlParticipantRow>>(
@@ -70,10 +111,7 @@ export const adminEventControlService: Pick<
       );
     } catch (error) {
       throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudo cargar la lista de participantes del evento.",
-        ),
+        toErrorMessage(error, "No se pudo cargar la lista de participantes del evento."),
       );
     }
   },
@@ -84,12 +122,7 @@ export const adminEventControlService: Pick<
         `/admin/events/${eventId}/control/participants/${userId}`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudo cargar el detalle del participante.",
-        ),
-      );
+      throw new Error(toErrorMessage(error, "No se pudo cargar el detalle del participante."));
     }
   },
 
@@ -106,12 +139,7 @@ export const adminEventControlService: Pick<
         `/admin/events/${input.eventId}/control/models${query}`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudo cargar la lista de maquetas del evento.",
-        ),
-      );
+      throw new Error(toErrorMessage(error, "No se pudo cargar la lista de maquetas del evento."));
     }
   },
 
@@ -121,12 +149,53 @@ export const adminEventControlService: Pick<
         `/admin/events/${eventId}/control/models/${modelId}`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(
-          error,
-          "No se pudo cargar el detalle de la maqueta.",
-        ),
+      throw new Error(toErrorMessage(error, "No se pudo cargar el detalle de la maqueta."));
+    }
+  },
+
+  async uploadEventControlModelFile(file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      return await apiRequest<{
+        name: string;
+        type: string;
+        size: number;
+        publicUrl?: string | null;
+        storageKey?: string | null;
+      }>("/admin/uploads/model-file", { method: "POST", body: formData });
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo subir el archivo de la maqueta."));
+    }
+  },
+
+  async updateEventControlModel(input) {
+    try {
+      return await apiRequest<ApiAdminEventControlModelDetail>(
+        `/admin/events/${input.eventId}/control/models/${input.modelId}`,
+        {
+          method: "PATCH",
+          body: {
+            nombreModelo: input.nombreModelo,
+            brand: input.brand,
+            description: input.description,
+            files: input.files,
+          },
+        },
       );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo actualizar la maqueta."));
+    }
+  },
+
+  async deleteEventControlModel(eventId, modelId) {
+    try {
+      return await apiRequest<{ success: boolean }>(
+        `/admin/events/${eventId}/control/models/${modelId}`,
+        { method: "DELETE" },
+      );
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo eliminar la maqueta."));
     }
   },
 
@@ -136,9 +205,7 @@ export const adminEventControlService: Pick<
         `/admin/events/${eventId}/control/podium-tiebreak/options`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudieron cargar las opciones de desempate."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudieron cargar las opciones de desempate."));
     }
   },
 
@@ -152,9 +219,7 @@ export const adminEventControlService: Pick<
         `/admin/events/${input.eventId}/control/podium-tiebreak/candidates${query}`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."));
     }
   },
   async getEventPodiumTieBreakGroupCandidates(input) {
@@ -166,9 +231,7 @@ export const adminEventControlService: Pick<
         `/admin/events/${input.eventId}/control/podium-tiebreak/groups/candidates${query}`,
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudieron cargar los candidatos de desempate."));
     }
   },
 
@@ -186,9 +249,7 @@ export const adminEventControlService: Pick<
         },
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudo guardar el desempate manual del podio."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudo guardar el desempate manual del podio."));
     }
   },
   async setEventPodiumTieBreakGroup(input) {
@@ -204,9 +265,7 @@ export const adminEventControlService: Pick<
         },
       );
     } catch (error) {
-      throw new Error(
-        toErrorMessage(error, "No se pudo guardar el desempate manual del podio."),
-      );
+      throw new Error(toErrorMessage(error, "No se pudo guardar el desempate manual del podio."));
     }
   },
 

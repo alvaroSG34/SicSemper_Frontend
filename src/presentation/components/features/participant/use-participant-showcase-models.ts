@@ -4,6 +4,7 @@ import type {
   ParticipantShowcaseModelItem,
   ParticipantShowcaseSortOption,
 } from "@/domain/participant/participant.types";
+import { subscribeRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 
 const PAGE_SIZE = 12;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -114,6 +115,22 @@ export const useParticipantShowcaseModels = ({
   useEffect(() => {
     void loadPage(1, "replace");
   }, [debouncedSearch, loadPage]);
+
+  useEffect(
+    () =>
+      subscribeRealtimeInvalidation((invalidation) => {
+        const scope = invalidation.scope;
+        if (
+          scope?.eventId !== eventId ||
+          (scope.categoryId && scope.categoryId !== finalCategoryId) ||
+          (scaleId && scope.scaleId && scope.scaleId !== scaleId) ||
+          (groupId && scope.groupId && scope.groupId !== groupId) ||
+          !invalidation.domains.some((domain) => ["showcase", "ranking", "tieBreak"].includes(domain))
+        ) return;
+        void loadPage(page, "replace");
+      }),
+    [eventId, finalCategoryId, groupId, loadPage, page, scaleId],
+  );
 
   return {
     searchInput,

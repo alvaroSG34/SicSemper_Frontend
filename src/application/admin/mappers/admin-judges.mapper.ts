@@ -41,6 +41,7 @@ export const mapApiJudgeAssignmentToJudgeAssignmentScope = (
   judgeUserId: assignment.judgeUserId,
   eventId: assignment.eventId,
   eventCategoryId: assignment.eventCategoryId,
+  scaleIds: assignment.scaleIds ?? [],
   createdAt: assignment.createdAt,
 });
 
@@ -50,6 +51,7 @@ export const mapAssignJudgeScopePayloadToApiRequest = (
   judgeUserId: payload.judgeUserId,
   eventId: payload.eventId,
   eventCategoryId: payload.eventCategoryId,
+  scaleIds: payload.scaleIds,
 });
 
 export const mapApiJudgePermissionEntry = (

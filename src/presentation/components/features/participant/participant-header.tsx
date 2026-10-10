@@ -15,15 +15,15 @@ type ParticipantHeaderProps = {
 
 export function ParticipantHeader({ profile }: ParticipantHeaderProps) {
   return (
-    <header className="flex items-center justify-between gap-3 md:gap-6">
+    <header className="flex w-full min-w-0 items-center justify-between gap-2.5 sm:gap-3 md:gap-6">
       <div className="min-w-0 flex-1">
-        <h1 className={`${outfit.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}>
+        <h1 className={`${outfit.className} truncate text-xl sm:text-2xl md:text-3xl leading-none font-bold text-white`}>
           Hola, {profile.displayName}
         </h1>
         <p className="hidden text-sm text-[#AAAAAA] md:block">{profile.subtitle}</p>
       </div>
 
-      <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
+      <div className="ml-2 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
         {profile.verified ? (
           <BadgeCheck className="h-7 w-7 text-[#10B981]" aria-label="Perfil verificado" />
         ) : null}

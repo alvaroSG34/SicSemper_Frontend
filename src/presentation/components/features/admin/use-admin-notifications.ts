@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adminNotificationsService } from "@/application/admin/services/admin-notifications.service";
 import type { AdminNotificationItem } from "@/domain/admin/admin.types";
+import { subscribeRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -168,6 +169,13 @@ export const useAdminNotifications = (): UseAdminNotificationsResult => {
   useEffect(() => {
     void fetchNotifications(false);
   }, [fetchNotifications]);
+
+  useEffect(
+    () => subscribeRealtimeInvalidation((invalidation) => {
+      if (invalidation.domains.includes("notifications")) void fetchNotifications(false);
+    }),
+    [fetchNotifications],
+  );
 
   useEffect(() => {
     if (!isOpen) {

@@ -6,6 +6,9 @@ import type {
   AuditLogListResponse,
   AdminEventControlPage,
   AdminEventControlSummary,
+  AdminEventPodiumTree,
+  AdminEventPodiumSegment,
+  AdminEventPodiumResult,
   AdminEventModelDetail,
   AdminEventModelRow,
   AdminPodiumTieBreakDecisionInput,
@@ -25,6 +28,7 @@ import type {
   CatalogCategory,
   CatalogEvent,
   EventCategoryScaleConfig,
+  EventCategoryScaleMode,
   EventCategoryScaleGroup,
   EventCategoryScaleGroupInput,
   EventCategoryOption,
@@ -45,7 +49,11 @@ import type {
   UpdateEventPayload,
   UpdateSubcategoryPayload,
 } from "@/domain/admin/admin.types";
-import type { LandingAsset, LandingContent, LandingDraftState } from "@/domain/landing/landing.types";
+import type {
+  LandingAsset,
+  LandingContent,
+  LandingDraftState,
+} from "@/domain/landing/landing.types";
 import type { User } from "@/domain/user/user.types";
 
 export type SyntheticCatalog = AdminDashboardData["catalog"];
@@ -81,15 +89,15 @@ export interface AdminService {
     payload: CreateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ): Promise<CatalogEvent>;
   updateEventAndLinkCategories(
     payload: UpdateEventPayload,
     categoryIds: string[],
     scalesByCategoryId: Record<string, string[]>,
+    scaleModesByCategoryId?: Record<string, EventCategoryScaleMode>,
   ): Promise<CatalogEvent>;
-  listEventCategoryScales(
-    eventId: string,
-  ): Promise<{
+  listEventCategoryScales(eventId: string): Promise<{
     eventId: string;
     availableScales: Array<{
       id: string;
@@ -101,7 +109,11 @@ export interface AdminService {
   }>;
   syncEventCategoryScales(
     eventId: string,
-    items: Array<{ eventCategoryId: string; scaleIds: string[] }>,
+    items: Array<{
+      eventCategoryId: string;
+      scaleMode: EventCategoryScaleMode;
+      scaleIds: string[];
+    }>,
   ): Promise<void>;
   listEventCategoryScaleGroups(
     eventId: string,
@@ -112,18 +124,33 @@ export interface AdminService {
     finalCategoryId: string,
     groups: EventCategoryScaleGroupInput[],
   ): Promise<{ eventId: string; finalCategoryId: string; groups: EventCategoryScaleGroup[] }>;
-  createEventCategoryLink(payload: { eventId: string; categoryId: string }): Promise<EventCategoryOption>;
+  createEventCategoryLink(payload: {
+    eventId: string;
+    categoryId: string;
+  }): Promise<EventCategoryOption>;
   removeEventCategoryLink(eventCategoryId: string): Promise<void>;
   getEventDeleteImpact(eventId: string): Promise<EventDeleteImpact>;
   removeEvent(eventId: string): Promise<void>;
   getEventControlSummary(eventId: string): Promise<AdminEventControlSummary>;
+  getEventControlPodiumTree(eventId: string): Promise<AdminEventPodiumTree>;
+  listEventControlPodiumSegments(
+    eventId: string,
+    finalCategoryId: string,
+  ): Promise<AdminEventPodiumSegment[]>;
+  getEventControlPodiumResult(input: {
+    eventId: string;
+    finalCategoryId: string;
+    scaleId?: string;
+    groupId?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<AdminEventPodiumResult>;
   listEventControlParticipants(input: {
     eventId: string;
     page?: number;
     pageSize?: number;
     search?: string;
     userStatus?: "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
-    registrationStatus?: "ACTIVA" | "PENDIENTE" | "CANCELADA";
     verified?: boolean;
   }): Promise<AdminEventControlPage<AdminEventParticipantRow>>;
   getEventControlParticipantDetail(
@@ -138,10 +165,32 @@ export interface AdminService {
     status?: "ENVIADA" | "EN_REVISION" | "CALIFICADA";
     sort?: EventControlModelSortOption;
   }): Promise<AdminEventControlPage<AdminEventModelRow>>;
-  getEventControlModelDetail(
-    eventId: string,
-    modelId: string,
-  ): Promise<AdminEventModelDetail>;
+  getEventControlModelDetail(eventId: string, modelId: string): Promise<AdminEventModelDetail>;
+  uploadEventControlModelFile(file: File): Promise<{
+    name: string;
+    type: string;
+    size: number;
+    publicUrl?: string | null;
+    storageKey?: string | null;
+  }>;
+  updateEventControlModel(input: {
+    eventId: string;
+    modelId: string;
+    nombreModelo: string;
+    brand: string;
+    description?: string;
+    files: Array<
+      | { id: string }
+      | {
+          name: string;
+          type: string;
+          size: number;
+          publicUrl?: string | null;
+          storageKey?: string | null;
+        }
+    >;
+  }): Promise<AdminEventModelDetail>;
+  deleteEventControlModel(eventId: string, modelId: string): Promise<{ success: boolean }>;
   getEventPodiumTieBreakCandidates(input: {
     eventId: string;
     finalCategoryId: string;
@@ -152,7 +201,9 @@ export interface AdminService {
     eventId: string;
     groupId: string;
   }): Promise<AdminPodiumTieBreakGroupState>;
-  setEventPodiumTieBreak(input: AdminPodiumTieBreakDecisionInput): Promise<AdminPodiumTieBreakState>;
+  setEventPodiumTieBreak(
+    input: AdminPodiumTieBreakDecisionInput,
+  ): Promise<AdminPodiumTieBreakState>;
   setEventPodiumTieBreakGroup(
     input: AdminPodiumTieBreakGroupDecisionInput,
   ): Promise<AdminPodiumTieBreakGroupState>;
@@ -170,18 +221,33 @@ export interface AdminService {
   getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact>;
   removeCategory(categoryId: string): Promise<void>;
   listScales(): Promise<Array<{ id: string; value: string; createdAt: string; updatedAt: string }>>;
-  createScale(payload: { value: string }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
-  updateScale(payload: { id: string; value: string }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
+  createScale(payload: {
+    value: string;
+  }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
+  updateScale(payload: {
+    id: string;
+    value: string;
+  }): Promise<{ id: string; value: string; createdAt: string; updatedAt: string }>;
   getScaleDeleteImpact(scaleId: string): Promise<ScaleDeleteImpact>;
   removeScale(scaleId: string): Promise<void>;
   createSubcategory(payload: CreateSubcategoryPayload): Promise<CatalogSubcategory>;
   updateSubcategory(payload: UpdateSubcategoryPayload): Promise<CatalogSubcategory>;
   removeSubcategory(subcategoryId: string): Promise<void>;
   assignJudgeScope(payload: AssignJudgeScopePayload): Promise<JudgeAssignmentScope>;
+  syncJudgeAssignments(payload: {
+    eventId: string;
+    assignments: Array<{ judgeUserId: string; eventCategoryId: string; scaleIds: string[] }>;
+  }): Promise<{ created: number; updated: number; deleted: number }>;
   removeJudgeScope(assignmentId: string): Promise<void>;
   listJudgePermissions(judgeUserId: string): Promise<JudgePermissionEntry[]>;
-  grantJudgePermission(judgeUserId: string, permission: JudgePermissionCode): Promise<JudgePermissionEntry[]>;
-  revokeJudgePermission(judgeUserId: string, permission: JudgePermissionCode): Promise<JudgePermissionEntry[]>;
+  grantJudgePermission(
+    judgeUserId: string,
+    permission: JudgePermissionCode,
+  ): Promise<JudgePermissionEntry[]>;
+  revokeJudgePermission(
+    judgeUserId: string,
+    permission: JudgePermissionCode,
+  ): Promise<JudgePermissionEntry[]>;
   listAdminPermissions(adminUserId: string): Promise<AdminPermissionEntry[]>;
   grantAdminPermission(
     adminUserId: string,

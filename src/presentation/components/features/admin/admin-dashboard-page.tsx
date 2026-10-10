@@ -566,6 +566,7 @@ export function AdminDashboardPage({
                 canReadJudgeAssignments={adminAccess.module.judgeAssignments.read}
                 canManageJudgeAssignments={
                   adminAccess.module.judgeAssignments.create &&
+                  adminAccess.module.judgeAssignments.update &&
                   adminAccess.module.judgeAssignments.delete
                 }
               />
@@ -576,12 +577,6 @@ export function AdminDashboardPage({
                 assignments={assignments}
                 headingClassName={outfit.className}
                 canManageJudgeRole={adminAccess.module.users.update}
-                canCreateJudge={adminAccess.module.users.create}
-                canReadJudgePermissions={adminAccess.module.judgePermissions.read}
-                canManageJudgePermissions={
-                  adminAccess.module.judgePermissions.create &&
-                  adminAccess.module.judgePermissions.delete
-                }
               />
             ) : null}
 

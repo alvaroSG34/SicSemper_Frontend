@@ -7,13 +7,15 @@ import { useAuthStore } from "@/presentation/stores";
 type ParticipantEventsSectionProps = {
   onStartUpload: (eventId: string) => void;
   onGoToMyModelsByEvent: (eventId: string) => void;
-  onOpenParticipantsByEvent: (eventId: string) => void;
+  onOpenParticipantsByEvent?: (eventId: string) => void;
+  onOpenPodiumByEvent?: (eventId: string) => void;
 };
 
 export function ParticipantEventsSection({
   onStartUpload,
   onGoToMyModelsByEvent,
   onOpenParticipantsByEvent,
+  onOpenPodiumByEvent,
 }: ParticipantEventsSectionProps) {
   const isParticipantVerified = useAuthStore((state) => state.user?.verified ?? false);
   const {
@@ -49,6 +51,7 @@ export function ParticipantEventsSection({
         canUploadModels={isParticipantVerified}
         onGoToMyModelsByEvent={onGoToMyModelsByEvent}
         onOpenParticipantsByEvent={onOpenParticipantsByEvent}
+        onOpenPodiumByEvent={onOpenPodiumByEvent ?? onOpenParticipantsByEvent}
       />
     </section>
   );

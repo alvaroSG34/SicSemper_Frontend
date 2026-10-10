@@ -28,6 +28,10 @@ const baseModelDetail = {
     name: "Ciencia Ficcion",
     parentName: "Figuras",
   },
+  scale: {
+    id: "scale-1",
+    value: "1:72",
+  },
   media: [],
   myReview: {
     id: "review-1",
@@ -84,14 +88,7 @@ let mockJudgeState = {
 };
 
 vi.mock("next/link", () => ({
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: unknown;
-  }) => (
+  default: ({ href, children, ...props }: { href: string; children: unknown }) => (
     <a href={href} {...props}>
       {children}
     </a>
@@ -105,8 +102,7 @@ vi.mock("next/font/google", () => ({
 }));
 
 vi.mock("@/presentation/stores", () => ({
-  useJudgeStore: (selector: (state: typeof mockJudgeState) => unknown) =>
-    selector(mockJudgeState),
+  useJudgeStore: (selector: (state: typeof mockJudgeState) => unknown) => selector(mockJudgeState),
 }));
 
 describe("JudgeReviewPage", () => {

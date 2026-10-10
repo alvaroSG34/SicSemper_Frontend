@@ -34,6 +34,7 @@ export type AdminOperationsSlice = {
   unbanParticipant: ReturnType<typeof useAdminStore.getState>['unbanParticipant'];
   setParticipantVerified: ReturnType<typeof useAdminStore.getState>['setParticipantVerified'];
   assignJudgeScope: ReturnType<typeof useAdminStore.getState>['assignJudgeScope'];
+  syncJudgeAssignments: ReturnType<typeof useAdminStore.getState>['syncJudgeAssignments'];
   removeJudgeScope: ReturnType<typeof useAdminStore.getState>['removeJudgeScope'];
 };
 
@@ -77,6 +78,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
   const setParticipantVerified = useAdminStore((state) => state.setParticipantVerified);
 
   const assignJudgeScope = useAdminStore((state) => state.assignJudgeScope);
+  const syncJudgeAssignments = useAdminStore((state) => state.syncJudgeAssignments);
   const removeJudgeScope = useAdminStore((state) => state.removeJudgeScope);
 
   return {
@@ -113,6 +115,7 @@ export const useAdminOperationsSlice = (): AdminOperationsSlice => {
     unbanParticipant,
     setParticipantVerified,
     assignJudgeScope,
+    syncJudgeAssignments,
     removeJudgeScope,
   };
 };

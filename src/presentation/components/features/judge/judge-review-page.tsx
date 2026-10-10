@@ -15,6 +15,7 @@ import type { JudgeReviewCriteria } from "@/domain/judge/judge.types";
 import { getApiBaseUrl } from "@/core/api-base-url";
 import { ImgWithSkeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
+import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
 import { judgeHeadingFont } from "./judge-heading-font";
 
 type JudgeReviewPageProps = {
@@ -24,6 +25,8 @@ type JudgeReviewPageProps = {
   level2Name?: string | null;
   finalCategoryName: string;
   forceReadOnly?: boolean;
+  historyMode?: boolean;
+  podiumMode?: boolean;
 };
 
 const MAX_CRITERION_SCORE = 10;
@@ -99,6 +102,8 @@ export function JudgeReviewPage({
   level2Name,
   finalCategoryName,
   forceReadOnly = false,
+  historyMode = false,
+  podiumMode = false,
 }: JudgeReviewPageProps) {
   const selectedModelId = useJudgeStore((state) => state.selectedModelId);
   const modelDetail = useJudgeStore((state) => state.modelDetail);
@@ -112,6 +117,7 @@ export function JudgeReviewPage({
   const [criteriaDraft, setCriteriaDraft] = useState<JudgeReviewCriteria>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  useRealtimeDirtyForm(["judge", "model", "event"], Object.keys(criteriaDraft).length > 0);
   const startReviewTriggeredRef = useRef(false);
 
   useEffect(() => {
@@ -119,8 +125,8 @@ export function JudgeReviewPage({
       return;
     }
 
-    void selectModel(modelId);
-  }, [modelDetail?.id, modelId, selectModel, selectedModelId]);
+    void selectModel(modelId, historyMode, podiumMode);
+  }, [historyMode, modelDetail?.id, modelId, podiumMode, selectModel, selectedModelId]);
 
   useEffect(() => {
     if (!modelDetail || modelDetail.id !== modelId) {
@@ -254,7 +260,6 @@ export function JudgeReviewPage({
             <h3 className={`${judgeHeadingFont.className} mt-2 text-3xl font-bold text-white`}>
               {modelDetail.nombreModelo}
             </h3>
-            <p className="mt-1 text-sm text-[#AAAAAA]">{modelDetail.participant.name}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span
                 className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
@@ -287,9 +292,6 @@ export function JudgeReviewPage({
               </p>
               <p>
                 <span className="text-[#8E8E8E]">Marca:</span> {modelDetail.brand || "No registrada"}
-              </p>
-              <p>
-                <span className="text-[#8E8E8E]">Participante:</span> {modelDetail.participant.name}
               </p>
             </div>
             <p className="mt-3 text-[#AAAAAA]">{modelDetail.description || "Sin descripcion registrada."}</p>

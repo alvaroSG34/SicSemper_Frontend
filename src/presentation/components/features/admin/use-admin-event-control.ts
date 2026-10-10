@@ -14,13 +14,13 @@ import type {
   EventControlModelSortOption,
 } from "@/domain/admin/admin.types";
 import { useAdminStore } from "@/presentation/stores";
+import { subscribeRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 type ParticipantsFilterState = {
   search: string;
   userStatus: "" | "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
-  registrationStatus: "" | "ACTIVA" | "PENDIENTE" | "CANCELADA";
   verified: "" | "true" | "false";
 };
 
@@ -34,10 +34,14 @@ export const useAdminEventControl = ({
   eventId,
   canManageUsers,
   canManagePodiumTieBreak,
+  canEditModels,
+  canDeleteModels,
 }: {
   eventId: string;
   canManageUsers: boolean;
   canManagePodiumTieBreak: boolean;
+  canEditModels: boolean;
+  canDeleteModels: boolean;
 }) => {
   const banParticipant = useAdminStore((state) => state.banParticipant);
   const unbanParticipant = useAdminStore((state) => state.unbanParticipant);
@@ -57,7 +61,6 @@ export const useAdminEventControl = ({
   const [participantsFilters, setParticipantsFilters] = useState<ParticipantsFilterState>({
     search: "",
     userStatus: "",
-    registrationStatus: "",
     verified: "",
   });
   const [selectedParticipantDetail, setSelectedParticipantDetail] =
@@ -100,7 +103,6 @@ export const useAdminEventControl = ({
       pageSize: participantsPageSize,
       search: participantsFilters.search.trim() || undefined,
       userStatus: participantsFilters.userStatus || undefined,
-      registrationStatus: participantsFilters.registrationStatus || undefined,
       verified:
         participantsFilters.verified === ""
           ? undefined
@@ -351,6 +353,100 @@ export const useAdminEventControl = ({
     }
   }, [canManagePodiumTieBreak, eventId, selectedTieBreakContext]);
 
+  const refreshSelectedTieBreak = useCallback(async () => {
+    if (selectedTieBreakContext) {
+      await loadPodiumTieBreakState(selectedTieBreakContext);
+    }
+  }, [loadPodiumTieBreakState, selectedTieBreakContext]);
+
+  useEffect(
+    () =>
+      subscribeRealtimeInvalidation((invalidation) => {
+        if (invalidation.scope?.eventId !== eventId) return;
+        if (!invalidation.domains.some((domain) => ["admin", "model", "registration", "review", "tieBreak", "event"].includes(domain))) return;
+        void Promise.all([loadSummary(), loadParticipants(), loadModels(), loadTieBreakOptions(), refreshSelectedTieBreak()]);
+        if (selectedModelDetail && invalidation.scope?.modelId === selectedModelDetail.model.id) void openModelDetail(selectedModelDetail.model.id);
+        if (selectedParticipantDetail) void openParticipantDetail(selectedParticipantDetail.user.id);
+      }),
+    [eventId, loadModels, loadParticipants, loadSummary, loadTieBreakOptions, openModelDetail, openParticipantDetail, refreshSelectedTieBreak, selectedModelDetail, selectedParticipantDetail],
+  );
+
+  const updateModel = useCallback(
+    async (input: {
+      modelId: string;
+      nombreModelo: string;
+      brand: string;
+      description?: string;
+      files: Array<File | { id: string }>;
+    }) => {
+      if (!canEditModels) return false;
+
+      setPendingAction(`model:update:${input.modelId}`);
+      setError(null);
+      try {
+        const files = await Promise.all(
+          input.files.map(async (file) => {
+            if ("id" in file) return file;
+            return adminEventControlService.uploadEventControlModelFile(file);
+          }),
+        );
+        const detail = await adminEventControlService.updateEventControlModel({
+          eventId,
+          ...input,
+          files,
+        });
+        setSelectedModelDetail(detail);
+        await Promise.all([loadSummary(), loadModels(), loadTieBreakOptions(), refreshSelectedTieBreak()]);
+        return true;
+      } catch (nextError) {
+        setError(
+          nextError instanceof Error ? nextError.message : "No se pudo actualizar la maqueta.",
+        );
+        return false;
+      } finally {
+        setPendingAction(null);
+      }
+    },
+    [
+      canEditModels,
+      eventId,
+      loadModels,
+      loadSummary,
+      loadTieBreakOptions,
+      refreshSelectedTieBreak,
+    ],
+  );
+
+  const deleteModel = useCallback(
+    async (modelId: string) => {
+      if (!canDeleteModels) return false;
+
+      setPendingAction(`model:delete:${modelId}`);
+      setError(null);
+      try {
+        await adminEventControlService.deleteEventControlModel(eventId, modelId);
+        setSelectedModelDetail(null);
+        await Promise.all([loadSummary(), loadModels(), loadTieBreakOptions(), refreshSelectedTieBreak()]);
+        return true;
+      } catch (nextError) {
+        setError(
+          nextError instanceof Error ? nextError.message : "No se pudo eliminar la maqueta.",
+        );
+        return false;
+      } finally {
+        setPendingAction(null);
+      }
+    },
+    [
+      canDeleteModels,
+      eventId,
+      loadModels,
+      loadSummary,
+      loadTieBreakOptions,
+      refreshSelectedTieBreak,
+    ],
+  );
+
   const runUserMutation = useCallback(
     async (actionKey: string, action: () => Promise<void>) => {
       if (!canManageUsers) {
@@ -446,6 +542,8 @@ export const useAdminEventControl = ({
     selectedModelDetail,
     setSelectedModelDetail,
     openModelDetail,
+    updateModel,
+    deleteModel,
     selectedTieBreakContext,
     selectTieBreakContext,
     podiumTieBreakState,

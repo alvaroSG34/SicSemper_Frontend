@@ -14,6 +14,10 @@ export const useParticipantHome = ({ onStartUpload }: UseParticipantHomeParams) 
       return;
     }
 
+    if (!dashboard?.profile.verified) {
+      return;
+    }
+
     const eventId = dashboard?.nextChallenge.eventId?.trim();
     if (!eventId) {
       return;
@@ -34,6 +38,7 @@ export const useParticipantHome = ({ onStartUpload }: UseParticipantHomeParams) 
 
   return {
     challenge: dashboard?.nextChallenge ?? null,
+    isParticipantVerified: dashboard?.profile.verified ?? false,
     kpis: dashboard?.kpis ?? [],
     clubRanking: dashboard?.clubRanking ?? null,
     isStartingUploadFromNextChallenge,

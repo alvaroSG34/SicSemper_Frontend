@@ -51,16 +51,22 @@ export function ParticipantShowcaseLevelThreeSection({
       return level3Items;
     }
 
-    return level3Items.filter((item) =>
-      item.name.toLowerCase().includes(normalizedSearch),
-    );
+    return level3Items.filter((item) => item.name.toLowerCase().includes(normalizedSearch));
   }, [level3Items, searchTerm]);
 
   return (
     <section className="rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
-      <p className="inline-flex rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-3 py-1 text-xs font-semibold tracking-[1px] text-[#8BA3FF]">
-        PASO 3 DE 3
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href={`/participante/participantes/${eventId}/nivel-2/${level1Id}?l1=${encodeURIComponent(level1Name)}`}
+          className="inline-flex h-9 items-center justify-center rounded-[18px] border border-[#6875F5] bg-[#5B68F1] px-4 text-xs font-semibold text-white shadow-[0_0_18px_rgba(91,104,241,0.28)] transition hover:bg-[#6A76FF] hover:shadow-[0_0_22px_rgba(91,104,241,0.45)]"
+        >
+          Volver a nivel 2
+        </Link>
+        <p className="inline-flex shrink-0 rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-3 py-1 text-xs font-semibold tracking-[1px] text-[#8BA3FF]">
+          PASO 3 DE 3
+        </p>
+      </div>
       <h2 className={`${outfit.className} mt-4 text-3xl font-bold text-white sm:text-4xl`}>
         Selecciona la especialidad final
       </h2>
@@ -129,15 +135,6 @@ export function ParticipantShowcaseLevelThreeSection({
           No hay especialidades que coincidan con tu busqueda.
         </p>
       ) : null}
-
-      <div className="mt-6">
-        <Link
-          href={`/participante/participantes/${eventId}/nivel-2/${level1Id}?l1=${encodeURIComponent(level1Name)}`}
-          className="inline-flex h-9 items-center justify-center rounded-[18px] border border-[#303030] px-4 text-xs font-semibold text-[#D7D7D7]"
-        >
-          Volver a nivel 2
-        </Link>
-      </div>
     </section>
   );
 }

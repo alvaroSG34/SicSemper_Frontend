@@ -14,6 +14,7 @@ type ParticipantNextChallengeProps = {
   challenge: ParticipantNextChallenge;
   onStartUpload?: () => void;
   isStartingUpload?: boolean;
+  canUploadModels?: boolean;
 };
 
 type CountdownParts = {
@@ -75,6 +76,7 @@ export function ParticipantNextChallenge({
   challenge,
   onStartUpload,
   isStartingUpload = false,
+  canUploadModels = false,
 }: ParticipantNextChallengeProps) {
   const shouldShowCategoryLine = !challenge.categoryLine.trim().toLowerCase().startsWith("club:");
   const organizerLabel = challenge.organizer.trim();
@@ -148,7 +150,7 @@ export function ParticipantNextChallenge({
               </p>
             ) : null}
 
-            {challenge.eventId ? (
+            {challenge.eventId && canUploadModels ? (
               <button
                 type="button"
                 onClick={onStartUpload}

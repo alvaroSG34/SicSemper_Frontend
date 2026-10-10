@@ -77,7 +77,7 @@ describe("AdminEventControlPage", () => {
         recentActivity: [],
       },
       participants: [],
-      participantsFilters: { search: "", userStatus: "", registrationStatus: "", verified: "" },
+      participantsFilters: { search: "", userStatus: "", verified: "" },
       setParticipantsFilters: vi.fn(),
       participantsPage: 1,
       setParticipantsPage: vi.fn(),
@@ -116,8 +116,8 @@ describe("AdminEventControlPage", () => {
 
     expect(screen.getByText("Salud del evento")).toBeTruthy();
     expect(screen.getByText("Embudo operativo")).toBeTruthy();
-    expect(screen.getByText("Podio operativo por segmento")).toBeTruthy();
-    expect(screen.getByText("Actividad reciente")).toBeTruthy();
-    expect(screen.getByText("Sin actividad reciente para este evento.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Podio" })).toBeTruthy();
+    expect(screen.queryByText("Podio operativo por segmento")).toBeNull();
+    expect(screen.queryByText("Actividad reciente")).toBeNull();
   });
 });

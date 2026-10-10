@@ -85,4 +85,14 @@ describe("JudgeQueueSection", () => {
     expect(screen.getByText("Evento: Open 2026")).toBeTruthy();
     expect(screen.getByText("Volver a eventos")).toBeTruthy();
   });
+
+  it("muestra la columna Escala y no muestra la columna Estado en el encabezado de la tabla", () => {
+    render(<JudgeQueueSection headingClassName="heading" lockedEventId="event-1" tableView />);
+
+    expect(screen.getByText("Maqueta")).toBeTruthy();
+    expect(screen.getByText("Escala")).toBeTruthy();
+    expect(screen.getByText("Calificacion")).toBeTruthy();
+    expect(screen.getByText("Accion")).toBeTruthy();
+    expect(screen.queryByText("Estado")).toBeNull();
+  });
 });

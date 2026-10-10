@@ -9,27 +9,25 @@ describe("PublicHeader", () => {
     const brandLink = brand.closest("a");
     const headerInner = brandLink?.parentElement;
 
-    expect(brand.className).toContain("text-[28px]");
-    expect(brand.className).toContain("sm:text-[34px]");
-    expect(brand.className).toContain("md:text-[42px]");
-    expect(brand.className).toContain("lg:text-[52px]");
-    expect(brand.className).toContain("max-w-[calc(100vw-6.5rem)]");
-    expect(brandLink?.className).toContain("min-w-0");
+    expect(brand.className).toContain("text-[20px]");
+    expect(brand.className).toContain("xl:text-[52px]");
+    expect(brand.className).toContain("w-[114px]");
+    expect(brandLink?.className).toContain("w-[150px]");
     expect(headerInner?.className).toContain("flex");
-    expect(headerInner?.className).toContain("justify-center");
-    expect(headerInner?.className).toContain("lg:grid");
-    expect(headerInner?.className).toContain("lg:justify-normal");
-    expect(headerInner?.className).toContain("px-5");
-    expect(headerInner?.className).toContain("lg:px-16");
+    expect(headerInner?.className).toContain("h-[80px]");
+    expect(headerInner?.className).toContain("border-b");
+    expect(headerInner?.className).toContain("xl:grid");
+    expect(headerInner?.className).toContain("px-4");
+    expect(headerInner?.className).toContain("xl:px-16");
   });
 
-  it("keeps desktop navigation and auth actions hidden until large screens", () => {
+  it("keeps desktop navigation hidden while auth actions remain visible on mobile", () => {
     render(<PublicHeader isLandingPage />);
 
     expect(screen.getByRole("navigation").className).toContain("hidden");
-    expect(screen.getByRole("navigation").className).toContain("lg:flex");
-    expect(screen.getByRole("link", { name: /INICIAR SESI.N/ }).parentElement?.className).toContain("hidden");
-    expect(screen.getByRole("link", { name: /INICIAR SESI.N/ }).parentElement?.className).toContain("lg:flex");
+    expect(screen.getByRole("navigation").className).toContain("xl:flex");
+    expect(screen.getByRole("link", { name: /INICIAR SESI.N/ }).className).toContain("inline-flex");
+    expect(screen.getByRole("link", { name: /REGISTRARSE/ }).className).toContain("inline-flex");
   });
 
   it("uses a solid dark login header on mobile and keeps the split background for desktop", () => {

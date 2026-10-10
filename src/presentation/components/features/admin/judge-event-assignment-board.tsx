@@ -27,6 +27,13 @@ type JudgeEventAssignmentBoardProps = {
     judgeUserId: string,
     nodeId: string,
   ) => JudgeNodeSelectionState;
+  availableScales: Array<{ id: string; value: string }>;
+  getScaleSelectionState: (judgeUserId: string, subcategoryId: string) => {
+    allowedScaleIds: string[];
+    selectedScaleIds: string[];
+  };
+  onToggleJudgeScale: (judgeUserId: string, subcategoryId: string, scaleId: string) => void;
+  onSelectAllJudgeScales: (judgeUserId: string, subcategoryId: string) => void;
   validationIssues?: JudgeValidationIssue[];
   leftTitle?: string;
   rightTitle?: string;
@@ -97,6 +104,10 @@ export function JudgeEventAssignmentBoard({
   onUnassignJudge,
   onToggleJudgeNode,
   getJudgeNodeSelectionState,
+  availableScales,
+  getScaleSelectionState,
+  onToggleJudgeScale,
+  onSelectAllJudgeScales,
   validationIssues = [],
   leftTitle = 'Lista de jueces no asignados',
   rightTitle = 'Lista de jueces asignados',
@@ -260,6 +271,27 @@ export function JudgeEventAssignmentBoard({
                       </button>
                     ) : null}
                   </div>
+                  {node.isLeaf ? (() => {
+                    const scaleState = getScaleSelectionState(judge.id, node.id);
+                    const scaleOptions = availableScales.filter((scale) => scaleState.allowedScaleIds.includes(scale.id));
+                    return (
+                      <div className="border-t border-[#2D2D2D] px-3 py-2">
+                        <div className="mb-1 flex items-center justify-between text-[11px] text-[#A8A8A8]">
+                          <span>Escalas: {scaleState.selectedScaleIds.length} de {scaleOptions.length}</span>
+                          <button type="button" disabled={pending || !canManage || scaleOptions.length === 0} onClick={() => onSelectAllJudgeScales(judge.id, node.id)} className="text-[#C8CEFF] disabled:opacity-50">Seleccionar todas</button>
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1">
+                          {scaleOptions.map((scale) => (
+                            <label key={scale.id} className="inline-flex items-center gap-1 text-[11px] text-[#D7D7D7]">
+                              <input type="checkbox" checked={scaleState.selectedScaleIds.includes(scale.id)} disabled={pending || !canManage} onChange={() => onToggleJudgeScale(judge.id, node.id, scale.id)} className="h-3.5 w-3.5 accent-[#5B68F1]" />
+                              {scale.value}
+                            </label>
+                          ))}
+                        </div>
+                        {scaleOptions.length === 0 ? <p className="mt-1 text-[11px] text-[#fca5a5]">Esta categoría no tiene escalas configuradas.</p> : scaleState.selectedScaleIds.length === 0 ? <p className="mt-1 text-[11px] text-[#fca5a5]">Selecciona al menos una escala para guardar.</p> : null}
+                      </div>
+                    );
+                  })() : null}
                   {hasChildren && isExpanded ? (
                     <div className="space-y-2 border-t border-[#2D2D2D] px-2 py-2">
                       {node.children.map((childNode) => renderNode(childNode))}

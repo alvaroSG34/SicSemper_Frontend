@@ -23,7 +23,7 @@ const makePage = (
   items: [
     {
       id: "notification-1",
-      type: "MAQUETA_ENVIADA" as const,
+      type: "MAQUETA_CALIFICADA" as const,
       severity: "BAJA" as const,
       title: "Maqueta enviada",
       detail: "Tu maqueta fue enviada.",

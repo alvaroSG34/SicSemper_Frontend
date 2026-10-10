@@ -59,7 +59,7 @@ export function ParticipantMobileSidebar({ items }: ParticipantSidebarProps) {
   return (
     <nav
       aria-label="Navegacion de participante"
-      className="fixed inset-x-0 bottom-0 z-[60] flex border-t border-[#2A2A2A] bg-[#0A0A0A]/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_28px_rgba(0,0,0,0.3)] backdrop-blur xl:hidden"
+      className="fixed inset-x-0 bottom-0 z-[60] flex border-t border-[#2A2A2A] bg-[#0A0A0A]/95 px-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_28px_rgba(0,0,0,0.3)] backdrop-blur xl:hidden"
     >
       {items.map((item) => {
         const Icon = sidebarIconByKey[item.icon];
@@ -70,12 +70,12 @@ export function ParticipantMobileSidebar({ items }: ParticipantSidebarProps) {
             key={`mobile-tab-${item.id}`}
             href={participantSectionRouteById[item.id]}
             aria-current={active ? "page" : undefined}
-            className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold transition ${
+            className={`relative flex min-h-14 flex-1 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold transition ${
               active ? "bg-[rgba(91,104,241,0.18)] text-[#AAB2FF]" : "text-[#9B9B9B] hover:bg-[#161616] hover:text-white"
             }`}
           >
-            <Icon className="h-5 w-5" />
-            <span>{item.label}</span>
+            <Icon className="h-5 w-5 shrink-0" />
+            <span className="w-full truncate text-center">{item.label}</span>
             {active ? <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#5B68F1]" /> : null}
           </Link>
         );
