@@ -230,7 +230,9 @@ export const authService: AuthService = {
   },
   async getCurrentUser() {
     try {
-      const response = await apiRequest<SessionResponse>("/auth/session");
+      const response = await apiRequest<SessionResponse>("/auth/session", {
+        skipAuthRefresh: true,
+      });
       return applySession(response);
     } catch (error) {
       if (error instanceof ApiError && error.statusCode === 401) {

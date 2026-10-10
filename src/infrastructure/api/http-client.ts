@@ -1,4 +1,4 @@
-import { getApiBaseUrl } from "@/infrastructure/api/api-base-url";
+import { getApiBaseUrl, getBrowserApiBaseUrl } from "@/infrastructure/api/api-base-url";
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
@@ -36,7 +36,8 @@ let csrfToken: string | null = null;
 
 const normalizePath = (path: string) => (path.startsWith("/") ? path : `/${path}`);
 
-const getUrl = (path: string) => `${getApiBaseUrl()}${normalizePath(path)}`;
+const getUrl = (path: string) =>
+  `${typeof window === "undefined" ? getApiBaseUrl() : getBrowserApiBaseUrl()}${normalizePath(path)}`;
 
 const getCodeFromPayload = (payload: ErrorPayload): string | null => {
   if (typeof payload.message === "string" && /^[A-Z0-9_]+$/.test(payload.message)) {
