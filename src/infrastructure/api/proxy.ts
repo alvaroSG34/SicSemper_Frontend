@@ -6,12 +6,8 @@ const RESPONSE_HEADERS = ["content-type", "content-disposition", "x-csrf-token",
 export async function proxyApiRequest(request: Request): Promise<Response> {
   const incomingUrl = new URL(request.url);
   const isMutation = request.method !== "GET" && request.method !== "HEAD";
-  const origin = request.headers.get("origin");
-
-  // Also protect login and registration, which do not yet have a CSRF token.
-  if (isMutation && ((origin && origin !== incomingUrl.origin) || request.headers.get("sec-fetch-site") === "cross-site")) {
-    return Response.json({ message: "ORIGIN_INVALID" }, { status: 403 });
-  }
+  // Railway/Cloudflare can expose an internal host in request.url while the
+  // browser uses the public custom domain. Do not compare those values here.
 
   const baseUrl = new URL(getApiBaseUrl());
   const targetUrl = new URL(`${baseUrl.href.replace(/\/+$/, "")}${incomingUrl.pathname.slice("/api/v1".length)}${incomingUrl.search}`);

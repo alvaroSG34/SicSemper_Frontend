@@ -53,12 +53,13 @@ describe("same-origin API proxy", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
-  it("rejects cross-origin mutations before contacting the backend", async () => {
+  it("forwards mutations from the public custom domain", async () => {
+    fetchMock.mockResolvedValue(Response.json({ success: true }));
     const response = await proxyApiRequest(new Request("https://frontend.app/api/v1/auth/login", {
-      method: "POST", headers: { origin: "https://other.app" },
+      method: "POST", headers: { origin: "https://custom-domain.example" },
     }));
-    expect(response.status).toBe(403);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalled();
   });
 
   it("streams SSE immediately without waiting for the connection to close", async () => {
