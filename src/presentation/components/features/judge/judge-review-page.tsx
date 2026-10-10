@@ -25,6 +25,8 @@ type JudgeReviewPageProps = {
   level2Name?: string | null;
   finalCategoryName: string;
   forceReadOnly?: boolean;
+  historyMode?: boolean;
+  podiumMode?: boolean;
 };
 
 const MAX_CRITERION_SCORE = 10;
@@ -100,6 +102,8 @@ export function JudgeReviewPage({
   level2Name,
   finalCategoryName,
   forceReadOnly = false,
+  historyMode = false,
+  podiumMode = false,
 }: JudgeReviewPageProps) {
   const selectedModelId = useJudgeStore((state) => state.selectedModelId);
   const modelDetail = useJudgeStore((state) => state.modelDetail);
@@ -121,8 +125,8 @@ export function JudgeReviewPage({
       return;
     }
 
-    void selectModel(modelId);
-  }, [modelDetail?.id, modelId, selectModel, selectedModelId]);
+    void selectModel(modelId, historyMode, podiumMode);
+  }, [historyMode, modelDetail?.id, modelId, podiumMode, selectModel, selectedModelId]);
 
   useEffect(() => {
     if (!modelDetail || modelDetail.id !== modelId) {

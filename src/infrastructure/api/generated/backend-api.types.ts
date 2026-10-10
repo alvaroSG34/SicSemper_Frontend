@@ -197,6 +197,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/events/{id}/control/podium/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetEventControlPodiumTree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{id}/control/podium/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminListEventControlPodiumSegments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{id}/control/podium/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminGetEventControlPodiumResult"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/categories": {
         parameters: {
             query?: never;
@@ -818,6 +866,54 @@ export interface components {
             updated: number;
             deleted: number;
         };
+        AdminEventControlPodiumTreeNode: {
+            id: string;
+            name: string;
+            parentId: string | null;
+            children: string[];
+        };
+        AdminEventControlPodiumTree: {
+            eventId: string;
+            eventName: string;
+            rootIds: string[];
+            nodes: components["schemas"]["AdminEventControlPodiumTreeNode"][];
+        };
+        AdminEventControlPodiumSegment: {
+            id: string;
+            /** @enum {string} */
+            type: "SCALE" | "GROUP";
+            label: string;
+            scaleId: string | null;
+            groupId: string | null;
+            qualifiedModelsCount: number;
+        };
+        AdminEventControlPodiumEntry: {
+            position: number;
+            modelId: string;
+            modelName: string;
+            modelCode: string;
+            participantName: string;
+            finalScore: number;
+            previewImageUrl: string | null;
+        };
+        AdminEventControlPodiumResult: {
+            eventId: string;
+            eventName: string;
+            finalCategoryId: string;
+            categoryLabel: string;
+            /** @enum {string} */
+            segmentType: "SCALE" | "GROUP";
+            segmentId: string;
+            segmentLabel: string;
+            podium: components["schemas"]["AdminEventControlPodiumEntry"][];
+            rankings: components["schemas"]["AdminEventControlPodiumEntry"][];
+            total: number;
+            page: number;
+            pageSize: number;
+            totalPages: number;
+            manualTieBreakApplied: boolean;
+            manualTieBreakLabel: string | null;
+        };
         JudgeAssignmentScope: {
             id: string;
             judgeUserId: string;
@@ -1273,6 +1369,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventDeleteImpact"];
+                };
+            };
+        };
+    };
+    adminGetEventControlPodiumTree: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Árbol de categorías con resultados calificados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumTree"];
+                };
+            };
+        };
+    };
+    adminListEventControlPodiumSegments: {
+        parameters: {
+            query: {
+                finalCategoryId: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Escalas y grupos con modelos calificados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumSegment"][];
+                };
+            };
+        };
+    };
+    adminGetEventControlPodiumResult: {
+        parameters: {
+            query: {
+                finalCategoryId: string;
+                scaleId?: string;
+                groupId?: string;
+                page?: number;
+                pageSize?: 20 | 50 | 100;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Podio y posiciones paginadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminEventControlPodiumResult"];
                 };
             };
         };

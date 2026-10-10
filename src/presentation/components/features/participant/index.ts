@@ -33,3 +33,7 @@ export { ParticipantShowcaseModelsPage } from "./participant-showcase-models-pag
 export { ParticipantShowcaseModelDetailSection } from "./participant-showcase-model-detail-section";
 export { ParticipantShowcaseModelDetailPage } from "./participant-showcase-model-detail-page";
 export { ParticipantShowcaseLegacyScaleRedirectPage } from "./participant-showcase-legacy-scale-redirect-page";
+export { ParticipantEventPodiumSection } from "./participant-event-podium-section";
+export { ParticipantEventPodiumPage } from "./participant-event-podium-page";
+export { ParticipantPodiumModelDetailPage } from "./participant-podium-model-detail-page";
+export { useParticipantPodiumModelDetail } from "./use-participant-podium-model-detail";

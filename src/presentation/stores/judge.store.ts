@@ -5,6 +5,7 @@ import type {
   JudgeDashboardData,
   JudgeModelDetail,
   JudgeModelListResponse,
+  JudgePastEvent,
   JudgeReviewMutationResult,
   JudgeSaveDraftPayload,
   JudgeSubmitReviewPayload,
@@ -18,6 +19,7 @@ type JudgeModelFilters = {
   search?: string;
   page: number;
   pageSize: number;
+  history?: boolean;
 };
 
 type JudgeStoreState = {
@@ -26,6 +28,9 @@ type JudgeStoreState = {
   error: string | null;
   modelFilters: JudgeModelFilters;
   models: JudgeModelListResponse | null;
+  pastEvents: JudgePastEvent[];
+  pastEventsLoading: boolean;
+  pastEventsError: string | null;
   modelsLoading: boolean;
   modelsError: string | null;
   selectedModelId: string | null;
@@ -34,7 +39,8 @@ type JudgeStoreState = {
   detailError: string | null;
   loadDashboard: () => Promise<void>;
   loadModels: (filters?: Partial<JudgeModelFilters>) => Promise<void>;
-  selectModel: (modelId: string | null) => Promise<void>;
+  selectModel: (modelId: string | null, history?: boolean, podium?: boolean) => Promise<void>;
+  loadPastEvents: () => Promise<void>;
   startReview: (modelId: string) => Promise<void>;
   saveDraft: (modelId: string, payload: JudgeSaveDraftPayload) => Promise<JudgeReviewMutationResult | null>;
   submitReview: (
@@ -87,7 +93,10 @@ const refreshRelatedData = async (
   if (shouldReloadDetail) {
     const selectedModelId = get().selectedModelId;
     if (selectedModelId) {
-      const modelDetail = await judgeService.getModelDetail(selectedModelId);
+      const modelDetail = await judgeService.getModelDetail(
+        selectedModelId,
+        get().modelFilters.history,
+      );
       set({ modelDetail, detailLoading: false, detailError: null });
     }
   }
@@ -99,6 +108,9 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
   error: null,
   modelFilters: defaultModelFilters,
   models: null,
+  pastEvents: [],
+  pastEventsLoading: false,
+  pastEventsError: null,
   modelsLoading: false,
   modelsError: null,
   selectedModelId: null,
@@ -150,7 +162,10 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
       if (nextSelectedModelId) {
         set({ detailLoading: true, detailError: null });
         try {
-          const modelDetail = await judgeService.getModelDetail(nextSelectedModelId);
+          const modelDetail = await judgeService.getModelDetail(
+            nextSelectedModelId,
+            Boolean(nextFilters.history),
+          );
           set({
             modelDetail,
             detailLoading: false,
@@ -176,7 +191,7 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
       });
     }
   },
-  selectModel: async (modelId) => {
+  selectModel: async (modelId, history = false, podium = false) => {
     set({
       selectedModelId: modelId,
       modelDetail: null,
@@ -189,7 +204,7 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
     }
 
     try {
-      const modelDetail = await judgeService.getModelDetail(modelId);
+      const modelDetail = await judgeService.getModelDetail(modelId, history, podium);
       set({
         modelDetail,
         detailLoading: false,
@@ -200,6 +215,15 @@ export const useJudgeStore = create<JudgeStoreState>((set, get) => ({
         detailLoading: false,
         detailError: getErrorMessage(error),
       });
+    }
+  },
+  loadPastEvents: async () => {
+    set({ pastEventsLoading: true, pastEventsError: null });
+    try {
+      const pastEvents = await judgeService.listPastEvents();
+      set({ pastEvents, pastEventsLoading: false, pastEventsError: null });
+    } catch (error) {
+      set({ pastEventsLoading: false, pastEventsError: getErrorMessage(error) });
     }
   },
   startReview: async (modelId) => {

@@ -71,6 +71,17 @@ export type JudgeAssignedEvent = {
   }>;
 };
 
+export type JudgePastEvent = {
+  id: Identifier;
+  name: string;
+  imageUrl?: string | null;
+  status: "ACTIVO" | "PAUSADO" | "BORRADOR" | "FINALIZADO";
+  endDate: string | null;
+  modelCount: number;
+  reviewedCount: number;
+  assignedScopes: JudgeAssignedEvent["assignedScopes"];
+};
+
 export type JudgeDashboardData = {
   profile: JudgeProfile;
   summary: JudgeSummary;
@@ -86,10 +97,12 @@ export type JudgeReviewCriteria = Partial<
 
 export type JudgeModelListItem = {
   id: Identifier;
+  categoryId?: Identifier;
   project: string;
   code: string;
   eventName: string;
   category: string;
+  scale?: string;
   priority: JudgePriority;
   dueLabel: string;
   status: JudgeQueueStatus;

@@ -263,6 +263,57 @@ export type AdminEventControlSummary = {
   }>;
 };
 
+export type AdminEventPodiumTreeNode = {
+  id: Identifier;
+  name: string;
+  parentId: Identifier | null;
+  children: Identifier[];
+};
+
+export type AdminEventPodiumTree = {
+  eventId: Identifier;
+  eventName: string;
+  rootIds: Identifier[];
+  nodes: AdminEventPodiumTreeNode[];
+};
+
+export type AdminEventPodiumSegment = {
+  id: Identifier;
+  type: "SCALE" | "GROUP";
+  label: string;
+  scaleId: Identifier | null;
+  groupId: Identifier | null;
+  qualifiedModelsCount: number;
+};
+
+export type AdminEventPodiumEntry = {
+  position: number;
+  modelId: Identifier;
+  modelName: string;
+  modelCode: string;
+  participantName: string;
+  finalScore: number;
+  previewImageUrl: string | null;
+};
+
+export type AdminEventPodiumResult = {
+  eventId: Identifier;
+  eventName: string;
+  finalCategoryId: Identifier;
+  categoryLabel: string;
+  segmentType: "SCALE" | "GROUP";
+  segmentId: Identifier;
+  segmentLabel: string;
+  podium: AdminEventPodiumEntry[];
+  rankings: AdminEventPodiumEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  manualTieBreakApplied: boolean;
+  manualTieBreakLabel: string | null;
+};
+
 export type AdminTieBreakOption =
   | {
       type: "scale";
@@ -351,6 +402,7 @@ export type AdminEventModelRow = {
 
 export type AdminEventModelDetail = {
   eventId: Identifier;
+  eventName: string;
   model: {
     id: Identifier;
     nombreModelo: string;

@@ -44,9 +44,13 @@ export function ParticipantDashboardPage({ activeSection }: ParticipantDashboard
                 clearFlowState();
                 router.push(`/participante/maquetas?eventId=${encodeURIComponent(eventId)}`);
               }}
+              onOpenPodiumByEvent={(eventId) => {
+                clearFlowState();
+                router.push(`/participante/eventos/${encodeURIComponent(eventId)}/podio`);
+              }}
               onOpenParticipantsByEvent={(eventId) => {
                 clearFlowState();
-                router.push(`/participante/participantes/${encodeURIComponent(eventId)}/nivel-1`);
+                router.push(`/participante/eventos/${encodeURIComponent(eventId)}/podio`);
               }}
             />
           );

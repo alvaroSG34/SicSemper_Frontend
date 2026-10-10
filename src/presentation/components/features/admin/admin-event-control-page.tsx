@@ -19,9 +19,11 @@ import {
 } from "lucide-react";
 import { createAdminAccessMatrix } from "@/presentation/components/features/admin/admin-access-matrix";
 import { useAdminEventControl } from "@/presentation/components/features/admin/use-admin-event-control";
+import { AdminEventPodiumSection } from "@/presentation/components/features/admin/admin-event-podium-section";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
+import type { AdminEventPodiumInitialSelection } from "./use-admin-event-podium";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -36,7 +38,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-BO", {
   minute: "2-digit",
 });
 
-type EventControlTab = "resumen" | "participantes" | "maquetas";
+type EventControlTab = "resumen" | "participantes" | "maquetas" | "podio";
 
 type EditableModelFile = {
   key: string;
@@ -81,14 +83,22 @@ const formatPercent = (value: number | null | undefined) => {
   return `${value.toFixed(2)}%`;
 };
 
-export function AdminEventControlPage({ eventId }: { eventId: string }) {
+export function AdminEventControlPage({
+  eventId,
+  initialTab = "resumen",
+  initialPodiumSelection,
+}: {
+  eventId: string;
+  initialTab?: EventControlTab;
+  initialPodiumSelection?: AdminEventPodiumInitialSelection;
+}) {
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
   const dashboard = useAdminStore((state) => state.dashboard);
   const summarySnapshot = useAdminStore((state) => state.summary);
   const loadSummary = useAdminStore((state) => state.loadSummary);
 
-  const [activeTab, setActiveTab] = useState<EventControlTab>("resumen");
+  const [activeTab, setActiveTab] = useState<EventControlTab>(initialTab);
   const [editingModel, setEditingModel] = useState<EditingModelState | null>(null);
   useRealtimeDirtyForm([...adminModelEditDomains], Boolean(editingModel));
   const [modelPendingDeletion, setModelPendingDeletion] = useState<{
@@ -313,6 +323,17 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
           >
             Maquetas
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("podio")}
+            className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold ${
+              activeTab === "podio"
+                ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] text-white"
+                : "border border-[#2D2D2D] text-[#D1D1D1]"
+            }`}
+          >
+            Podio
+          </button>
         </div>
 
         {activeTab === "resumen" ? (
@@ -478,7 +499,7 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
 
         {activeTab === "participantes" ? (
           <section className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4 sm:p-5">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <input
                 value={participantsFilters.search}
                 onChange={(event) =>
@@ -501,21 +522,6 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
                 <option value="ACTIVO">ACTIVO</option>
                 <option value="INACTIVO">INACTIVO</option>
                 <option value="SUSPENDIDO">SUSPENDIDO</option>
-              </select>
-              <select
-                value={participantsFilters.registrationStatus}
-                onChange={(event) =>
-                  setParticipantsFilters((prev) => ({
-                    ...prev,
-                    registrationStatus: event.target.value as typeof prev.registrationStatus,
-                  }))
-                }
-                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-              >
-                <option value="">Estado inscripción: todos</option>
-                <option value="ACTIVA">ACTIVA</option>
-                <option value="PENDIENTE">PENDIENTE</option>
-                <option value="CANCELADA">CANCELADA</option>
               </select>
               <select
                 value={participantsFilters.verified}
@@ -969,6 +975,10 @@ export function AdminEventControlPage({ eventId }: { eventId: string }) {
               </div>
             </div>
           </section>
+        ) : null}
+
+        {activeTab === "podio" ? (
+          <AdminEventPodiumSection eventId={eventId} initialSelection={initialPodiumSelection} />
         ) : null}
 
         {loading ? (

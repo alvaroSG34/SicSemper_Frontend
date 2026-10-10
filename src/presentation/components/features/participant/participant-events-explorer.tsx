@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, MapPin, Sparkles, TriangleAlert, Users, X } from "lucide-react";
+import { CalendarDays, MapPin, Sparkles, TriangleAlert, Trophy, X } from "lucide-react";
 import { Outfit } from "next/font/google";
 import { useEffect, useMemo, useState } from "react";
 import type {
@@ -30,7 +30,8 @@ type ParticipantEventsExplorerProps = {
   onRefresh: () => Promise<void>;
   canUploadModels?: boolean;
   onGoToMyModelsByEvent: (eventId: string) => void;
-  onOpenParticipantsByEvent: (eventId: string) => void;
+  onOpenParticipantsByEvent?: (eventId: string) => void;
+  onOpenPodiumByEvent?: (eventId: string) => void;
 };
 
 export function ParticipantEventsExplorer({
@@ -49,6 +50,7 @@ export function ParticipantEventsExplorer({
   canUploadModels = true,
   onGoToMyModelsByEvent,
   onOpenParticipantsByEvent,
+  onOpenPodiumByEvent,
 }: ParticipantEventsExplorerProps) {
   const [detailEventId, setDetailEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
@@ -329,15 +331,16 @@ export function ParticipantEventsExplorer({
 
                     <button
                       type="button"
-                      aria-label="Ver participantes"
+                      aria-label="Ver podio"
                       onClick={(clickEvent) => {
                         clickEvent.stopPropagation();
-                        onOpenParticipantsByEvent(event.id);
+                        const handleOpenPodium = onOpenPodiumByEvent ?? onOpenParticipantsByEvent;
+                        handleOpenPodium?.(event.id);
                       }}
                       className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-[#3A3A3A] px-3 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
                     >
-                      <Users className="h-3.5 w-3.5" />
-                      Ver participantes
+                      <Trophy className="h-3.5 w-3.5" />
+                      Ver podio
                     </button>
 
                     <button

@@ -21,7 +21,6 @@ const DEFAULT_PAGE_SIZE = 20;
 type ParticipantsFilterState = {
   search: string;
   userStatus: "" | "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
-  registrationStatus: "" | "ACTIVA" | "PENDIENTE" | "CANCELADA";
   verified: "" | "true" | "false";
 };
 
@@ -62,7 +61,6 @@ export const useAdminEventControl = ({
   const [participantsFilters, setParticipantsFilters] = useState<ParticipantsFilterState>({
     search: "",
     userStatus: "",
-    registrationStatus: "",
     verified: "",
   });
   const [selectedParticipantDetail, setSelectedParticipantDetail] =
@@ -105,7 +103,6 @@ export const useAdminEventControl = ({
       pageSize: participantsPageSize,
       search: participantsFilters.search.trim() || undefined,
       userStatus: participantsFilters.userStatus || undefined,
-      registrationStatus: participantsFilters.registrationStatus || undefined,
       verified:
         participantsFilters.verified === ""
           ? undefined

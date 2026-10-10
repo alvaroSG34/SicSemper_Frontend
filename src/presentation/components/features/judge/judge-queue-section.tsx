@@ -15,6 +15,7 @@ type JudgeQueueSectionProps = {
   showLockedEventSummary?: boolean;
   reviewBasePath?: string;
   reviewQuery?: string;
+  historyMode?: boolean;
 };
 
 export function JudgeQueueSection({
@@ -26,6 +27,7 @@ export function JudgeQueueSection({
   showLockedEventSummary = true,
   reviewBasePath,
   reviewQuery = "",
+  historyMode = false,
 }: JudgeQueueSectionProps) {
   const {
     loading,
@@ -35,7 +37,7 @@ export function JudgeQueueSection({
     modelsError,
     queueHeadline,
     loadModels,
-  } = useJudgeQueue({ eventId: lockedEventId, categoryId: lockedCategoryId });
+  } = useJudgeQueue({ eventId: lockedEventId, categoryId: lockedCategoryId, history: historyMode });
   const assignedEvents = useJudgeStore((state) => state.dashboard?.assignedEvents ?? []);
   const [searchText, setSearchText] = useState(modelFilters.search ?? "");
 
@@ -75,6 +77,7 @@ export function JudgeQueueSection({
       pageSize: modelFilters.pageSize,
       eventId: lockedEventId ?? modelFilters.eventId,
       categoryId: lockedCategoryId ?? modelFilters.categoryId,
+      history: historyMode,
     });
   };
 
@@ -87,6 +90,7 @@ export function JudgeQueueSection({
       priority: modelFilters.priority,
       eventId: lockedEventId ?? modelFilters.eventId,
       categoryId: lockedCategoryId ?? modelFilters.categoryId,
+      history: historyMode,
     });
   };
 
@@ -99,10 +103,10 @@ export function JudgeQueueSection({
   };
 
   return (
-    <section className="flex w-full flex-col gap-6 rounded-3xl border border-[#1E1E1E] bg-[#121212] p-5 sm:p-6 md:p-8 xl:p-10">
+    <section className="flex w-full flex-col gap-6 rounded-3xl border border-[#1E1E1E] bg-[#121212] p-4 sm:p-6 md:p-8 xl:p-10">
       <div className="flex flex-col gap-2">
         <p className="text-xs font-bold tracking-[2px] text-[#F15BB5]">
-          {lockedEventId ? "CALIFICAR MAQUETAS" : "COLA DE REVISION"}
+          {historyMode ? "CONSULTA HISTÓRICA" : lockedEventId ? "CALIFICAR MAQUETAS" : "COLA DE REVISION"}
         </p>
         <h2
           className={`${headingClassName} text-3xl leading-tight font-bold text-white sm:text-4xl xl:text-5xl xl:leading-none`}
@@ -110,7 +114,9 @@ export function JudgeQueueSection({
           {queueHeadline}
         </h2>
         <p className="text-sm text-[#AAAAAA] sm:text-base">
-          Selecciona una maqueta para abrir la pantalla dedicada de calificacion.
+          {historyMode
+            ? "Consulta las evaluaciones y resultados de tus asignaciones en modo solo lectura."
+            : "Selecciona una maqueta para abrir la pantalla dedicada de calificacion."}
         </p>
         {lockedEventId && showLockedEventSummary ? (
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -177,76 +183,154 @@ export function JudgeQueueSection({
       <div className="flex flex-col gap-5">
         {tableView ? (
           <div className="overflow-hidden rounded-xl border border-[#2B2B2B] bg-[#151515]">
-            <div className="grid grid-cols-[52px_2fr_1.1fr_1.1fr_160px] gap-2 border-b border-[#262626] bg-[#1A1A1A] px-4 py-3 text-[11px] font-semibold tracking-[0.4px] text-[#9C9C9C] uppercase">
-              <span>#</span>
-              <span>Maqueta</span>
-              <span>Estado</span>
-              <span>Calificacion</span>
-              <span>Accion</span>
-            </div>
-            {models?.items.map((item, index) => {
-              const rowNumber = (currentPage - 1) * (models?.pageSize ?? 12) + index + 1;
-              const isReadOnly = item.reviewStatus === "SUBMITTED";
-              const reviewHref = resolveReviewHref(item.id);
-              const actionHref =
-                reviewHref && isReadOnly
-                  ? `${reviewHref}${reviewHref.includes("?") ? "&" : "?"}readonly=1`
-                  : reviewHref;
-              const actionLabel = isReadOnly ? "Ver detalle" : "Calificar";
+            {/* Vista compacta para móvil (< sm): se adapta perfectamente sin aplastar el contenido */}
+            <div className="divide-y divide-[#232323] sm:hidden">
+              {models?.items.map((item, index) => {
+                const rowNumber = (currentPage - 1) * (models?.pageSize ?? 12) + index + 1;
+                const isReadOnly = item.reviewStatus === "SUBMITTED";
+                const reviewHref = historyMode
+                  ? `/juez/eventos/pasados/${encodeURIComponent(lockedEventId ?? "")}/maquetas/${encodeURIComponent(item.id)}`
+                  : resolveReviewHref(item.id);
+                const actionHref =
+                  reviewHref && isReadOnly
+                    ? `${reviewHref}${reviewHref.includes("?") ? "&" : "?"}readonly=1`
+                    : reviewHref;
+                const actionLabel = historyMode || isReadOnly ? "Ver detalle" : "Calificar";
 
-              return (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-[52px_2fr_1.1fr_1.1fr_160px] items-center gap-2 border-b border-[#232323] bg-[#161616] px-4 py-3 text-sm last:border-b-0"
-                >
-                  <span className="text-xs text-[#8C8C8C]">{String(rowNumber).padStart(2, "0")}</span>
-                  <div className="min-w-0 text-left">
-                    <p className="truncate font-semibold text-white">{item.project}</p>
-                    <p className="truncate text-xs text-[#9A9A9A]">Codigo: {item.code}</p>
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-3 bg-[#161616] p-3.5"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-xs font-semibold text-[#8C8C8C] shrink-0 font-mono">
+                        {String(rowNumber).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0 text-left">
+                        <p className="truncate font-semibold text-white text-sm">
+                          {item.project}
+                        </p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-[#9A9A9A]">
+                          <span>{item.code}</span>
+                          {item.scale ? (
+                            <>
+                              <span>·</span>
+                              <span>{item.scale}</span>
+                            </>
+                          ) : null}
+                          <span>·</span>
+                          <span
+                            className={
+                              item.reviewStatus === "SUBMITTED"
+                                ? "text-[#8BA3FF] font-medium"
+                                : "text-[#A0A0A0]"
+                            }
+                          >
+                            {item.reviewStatus === "SUBMITTED"
+                              ? `${item.myScore?.toFixed(2) ?? "--"} pts`
+                              : "Pendiente"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      {actionHref ? (
+                        <Link
+                          href={actionHref}
+                          className={`inline-flex h-8 items-center justify-center rounded-[14px] px-3.5 text-xs font-semibold ${
+                            isReadOnly
+                              ? "border border-[#303030] bg-[#191919] text-[#E7E7E7]"
+                              : "border border-[#5B68F1]/70 bg-[#4D58DD] text-white"
+                          }`}
+                        >
+                          {actionLabel}
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-[#8A8A8A]">N/D</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="inline-flex w-fit rounded-full border border-[#2A2F3A] bg-[#1A1E2B] px-2 py-1 text-xs text-[#8BA3FF]">
-                    {item.status}
-                  </span>
-                  <span className="text-xs text-[#CFCFCF]">
-                    {item.reviewStatus === "SUBMITTED" ? item.myScore?.toFixed(2) ?? "--" : "Pendiente"}
-                  </span>
-                  <div className="flex justify-start">
-                    {actionHref ? (
-                      <Link
-                        href={actionHref}
-                        className={`inline-flex h-8 items-center justify-center rounded-[14px] px-4 text-xs font-semibold ${
-                          isReadOnly
-                            ? "border border-[#303030] bg-[#191919] text-[#E7E7E7]"
-                            : "border border-[#5B68F1]/70 bg-[#4D58DD] text-white"
-                        }`}
-                      >
-                        {actionLabel}
-                      </Link>
-                    ) : (
-                      <span className="text-xs text-[#8A8A8A]">Ruta no disponible</span>
-                    )}
-                  </div>
+                );
+              })}
+            </div>
+
+            {/* Vista tabla para tablets y pantallas grandes (sm+): con scroll seguro y anchos equilibrados */}
+            <div className="hidden sm:block overflow-x-auto">
+              <div className="min-w-[620px]">
+                <div className="grid grid-cols-[48px_minmax(220px,340px)_110px_130px_1fr] items-center gap-3 border-b border-[#262626] bg-[#1A1A1A] px-4 py-3 text-[11px] font-semibold tracking-[0.4px] text-[#9C9C9C] uppercase">
+                  <span>#</span>
+                  <span>Maqueta</span>
+                  <span>Escala</span>
+                  <span>Calificacion</span>
+                  <span className="text-right">Accion</span>
                 </div>
-              );
-            })}
+                {models?.items.map((item, index) => {
+                  const rowNumber = (currentPage - 1) * (models?.pageSize ?? 12) + index + 1;
+                  const isReadOnly = item.reviewStatus === "SUBMITTED";
+                  const reviewHref = historyMode
+                    ? `/juez/eventos/pasados/${encodeURIComponent(lockedEventId ?? "")}/maquetas/${encodeURIComponent(item.id)}`
+                    : resolveReviewHref(item.id);
+                  const actionHref =
+                    reviewHref && isReadOnly
+                      ? `${reviewHref}${reviewHref.includes("?") ? "&" : "?"}readonly=1`
+                      : reviewHref;
+                  const actionLabel = historyMode || isReadOnly ? "Ver detalle" : "Calificar";
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[48px_minmax(220px,340px)_110px_130px_1fr] items-center gap-3 border-b border-[#232323] bg-[#161616] px-4 py-3 text-sm last:border-b-0"
+                    >
+                      <span className="text-xs text-[#8C8C8C]">{String(rowNumber).padStart(2, "0")}</span>
+                      <div className="min-w-0 text-left">
+                        <p className="truncate font-semibold text-white">{item.project}</p>
+                        <p className="truncate text-xs text-[#9A9A9A]">Codigo: {item.code}</p>
+                      </div>
+                      <span className="text-xs text-[#CFCFCF]">{item.scale ?? "--"}</span>
+                      <span className="text-xs text-[#CFCFCF]">
+                        {item.reviewStatus === "SUBMITTED" ? item.myScore?.toFixed(2) ?? "--" : "Pendiente"}
+                      </span>
+                      <div className="flex justify-end">
+                        {actionHref ? (
+                          <Link
+                            href={actionHref}
+                            className={`inline-flex h-8 items-center justify-center rounded-[14px] px-4 text-xs font-semibold ${
+                              isReadOnly
+                                ? "border border-[#303030] bg-[#191919] text-[#E7E7E7]"
+                                : "border border-[#5B68F1]/70 bg-[#4D58DD] text-white"
+                            }`}
+                          >
+                            {actionLabel}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-[#8A8A8A]">Ruta no disponible</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         ) : (
           <>
             {models?.items.map((item) => {
               const isReadOnly = item.reviewStatus === "SUBMITTED";
-              const reviewHref = resolveReviewHref(item.id);
+              const reviewHref = historyMode
+                ? `/juez/eventos/pasados/${encodeURIComponent(lockedEventId ?? "")}/maquetas/${encodeURIComponent(item.id)}`
+                : resolveReviewHref(item.id);
               const actionHref =
                 reviewHref && isReadOnly
                   ? `${reviewHref}${reviewHref.includes("?") ? "&" : "?"}readonly=1`
                   : reviewHref;
-              const actionLabel = isReadOnly ? "Ver detalle" : "Calificar";
+              const actionLabel = historyMode || isReadOnly ? "Ver detalle" : "Calificar";
 
               return (
                 <article key={item.id} className="grid gap-3 rounded-xl border border-[#2B2B2B] bg-[#191919] p-4 transition">
                   <div className="flex flex-col items-start gap-1 text-left">
                     <p className="text-sm font-semibold text-white">{item.project}</p>
                     <p className="text-xs text-[#999999]">
-                      {item.code} · {item.category}
+                      {item.code} · {item.category}{item.scale ? ` · ${item.scale}` : ""}
                     </p>
                     <p className="text-xs text-[#777777]">{item.eventName}</p>
                   </div>

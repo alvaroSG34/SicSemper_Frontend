@@ -13,6 +13,7 @@ type JuezEvaluarMaquetaPageProps = {
     l2id?: string | string[];
     final?: string | string[];
     readonly?: string | string[];
+    podium?: string | string[];
   }>;
 };
 
@@ -30,6 +31,7 @@ export default async function JuezEvaluarMaquetaPage({
   const level2Id = firstValue(resolvedSearchParams.l2id) ?? null;
   const finalCategoryName = firstValue(resolvedSearchParams.final) ?? "Especialidad";
   const forceReadOnly = firstValue(resolvedSearchParams.readonly) === "1";
+  const podiumMode = firstValue(resolvedSearchParams.podium) === "1";
 
   const backSearchParams = new URLSearchParams();
   backSearchParams.set("l1", level1Name);
@@ -51,6 +53,7 @@ export default async function JuezEvaluarMaquetaPage({
       level2Name={level2Name}
       finalCategoryName={finalCategoryName}
       forceReadOnly={forceReadOnly}
+      podiumMode={podiumMode}
     />
   );
 }
