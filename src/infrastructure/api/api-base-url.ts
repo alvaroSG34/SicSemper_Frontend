@@ -1,2 +1,2 @@
-export { getApiBaseUrl } from "@/core/api-base-url";
+export { getApiBaseUrl, getBrowserApiBaseUrl } from "@/core/api-base-url";
 

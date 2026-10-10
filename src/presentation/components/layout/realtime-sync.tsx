@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { getApiBaseUrl } from "@/core/api-base-url";
+import { getBrowserApiBaseUrl } from "@/core/api-base-url";
 import { useAdminStore, useAuthStore, useJudgeStore, useParticipantStore } from "@/presentation/stores";
 import { publishRealtimeInvalidation } from "@/presentation/realtime/realtime-invalidation-bus";
 import { hasDirtyFormForDomains, useRealtimeDirtyStore } from "@/presentation/realtime/realtime-dirty.store";
@@ -82,7 +82,7 @@ export function RealtimeSync() {
     };
     const connect = () => {
       if (disposed || document.visibilityState !== "visible" || sourceRef.current) return;
-      const source = new EventSource(`${getApiBaseUrl()}/sync/stream`, { withCredentials: true });
+      const source = new EventSource(`${getBrowserApiBaseUrl()}/sync/stream`, { withCredentials: true });
       sourceRef.current = source;
       source.addEventListener("sync", (message) => {
         try {

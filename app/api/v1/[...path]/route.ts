@@ -1,0 +1,10 @@
+import { proxyApiRequest } from "@/infrastructure/api/proxy";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export const GET = proxyApiRequest;
+export const POST = proxyApiRequest;
+export const PUT = proxyApiRequest;
+export const PATCH = proxyApiRequest;
+export const DELETE = proxyApiRequest;
