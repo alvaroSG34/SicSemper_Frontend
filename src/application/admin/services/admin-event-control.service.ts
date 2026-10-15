@@ -13,7 +13,7 @@ import type {
 } from "@/application/admin/contracts/admin-event-control.contract";
 import type { AdminTieBreakOption } from "@/domain/admin/admin.types";
 import type { AdminService } from "@/application/admin/admin.service.types";
-import { apiRequest } from "@/infrastructure/api/http-client";
+import { apiRequest, apiRequestBlob } from "@/infrastructure/api/http-client";
 import { toErrorMessage } from "./admin-service.shared";
 
 const buildQueryString = (params: Record<string, string | number | boolean | undefined>) => {
@@ -34,6 +34,7 @@ export const adminEventControlService: Pick<
   | "getEventControlPodiumTree"
   | "listEventControlPodiumSegments"
   | "getEventControlPodiumResult"
+  | "exportEventControlPodium"
   | "listEventControlParticipants"
   | "getEventControlParticipantDetail"
   | "listEventControlModels"
@@ -49,6 +50,14 @@ export const adminEventControlService: Pick<
   | "clearEventPodiumTieBreakGroup"
   | "getEventPodiumTieBreakOptions"
 > = {
+  async exportEventControlPodium(eventId) {
+    try {
+      return await apiRequestBlob(`/admin/events/${eventId}/control/podium/export.xlsx`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudo exportar el podio del evento."));
+    }
+  },
+
   async getEventControlSummary(eventId) {
     try {
       return await apiRequest<ApiAdminEventControlSummary>(
