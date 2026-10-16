@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { UserRole } from "@/domain/user/user.types";
 import { useAuthStore } from "@/presentation/stores";
 import { PublicHeader } from "./public-header";
-import { getApiBaseUrl } from "@/infrastructure/api/api-base-url";
+import { getBrowserApiBaseUrl } from "@/infrastructure/api/api-base-url";
 import { normalizeLandingContent } from "@/presentation/components/features/landing/landing-data";
 
 const LANDING_SECTION_IDS = ["inicio", "acerca", "agenda", "equipo", "ubicacion"] as const;
@@ -48,7 +48,7 @@ export function AutoPublicHeader() {
   useEffect(() => {
     let cancelled = false;
     console.info('[branding] public:load:start');
-    void fetch(`${getApiBaseUrl()}/landing/content`, { cache: "no-store" })
+    void fetch(`${getBrowserApiBaseUrl()}/landing/content`, { cache: "no-store" })
       .then((response) => {
         console.info('[branding] public:load:response', { status: response.status, ok: response.ok });
         return response.ok ? response.json() : null;

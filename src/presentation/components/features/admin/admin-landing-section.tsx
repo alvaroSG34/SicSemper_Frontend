@@ -77,14 +77,19 @@ const createBrandAssets = async (file: File) => {
   logoCanvas.height = Math.max(1, Math.round(image.naturalHeight * logoScale));
   logoCanvas.getContext('2d')!.drawImage(image, 0, 0, logoCanvas.width, logoCanvas.height);
 
+  // Keep enough resolution for the browser favicon and its large admin preview.
+  // A 64px source becomes visibly pixelated when displayed at 160px.
+  const faviconSize = 256;
   const faviconCanvas = document.createElement('canvas');
-  faviconCanvas.width = 64;
-  faviconCanvas.height = 64;
+  faviconCanvas.width = faviconSize;
+  faviconCanvas.height = faviconSize;
   const faviconContext = faviconCanvas.getContext('2d')!;
-  const faviconScale = Math.min(64 / image.naturalWidth, 64 / image.naturalHeight);
+  faviconContext.imageSmoothingEnabled = true;
+  faviconContext.imageSmoothingQuality = 'high';
+  const faviconScale = Math.min(faviconSize / image.naturalWidth, faviconSize / image.naturalHeight);
   const width = Math.max(1, Math.round(image.naturalWidth * faviconScale));
   const height = Math.max(1, Math.round(image.naturalHeight * faviconScale));
-  faviconContext.drawImage(image, (64 - width) / 2, (64 - height) / 2, width, height);
+  faviconContext.drawImage(image, (faviconSize - width) / 2, (faviconSize - height) / 2, width, height);
 
   const [logoBlob, faviconBlob] = await Promise.all([
     canvasBlob(logoCanvas, 'image/webp', 0.88),
@@ -535,7 +540,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
         ) : null}
 
         <div className="space-y-5">
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
+          <article className="min-w-0 rounded-3xl border border-[#2D2D2D] bg-[#101010] p-4">
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h4 className="text-sm font-semibold text-white">Identidad visual</h4>
@@ -543,7 +548,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                   Sube un solo logotipo; generaremos automáticamente la versión para el header y el favicon.
                 </p>
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 py-2 text-xs font-semibold text-white">
+              <label className="inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-2xl border border-[#2D2D2D] bg-[#121212] px-3 text-xs font-semibold text-white">
                 <Upload className="h-4 w-4" />
                 {uploadingAsset ? 'Procesando...' : 'Subir logotipo'}
                 <input
@@ -562,16 +567,16 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                 />
               </label>
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border border-[#2D2D2D] bg-white p-4">
-                <p className="mb-2 text-xs font-semibold text-slate-700">Vista previa del header</p>
-                <div className="flex min-h-20 items-center gap-3 rounded bg-slate-900 px-4">
+            <div className="grid min-w-0 gap-4 md:grid-cols-2">
+              <div className="flex min-w-0 min-h-[237px] flex-col gap-2 rounded-2xl border border-[#2D2D2D] bg-white p-4">
+                <p className="text-xs font-semibold leading-4 text-black">Vista previa del header</p>
+                <div className="flex h-[158px] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded bg-black px-2 sm:flex-row sm:px-4">
                   {draft.branding.logoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={draft.branding.logoUrl}
                       alt="Logotipo"
-                      className="h-12 w-12 object-contain"
+                      className="h-16 w-16 shrink-0 object-contain sm:h-28 sm:w-28"
                       onLoad={() => console.info('[branding] admin:logo:loaded', { url: draft.branding.logoUrl })}
                       onError={(event) => console.error('[branding] admin:logo:error', {
                         url: draft.branding.logoUrl,
@@ -580,21 +585,21 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                       })}
                     />
                   ) : null}
-                  <span className="text-2xl font-bold text-white">SICSEMPER</span>
+                  <span className="min-w-0 text-center text-[clamp(1rem,5.5vw,3rem)] font-bold leading-none whitespace-nowrap text-white sm:text-left">SICSEMPER</span>
                 </div>
-                <p className="mt-2 truncate text-[10px] text-slate-500" title={draft.branding.logoUrl}>
-                  {draft.branding.logoUrl || 'URL pendiente'}
+                <p className="text-xs leading-[18px] text-black">
+                  {draft.branding.logoUrl ? 'Logo del header cargado' : 'Sin logo del header'}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-4">
-                <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Vista previa del favicon</p>
-                <div className="flex min-h-20 items-center gap-3 rounded border border-[#2D2D2D] bg-white px-4">
+              <div className="flex min-w-0 min-h-[245px] flex-col gap-2 rounded-2xl border border-[#2D2D2D] bg-[#0B0B0B] p-4">
+                <p className="text-xs font-semibold leading-4 text-[#CFCFCF]">Vista previa del favicon</p>
+                <div className="flex h-[168px] w-full min-w-0 items-center justify-center overflow-hidden rounded border border-[#2D2D2D] bg-white px-2 sm:px-4">
                   {draft.branding.faviconUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={draft.branding.faviconUrl}
                       alt="Favicon"
-                      className="h-16 w-16 object-contain"
+                      className="h-32 w-32 object-contain sm:h-40 sm:w-40"
                       onLoad={() => console.info('[branding] admin:favicon:loaded', { url: draft.branding.faviconUrl })}
                       onError={(event) => console.error('[branding] admin:favicon:error', {
                         url: draft.branding.faviconUrl,
@@ -606,8 +611,8 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                     <span className="text-xs text-slate-500">Sin favicon</span>
                   )}
                 </div>
-                <p className="mt-2 truncate text-[10px] text-[#777]" title={draft.branding.faviconUrl}>
-                  {draft.branding.faviconUrl || 'URL pendiente'}
+                <p className="text-xs leading-[18px] text-[#B5B5B5]">
+                  {draft.branding.faviconUrl ? 'Favicon cargado' : 'Sin favicon'}
                 </p>
               </div>
             </div>
