@@ -46,14 +46,22 @@ export const adminLandingService: Pick<
   },
   async uploadLandingAsset(file) {
     try {
+      console.info('[branding] upload:start', {
+        name: file.name,
+        type: file.type,
+        sizeBytes: file.size,
+      });
       const formData = new FormData();
       formData.append('file', file);
 
-      return await apiRequest<LandingAsset>('/landing/assets', {
+      const uploaded = await apiRequest<LandingAsset>('/landing/assets', {
         method: 'POST',
         body: formData,
       });
+      console.info('[branding] upload:success', uploaded);
+      return uploaded;
     } catch (error) {
+      console.error('[branding] upload:error', error);
       throw new Error(toErrorMessage(error, 'No se pudo subir el asset de la landing.'));
     }
   },

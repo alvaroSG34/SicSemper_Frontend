@@ -17,6 +17,7 @@ interface PublicHeaderProps {
   dashboardHref?: string;
   onRoleChange?: (role: UserRole) => Promise<void> | void;
   onLogout?: () => Promise<void> | void;
+  logoUrl?: string;
 }
 
 interface HeaderLink {
@@ -66,6 +67,7 @@ export function PublicHeader({
   dashboardHref = "/login",
   onRoleChange,
   onLogout,
+  logoUrl = "",
 }: PublicHeaderProps) {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -172,12 +174,23 @@ export function PublicHeader({
           href="/"
           className="flex h-fit w-[150px] max-[639px]:w-[120px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap xl:w-auto xl:justify-start"
         >
-          <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[15px] bg-[color:var(--landing-pink)] text-[14px] font-bold text-white">
-            <span className="xl:hidden">?</span>
-            <span className="hidden xl:inline">?</span>
-          </span>
+          {logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl}
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-8 shrink-0 rounded object-contain max-[639px]:h-6 max-[639px]:w-6 xl:h-12 xl:w-12"
+              onLoad={() => console.info('[branding] public:logo:loaded', { logoUrl })}
+              onError={(event) => console.error('[branding] public:logo:error', {
+                logoUrl,
+                naturalWidth: event.currentTarget.naturalWidth,
+                naturalHeight: event.currentTarget.naturalHeight,
+              })}
+            />
+          ) : null}
           <span
-            className={`h-[22px] w-[114px] max-[639px]:w-[88px] overflow-hidden whitespace-nowrap text-[20px] max-[639px]:text-[16px] leading-[22px] font-bold xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
+            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:w-[88px] max-[639px]:text-[16px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >

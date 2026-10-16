@@ -11,6 +11,7 @@
     "lint:participant": "eslint src/application/participant src/presentation/components/features/participant src/presentation/stores/participant*.ts src/presentation/stores/participant-*.ts",
     "lint:judge": "eslint src/application/judge src/presentation/components/features/judge src/presentation/stores/judge*.ts src/presentation/stores/judge-*.ts",
     "test": "vitest run",
+    "test:e2e:responsive": "playwright test",
     "test:admin": "vitest run src/application/admin src/presentation/components/features/admin",
     "test:participant": "vitest run src/presentation/components/features/participant",
     "test:judge": "vitest run src/presentation/components/features/judge",
@@ -35,6 +36,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
