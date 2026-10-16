@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import type { UserRole } from "@/domain/user/user.types";
 import { useAuthStore } from "@/presentation/stores";
 import { PublicHeader } from "./public-header";
+import { getBrowserApiBaseUrl } from "@/infrastructure/api/api-base-url";
+import { normalizeLandingContent } from "@/presentation/components/features/landing/landing-data";
 
 const LANDING_SECTION_IDS = ["inicio", "acerca", "agenda", "equipo", "ubicacion"] as const;
 
@@ -20,6 +22,7 @@ export function AutoPublicHeader() {
   const pathname = usePathname();
   const variant = pathname === "/login" ? "login" : "landing";
   const [activeLinkId, setActiveLinkId] = useState<string | null>("inicio");
+  const [logoUrl, setLogoUrl] = useState("");
 
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
@@ -41,6 +44,28 @@ export function AutoPublicHeader() {
 
     return dashboardRouteByRole[activeRole];
   }, [activeRole]);
+
+  useEffect(() => {
+    let cancelled = false;
+    console.info('[branding] public:load:start');
+    void fetch(`${getBrowserApiBaseUrl()}/landing/content`, { cache: "no-store" })
+      .then((response) => {
+        console.info('[branding] public:load:response', { status: response.status, ok: response.ok });
+        return response.ok ? response.json() : null;
+      })
+      .then((payload) => {
+        if (!cancelled && payload) {
+          const branding = normalizeLandingContent(payload).branding;
+          console.info('[branding] public:load:branding', branding);
+          setLogoUrl(branding.logoUrl);
+        }
+      })
+      .catch((error) => console.error('[branding] public:load:error', error));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (initialized) {
@@ -121,6 +146,7 @@ export function AutoPublicHeader() {
       dashboardHref={dashboardHref}
       onRoleChange={handleRoleChange}
       onLogout={handleLogout}
+      logoUrl={logoUrl}
     />
   );
 }

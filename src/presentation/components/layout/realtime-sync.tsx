@@ -17,7 +17,6 @@ export function RealtimeSync() {
   const sourceRef = useRef<EventSource | null>(null);
   const retryRef = useRef<number | null>(null);
   const retriesRef = useRef(0);
-  const lastFocusSyncAtRef = useRef(0);
   const refreshRef = useRef<(domains: SyncDomain[], scope?: SyncInvalidation["scope"]) => void>(() => undefined);
 
   const refreshDomains = useCallback((domains: SyncDomain[], scope?: SyncInvalidation["scope"]) => {
@@ -102,14 +101,6 @@ export function RealtimeSync() {
     };
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
-        const now = Date.now();
-        if (now - lastFocusSyncAtRef.current < 1_000) {
-          connect();
-          return;
-        }
-        lastFocusSyncAtRef.current = now;
-        void useAuthStore.getState().refreshSession();
-        refreshRef.current(["participant", "judge", "admin", "event", "model"]);
         connect();
       } else close();
     };

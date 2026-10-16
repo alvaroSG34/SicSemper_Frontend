@@ -1,10 +1,15 @@
 "use client";
 
-import { Award, ChevronRight, Image as ImageIcon, Medal, RotateCcw } from "lucide-react";
+import { Award, ChevronRight, Download, Image as ImageIcon, Medal, RotateCcw } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
+import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
 import { useAdminEventPodium } from "./use-admin-event-podium";
-import type { AdminEventPodiumInitialSelection, EventPodiumService } from "./use-admin-event-podium";
+import type {
+  AdminEventPodiumInitialSelection,
+  EventPodiumService,
+} from "./use-admin-event-podium";
 import type { AdminEventPodiumEntry, AdminEventPodiumSegment } from "@/domain/admin/admin.types";
 
 const scoreLabel = (score: number) => (Number.isInteger(score) ? String(score) : score.toFixed(2));
@@ -96,12 +101,20 @@ export function AdminEventPodiumSection({
   initialSelection,
   service,
   modelDetailHref,
+  showExport = false,
 }: {
   eventId: string;
   initialSelection?: AdminEventPodiumInitialSelection;
   service?: EventPodiumService;
-  modelDetailHref?: (eventId: string, modelId: string, selection: AdminEventPodiumInitialSelection) => string;
+  modelDetailHref?: (
+    eventId: string,
+    modelId: string,
+    selection: AdminEventPodiumInitialSelection,
+  ) => string;
+  showExport?: boolean;
 }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const podium = useAdminEventPodium({ eventId, initialSelection, service });
   const selectedNode = podium.selectedPath.at(-1)
     ? podium.nodesById.get(podium.selectedPath.at(-1)!)
@@ -135,14 +148,55 @@ export function AdminEventPodiumSection({
             {podium.tree?.eventName ?? "Consulta los resultados oficiales por categoría y escala."}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void podium.reload()}
-          className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#303030] px-3 text-xs font-semibold text-[#d5d5d5] hover:border-[#5B68F1]"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Actualizar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void podium.reload()}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#303030] px-3 text-xs font-semibold text-[#d5d5d5] hover:border-[#5B68F1]"
+          >
+            <RotateCcw className="h-3.5 w-3.5" /> Actualizar
+          </button>
+          {showExport ? (
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={async () => {
+                setExporting(true);
+                setExportError(null);
+                try {
+                  const response = await adminEventControlService.exportEventControlPodium(eventId);
+                  const disposition = response.headers.get("content-disposition") ?? "";
+                  const fileName =
+                    disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "podio-evento.xlsx";
+                  const url = URL.createObjectURL(response.blob);
+                  const anchor = document.createElement("a");
+                  anchor.href = url;
+                  anchor.download = fileName;
+                  document.body.appendChild(anchor);
+                  anchor.click();
+                  anchor.remove();
+                  URL.revokeObjectURL(url);
+                } catch (error) {
+                  setExportError(
+                    error instanceof Error ? error.message : "No se pudo exportar el podio.",
+                  );
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#5B68F1] bg-[#5B68F1]/15 px-3 text-xs font-semibold text-white hover:bg-[#5B68F1]/25 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download className="h-3.5 w-3.5" /> {exporting ? "Exportando..." : "Exportar Excel"}
+            </button>
+          ) : null}
+        </div>
       </div>
+
+      {exportError ? (
+        <p className="rounded-xl border border-[#7f1d1d] bg-[#7f1d1d]/20 px-4 py-3 text-sm text-[#fca5a5]">
+          {exportError}
+        </p>
+      ) : null}
 
       {podium.error ? (
         <p className="rounded-xl border border-[#7f1d1d] bg-[#7f1d1d]/20 px-4 py-3 text-sm text-[#fca5a5]">
@@ -212,7 +266,6 @@ export function AdminEventPodiumSection({
                         className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${active ? "border-[#5B68F1] bg-[#5B68F1]/20 text-white" : "border-[#303030] bg-[#191919] text-[#cfcfcf] hover:border-[#5B68F1]"}`}
                       >
                         <span>{node.name}</span>
-
                       </button>
                     );
                   })}
@@ -337,26 +390,30 @@ export function AdminEventPodiumSection({
                       <td className="px-3 py-2 text-[#c8c8c8]">{entry.participantName}</td>
                       <td className="px-3 py-2 text-right">
                         <Link
-                          href={modelDetailHref ? modelDetailHref(eventId, entry.modelId, {
-                            selectedPath: podium.selectedPath,
-                            finalCategoryId: podium.finalCategoryId,
-                            selectedSegment: podium.selectedSegment ?? undefined,
-                          }) : (() => {
-                            const query = new URLSearchParams({ tab: "podio" });
-                            if (podium.selectedPath.length > 0) {
-                              query.set("path", podium.selectedPath.join(","));
-                            }
-                            if (podium.finalCategoryId) {
-                              query.set("finalCategoryId", podium.finalCategoryId);
-                            }
-                            if (podium.selectedSegment?.scaleId) {
-                              query.set("scaleId", podium.selectedSegment.scaleId);
-                            }
-                            if (podium.selectedSegment?.groupId) {
-                              query.set("groupId", podium.selectedSegment.groupId);
-                            }
-                            return `/admin/eventos/${encodeURIComponent(eventId)}/control/maquetas/${encodeURIComponent(entry.modelId)}?${query.toString()}`;
-                          })()}
+                          href={
+                            modelDetailHref
+                              ? modelDetailHref(eventId, entry.modelId, {
+                                  selectedPath: podium.selectedPath,
+                                  finalCategoryId: podium.finalCategoryId,
+                                  selectedSegment: podium.selectedSegment ?? undefined,
+                                })
+                              : (() => {
+                                  const query = new URLSearchParams({ tab: "podio" });
+                                  if (podium.selectedPath.length > 0) {
+                                    query.set("path", podium.selectedPath.join(","));
+                                  }
+                                  if (podium.finalCategoryId) {
+                                    query.set("finalCategoryId", podium.finalCategoryId);
+                                  }
+                                  if (podium.selectedSegment?.scaleId) {
+                                    query.set("scaleId", podium.selectedSegment.scaleId);
+                                  }
+                                  if (podium.selectedSegment?.groupId) {
+                                    query.set("groupId", podium.selectedSegment.groupId);
+                                  }
+                                  return `/admin/eventos/${encodeURIComponent(eventId)}/control/maquetas/${encodeURIComponent(entry.modelId)}?${query.toString()}`;
+                                })()
+                          }
                           className="inline-flex items-center justify-center rounded-lg border border-[#5B68F1] bg-[#5B68F1]/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#5B68F1]/25"
                         >
                           Ver maqueta

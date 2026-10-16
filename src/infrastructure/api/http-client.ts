@@ -8,6 +8,8 @@ type RequestOptions = {
   headers?: HeadersInit;
   skipAuth?: boolean;
   skipAuthRefresh?: boolean;
+  responseType?: "json" | "blob";
+  includeResponseMetadata?: boolean;
 };
 
 type ErrorPayload = {
@@ -103,9 +105,13 @@ const toApiError = (statusCode: number, payload: ErrorPayload) =>
     payload.details,
   );
 
-const parseResponse = async (response: Response) => {
+const parseResponse = async (response: Response, responseType: RequestOptions["responseType"] = "json") => {
   if (response.status === 204) {
     return null;
+  }
+
+  if (responseType === "blob") {
+    return response.blob();
   }
 
   const contentType = response.headers.get("content-type") || "";
@@ -181,7 +187,10 @@ const sendRequest = async (
   captureCsrfToken(response);
 
   if (response.ok) {
-    return parseResponse(response);
+    const data = await parseResponse(response, options.responseType);
+    return options.includeResponseMetadata
+      ? { data, headers: response.headers }
+      : data;
   }
 
   const payload = ((await parseResponse(response)) ?? {}) as ErrorPayload;
@@ -204,3 +213,13 @@ const sendRequest = async (
 
 export const apiRequest = async <T>(path: string, options: RequestOptions = {}): Promise<T> =>
   (await sendRequest(path, options, true)) as T;
+
+export const apiRequestBlob = async (
+  path: string,
+): Promise<{ blob: Blob; headers: Headers }> => {
+  const response = await apiRequest<{ data: Blob; headers: Headers }>(path, {
+    responseType: "blob",
+    includeResponseMetadata: true,
+  });
+  return { blob: response.data, headers: response.headers };
+};

@@ -3,6 +3,10 @@
 const deepClone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export const landingDefaultContent: LandingContent = {
+  branding: {
+    logoUrl: '',
+    faviconUrl: '',
+  },
   heroDate: '15 Y 16 DE AGOSTO, 2026 / SALON GUARAYO - FEXPOCRUZ',
   heroTitle: 'Competencia SICSEMPER\nDe Modelismo',
   modelCards: [
@@ -190,6 +194,18 @@ export const normalizeLandingContent = (payload: unknown): LandingContent => {
 
   return {
     ...base,
+    branding: {
+      logoUrl: readText(
+        isRecord(payload.branding) ? payload.branding.logoUrl : undefined,
+        base.branding.logoUrl,
+        2000,
+      ),
+      faviconUrl: readText(
+        isRecord(payload.branding) ? payload.branding.faviconUrl : undefined,
+        base.branding.faviconUrl,
+        2000,
+      ),
+    },
     heroDate: readText(payload.heroDate, base.heroDate, 220),
     heroTitle: readText(payload.heroTitle, base.heroTitle, 260),
     modelCards: base.modelCards.map((current, index) => {

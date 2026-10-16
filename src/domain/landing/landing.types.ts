@@ -41,6 +41,11 @@ export type LandingSponsors = {
   secondary: LandingSponsor[];
 };
 
+export type LandingBranding = {
+  logoUrl: string;
+  faviconUrl: string;
+};
+
 export type LandingLocationCard = {
   icon: 'mapPin' | 'transport' | 'parking';
   iconBackground: string;
@@ -50,6 +55,7 @@ export type LandingLocationCard = {
 };
 
 export type LandingContent = {
+  branding: LandingBranding;
   heroDate: string;
   heroTitle: string;
   modelCards: LandingModelCard[];

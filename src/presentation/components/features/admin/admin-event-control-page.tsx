@@ -978,7 +978,11 @@ export function AdminEventControlPage({
         ) : null}
 
         {activeTab === "podio" ? (
-          <AdminEventPodiumSection eventId={eventId} initialSelection={initialPodiumSelection} />
+          <AdminEventPodiumSection
+            eventId={eventId}
+            initialSelection={initialPodiumSelection}
+            showExport
+          />
         ) : null}
 
         {loading ? (

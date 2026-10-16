@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import {
   BadgeCheck,
-  ChevronDown,
   Home,
   CalendarDays,
 } from "lucide-react";
@@ -178,7 +177,6 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
       <div className="relative flex min-h-screen flex-col xl:flex-row">
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
-            <ChevronDown className="h-5 w-5 text-white" />
             <span className="text-2xl font-bold tracking-[-0.5px] text-white">SICSEMPER</span>
           </div>
 

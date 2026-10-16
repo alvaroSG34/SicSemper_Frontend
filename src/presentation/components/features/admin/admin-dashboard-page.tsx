@@ -7,7 +7,6 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   AlertTriangle,
   BadgeCheck,
-  ChevronDown,
   Crown,
   FolderTree,
   Home,
@@ -283,7 +282,6 @@ export function AdminDashboardPage({
       <div className="relative flex min-h-screen flex-col xl:flex-row">
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
           <div className="flex items-center gap-3">
-            <ChevronDown className="h-5 w-5 text-white" />
             <span className="text-2xl font-bold tracking-[-0.5px] text-white">SICSEMPER</span>
           </div>
 
@@ -323,7 +321,6 @@ export function AdminDashboardPage({
             <div className="rounded-2xl border border-[#1E1E1E] bg-[#0c0c0c] px-4 py-3 xl:hidden">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <ChevronDown className="h-4 w-4 text-white" />
                   <span className="text-lg font-bold tracking-[-0.3px] text-white">SICSEMPER</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -351,7 +348,6 @@ export function AdminDashboardPage({
                 <aside className="relative h-full w-[86%] max-w-[320px] border-r border-[#2A2A2A] bg-[#0A0A0A] px-5 py-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <ChevronDown className="h-4 w-4 text-white" />
                       <span className="text-lg font-bold text-white">SICSEMPER</span>
                     </div>
                     <button

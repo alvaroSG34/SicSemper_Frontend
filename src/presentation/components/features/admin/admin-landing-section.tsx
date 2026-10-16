@@ -40,6 +40,73 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 };
 
+const canvasBlob = (canvas: HTMLCanvasElement, type: string, quality?: number) =>
+  new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('No se pudo procesar la imagen.'))), type, quality);
+  });
+
+const loadImage = (file: File) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('El archivo seleccionado no es una imagen valida.'));
+    };
+    image.src = url;
+  });
+
+const createBrandAssets = async (file: File) => {
+  console.info('[branding] source:received', {
+    name: file.name,
+    type: file.type,
+    sizeBytes: file.size,
+  });
+  const image = await loadImage(file);
+  console.info('[branding] source:decoded', {
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+  });
+  const logoScale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+  const logoCanvas = document.createElement('canvas');
+  logoCanvas.width = Math.max(1, Math.round(image.naturalWidth * logoScale));
+  logoCanvas.height = Math.max(1, Math.round(image.naturalHeight * logoScale));
+  logoCanvas.getContext('2d')!.drawImage(image, 0, 0, logoCanvas.width, logoCanvas.height);
+
+  // Keep enough resolution for the browser favicon and its large admin preview.
+  // A 64px source becomes visibly pixelated when displayed at 160px.
+  const faviconSize = 256;
+  const faviconCanvas = document.createElement('canvas');
+  faviconCanvas.width = faviconSize;
+  faviconCanvas.height = faviconSize;
+  const faviconContext = faviconCanvas.getContext('2d')!;
+  faviconContext.imageSmoothingEnabled = true;
+  faviconContext.imageSmoothingQuality = 'high';
+  const faviconScale = Math.min(faviconSize / image.naturalWidth, faviconSize / image.naturalHeight);
+  const width = Math.max(1, Math.round(image.naturalWidth * faviconScale));
+  const height = Math.max(1, Math.round(image.naturalHeight * faviconScale));
+  faviconContext.drawImage(image, (faviconSize - width) / 2, (faviconSize - height) / 2, width, height);
+
+  const [logoBlob, faviconBlob] = await Promise.all([
+    canvasBlob(logoCanvas, 'image/webp', 0.88),
+    canvasBlob(faviconCanvas, 'image/png'),
+  ]);
+
+  const result = {
+    logo: new File([logoBlob], 'sicsemper-logo.webp', { type: 'image/webp' }),
+    favicon: new File([faviconBlob], 'sicsemper-favicon.png', { type: 'image/png' }),
+  };
+  console.info('[branding] source:converted', {
+    logo: { name: result.logo.name, type: result.logo.type, sizeBytes: result.logo.size },
+    favicon: { name: result.favicon.name, type: result.favicon.type, sizeBytes: result.favicon.size },
+  });
+  return result;
+};
+
 const setByPath = <T extends object>(source: T, path: string, value: unknown): T => {
   const next = deepClone(source) as Record<string, unknown>;
   const parts = path.split('.');
@@ -137,6 +204,11 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
 
   const applyServerState = useCallback((state: LandingDraftState) => {
     const nextDraft = deepClone(state.draftContent);
+    console.info('[branding] draft:loaded', {
+      branding: nextDraft.branding,
+      publishedBranding: state.publishedContent.branding,
+      isDraftDirty: state.isDraftDirty,
+    });
     setDraft(nextDraft);
     setServerDraft(deepClone(nextDraft));
     setPublishedContent(deepClone(state.publishedContent));
@@ -201,6 +273,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
   }, [isDraftDirtyOnServer, localDirty]);
 
   const updateField = (path: string, value: unknown) => {
+    console.info('[branding] draft:field:update', { path, value });
     setDraft((current) => (current ? setByPath(current, path, value) : current));
   };
 
@@ -278,13 +351,58 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
     }
   };
 
+  const onUploadBranding = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.currentTarget.value = '';
+    if (!file) {
+      console.warn('[branding] workflow:cancelled', { reason: 'no-file-selected' });
+      setFeedback({ type: 'error', message: 'No se selecciono ningun archivo.' });
+      return;
+    }
+    if (!draft) {
+      console.error('[branding] workflow:cancelled', { reason: 'draft-not-loaded' });
+      setFeedback({ type: 'error', message: 'La configuracion de landing aun no termino de cargar.' });
+      return;
+    }
+
+    console.info('[branding] workflow:start', { fileName: file.name, fileType: file.type });
+
+    setUploadingAsset(true);
+    setFeedback(null);
+    try {
+      const generated = await createBrandAssets(file);
+      const [logo, favicon] = await Promise.all([
+        adminLandingService.uploadLandingAsset(generated.logo),
+        adminLandingService.uploadLandingAsset(generated.favicon),
+      ]);
+      setAssets((current) => [logo, favicon, ...current]);
+      updateField('branding.logoUrl', logo.url);
+      updateField('branding.faviconUrl', favicon.url);
+      console.info('[branding] workflow:assigned', {
+        logoUrl: logo.url,
+        faviconUrl: favicon.url,
+      });
+      setFeedback({ type: 'success', message: 'Logotipo optimizado y favicon generado correctamente.' });
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'No se pudo procesar el logotipo.',
+      });
+      console.error('[branding] workflow:error', error);
+    } finally {
+      setUploadingAsset(false);
+    }
+  };
+
   const saveDraft = async () => {
     if (!draft) return;
+    console.info('[branding] draft:save:start', { branding: draft.branding });
     setSaving(true);
     setFeedback(null);
     try {
       const state = await adminLandingService.updateLandingDraft(draft);
       applyServerState(state);
+      console.info('[branding] draft:save:success', { branding: state.draftContent.branding });
       setFeedback({ type: 'success', message: 'Borrador guardado correctamente.' });
     } catch (error) {
       setFeedback({
@@ -422,6 +540,84 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
         ) : null}
 
         <div className="space-y-5">
+          <article className="min-w-0 rounded-3xl border border-[#2D2D2D] bg-[#101010] p-4">
+            <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-semibold text-white">Identidad visual</h4>
+                <p className="mt-1 text-xs text-[#9C9C9C]">
+                  Sube un solo logotipo; generaremos automáticamente la versión para el header y el favicon.
+                </p>
+              </div>
+              <label className="inline-flex h-[34px] cursor-pointer items-center gap-2 rounded-2xl border border-[#2D2D2D] bg-[#121212] px-3 text-xs font-semibold text-white">
+                <Upload className="h-4 w-4" />
+                {uploadingAsset ? 'Procesando...' : 'Subir logotipo'}
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
+                  onClick={() => console.info('[branding] source:file-picker:open')}
+                  onChange={(event) => {
+                    console.info('[branding] source:file-picker:change', {
+                      fileCount: event.target.files?.length ?? 0,
+                      fileName: event.target.files?.[0]?.name ?? null,
+                    });
+                    void onUploadBranding(event);
+                  }}
+                  className="hidden"
+                  disabled={uploadingAsset}
+                />
+              </label>
+            </div>
+            <div className="grid min-w-0 gap-4 md:grid-cols-2">
+              <div className="flex min-w-0 min-h-[237px] flex-col gap-2 rounded-2xl border border-[#2D2D2D] bg-white p-4">
+                <p className="text-xs font-semibold leading-4 text-black">Vista previa del header</p>
+                <div className="flex h-[158px] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded bg-black px-2 sm:flex-row sm:px-4">
+                  {draft.branding.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={draft.branding.logoUrl}
+                      alt="Logotipo"
+                      className="h-16 w-16 shrink-0 object-contain sm:h-28 sm:w-28"
+                      onLoad={() => console.info('[branding] admin:logo:loaded', { url: draft.branding.logoUrl })}
+                      onError={(event) => console.error('[branding] admin:logo:error', {
+                        url: draft.branding.logoUrl,
+                        naturalWidth: event.currentTarget.naturalWidth,
+                        naturalHeight: event.currentTarget.naturalHeight,
+                      })}
+                    />
+                  ) : null}
+                  <span className="min-w-0 text-center text-[clamp(1rem,5.5vw,3rem)] font-bold leading-none whitespace-nowrap text-white sm:text-left">SICSEMPER</span>
+                </div>
+                <p className="text-xs leading-[18px] text-black">
+                  {draft.branding.logoUrl ? 'Logo del header cargado' : 'Sin logo del header'}
+                </p>
+              </div>
+              <div className="flex min-w-0 min-h-[245px] flex-col gap-2 rounded-2xl border border-[#2D2D2D] bg-[#0B0B0B] p-4">
+                <p className="text-xs font-semibold leading-4 text-[#CFCFCF]">Vista previa del favicon</p>
+                <div className="flex h-[168px] w-full min-w-0 items-center justify-center overflow-hidden rounded border border-[#2D2D2D] bg-white px-2 sm:px-4">
+                  {draft.branding.faviconUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={draft.branding.faviconUrl}
+                      alt="Favicon"
+                      className="h-32 w-32 object-contain sm:h-40 sm:w-40"
+                      onLoad={() => console.info('[branding] admin:favicon:loaded', { url: draft.branding.faviconUrl })}
+                      onError={(event) => console.error('[branding] admin:favicon:error', {
+                        url: draft.branding.faviconUrl,
+                        naturalWidth: event.currentTarget.naturalWidth,
+                        naturalHeight: event.currentTarget.naturalHeight,
+                      })}
+                    />
+                  ) : (
+                    <span className="text-xs text-slate-500">Sin favicon</span>
+                  )}
+                </div>
+                <p className="text-xs leading-[18px] text-[#B5B5B5]">
+                  {draft.branding.faviconUrl ? 'Favicon cargado' : 'Sin favicon'}
+                </p>
+              </div>
+            </div>
+          </article>
+
           <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
             <h4 className="mb-3 text-sm font-semibold text-white">Hero</h4>
             <div className="grid gap-3 md:grid-cols-2">

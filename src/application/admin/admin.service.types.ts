@@ -145,6 +145,7 @@ export interface AdminService {
     page?: number;
     pageSize?: number;
   }): Promise<AdminEventPodiumResult>;
+  exportEventControlPodium(eventId: string): Promise<{ blob: Blob; headers: Headers }>;
   listEventControlParticipants(input: {
     eventId: string;
     page?: number;

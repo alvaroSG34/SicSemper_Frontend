@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, ChevronDown, Compass, FolderOpen, Home, Settings, Trophy } from "lucide-react";
+import { BarChart3, Compass, FolderOpen, Home, Settings, Trophy } from "lucide-react";
 import type { ParticipantSidebarItem } from "@/domain/participant/participant.types";
 import { participantSectionRouteById } from "./participant-routes";
 
@@ -24,7 +24,6 @@ export function ParticipantSidebar({ items }: ParticipantSidebarProps) {
   return (
     <aside className="hidden w-[280px] shrink-0 flex-col border-r border-[#1E1E1E] bg-[#000000] p-10 xl:flex">
       <div className="flex items-center gap-3">
-        <ChevronDown className="h-5 w-5 text-white" />
         <span className="text-2xl font-bold tracking-[-0.5px] text-white">SICSEMPER</span>
       </div>
 

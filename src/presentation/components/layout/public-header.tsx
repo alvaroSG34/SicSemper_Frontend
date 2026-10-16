@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useCallback, useState, type MouseEvent } from "react";
@@ -17,6 +17,7 @@ interface PublicHeaderProps {
   dashboardHref?: string;
   onRoleChange?: (role: UserRole) => Promise<void> | void;
   onLogout?: () => Promise<void> | void;
+  logoUrl?: string;
 }
 
 interface HeaderLink {
@@ -66,6 +67,7 @@ export function PublicHeader({
   dashboardHref = "/login",
   onRoleChange,
   onLogout,
+  logoUrl = "",
 }: PublicHeaderProps) {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -126,7 +128,8 @@ export function PublicHeader({
       "relative whitespace-nowrap pb-1 text-[16px] font-medium transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:origin-left after:scale-x-0 after:bg-[color:var(--landing-pink)] after:transition-transform after:duration-300";
 
     if (variant === "login") {
-      const baseColor = index < 3 ? "text-[#111111] hover:text-[#000000]" : "text-white hover:text-white";
+      const baseColor =
+        index < 3 ? "text-[#111111] hover:text-[#000000]" : "text-white hover:text-white";
       const activeColor = index < 3 ? "text-[#000000]" : "text-white";
 
       return [
@@ -151,7 +154,7 @@ export function PublicHeader({
     const isLandingRegister = action === "register" && activeAuthAction === null;
 
     return [
-      `inline-flex h-[34px] items-center justify-center whitespace-nowrap rounded-full border px-[10px] text-[9px] font-semibold transition-all duration-300 ease-out will-change-transform motion-reduce:transform-none xl:h-11 xl:w-auto xl:px-7 xl:text-[15px] xl:tracking-[0.2px] ${action === "register" ? "w-[92px]" : "w-[76px]"}`,
+      `inline-flex h-[34px] items-center justify-center whitespace-nowrap rounded-full border px-[10px] text-[9px] font-semibold transition-all duration-300 ease-out will-change-transform motion-reduce:transform-none max-[639px]:px-[8px] xl:h-11 xl:w-auto xl:px-7 xl:text-[15px] xl:tracking-[0.2px] ${action === "register" ? "w-[92px] max-[639px]:w-[78px]" : "w-[76px] max-[639px]:w-[68px]"}`,
       isActive || isLandingRegister
         ? "border-[color:var(--landing-pink)] bg-[color:var(--landing-pink)] text-white shadow-[0_10px_24px_rgba(83,184,180,0.35)]"
         : action === "register"
@@ -166,14 +169,28 @@ export function PublicHeader({
 
   return (
     <header className={`sticky top-0 z-50 w-full ${getBackgroundClass(variant)}`}>
-      <div className="relative mx-auto flex h-[80px] w-full max-w-[1440px] items-center justify-between gap-4 border-b border-[#53B8B466] bg-transparent px-4 xl:grid xl:h-[84px] xl:border-0 xl:bg-transparent xl:grid-cols-[auto_1fr_auto] xl:justify-normal xl:gap-8 xl:px-16">
-        <Link href="/" className="flex h-fit w-[150px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap xl:w-auto xl:justify-start">
-          <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[15px] bg-[color:var(--landing-pink)] text-[14px] font-bold text-white">
-            <span className="xl:hidden">✦</span>
-            <span className="hidden xl:inline">▼</span>
-          </span>
+      <div className="relative mx-auto flex h-[80px] w-full max-w-[1440px] items-center justify-between gap-2 border-b border-[#53B8B466] bg-transparent px-4 max-[639px]:px-3 xl:grid xl:h-[84px] xl:border-0 xl:bg-transparent xl:grid-cols-[auto_1fr_auto] xl:justify-normal xl:gap-6 xl:px-16 min-[1280px]:px-8 2xl:gap-8 2xl:px-16">
+        <Link
+          href="/"
+          className="flex h-fit w-[150px] max-[639px]:w-[120px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap xl:w-auto xl:justify-start"
+        >
+          {logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl}
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-8 shrink-0 rounded object-contain max-[639px]:h-6 max-[639px]:w-6 xl:h-12 xl:w-12"
+              onLoad={() => console.info('[branding] public:logo:loaded', { logoUrl })}
+              onError={(event) => console.error('[branding] public:logo:error', {
+                logoUrl,
+                naturalWidth: event.currentTarget.naturalWidth,
+                naturalHeight: event.currentTarget.naturalHeight,
+              })}
+            />
+          ) : null}
           <span
-            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
+            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:w-[88px] max-[639px]:text-[16px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >
@@ -252,7 +269,6 @@ export function PublicHeader({
             </Link>
           </div>
         )}
-
       </div>
     </header>
   );
