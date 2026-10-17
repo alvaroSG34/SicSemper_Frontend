@@ -412,11 +412,13 @@ export function AdminDashboardPage({
               </div>
 
               <div className="ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-3 md:gap-6">
-                <BadgeCheck
-                  className="h-8 w-8 text-[#10B981]"
-                  aria-label="Sistema estable"
+                <span
                   title="Sistema estable"
-                />
+                  className="inline-flex"
+                  aria-label="Sistema estable"
+                >
+                  <BadgeCheck className="h-8 w-8 text-[#10B981]" aria-hidden="true" />
+                </span>
 
                 <AdminNotificationsBell />
 
