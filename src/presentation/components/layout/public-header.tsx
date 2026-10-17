@@ -190,7 +190,7 @@ export function PublicHeader({
             />
           ) : null}
           <span
-            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:h-[20px] max-[639px]:w-auto max-[639px]:overflow-visible max-[639px]:text-[15px] max-[639px]:leading-[20px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
+            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:h-[24px] max-[639px]:w-auto max-[639px]:overflow-visible max-[639px]:text-[20px] max-[639px]:leading-[24px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >

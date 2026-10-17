@@ -292,6 +292,16 @@ html {
   }
 }
 
+@layer components {
+  .grid > input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  .grid > select,
+  .grid > textarea {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 @keyframes ui-skeleton-shimmer {
   0% {
     background-position: 200% 0;

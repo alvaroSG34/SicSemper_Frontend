@@ -546,81 +546,92 @@ export function AdminEventControlPage({
               </button>
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-xl border border-[#2D2D2D]">
-              <table className="min-w-[980px] w-full text-left">
-                <thead className="bg-[#101010] text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">
-                  <tr>
-                    <th className="px-3 py-3">Participante</th>
-                    <th className="px-3 py-3">Estado</th>
-                    <th className="px-3 py-3">Verificado</th>
-                    <th className="px-3 py-3">Inscripciones</th>
-                    <th className="px-3 py-3">Maquetas</th>
-                    <th className="px-3 py-3">Última inscripción</th>
-                    <th className="px-3 py-3">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participants.map((row) => {
-                    const isSuspended = row.status === "SUSPENDIDO";
-                    const actionKeyVerified = `participant:verified:${row.userId}`;
-                    const actionKeyBan = `participant:ban:${row.userId}`;
-                    return (
-                      <tr key={row.userId} className="border-t border-[#252525] text-sm">
-                        <td className="px-3 py-3">
-                          <p className="font-semibold text-white">{row.name}</p>
-                          <p className="text-xs text-[#9C9C9C]">{row.email}</p>
-                        </td>
-                        <td className="px-3 py-3 text-[#D1D1D1]">{row.status}</td>
-                        <td className="px-3 py-3 text-[#D1D1D1]">{row.verified ? "SI" : "NO"}</td>
-                        <td className="px-3 py-3 text-[#D1D1D1]">{row.registrationsCount}</td>
-                        <td className="px-3 py-3 text-[#D1D1D1]">{row.modelsCount}</td>
-                        <td className="px-3 py-3 text-[#D1D1D1]">
-                          {formatDateTime(row.lastRegistrationDate)}
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => void openParticipantDetail(row.userId)}
-                              disabled={pendingAction === `participant:detail:${row.userId}`}
-                              className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              Detalle
-                            </button>
-                            {canManageUsers ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    void setParticipantVerifiedFromList(row.userId, !row.verified)
-                                  }
-                                  disabled={pendingAction === actionKeyVerified}
-                                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
-                                >
-                                  <ShieldCheck className="h-3.5 w-3.5" />
-                                  {row.verified ? "Quitar verif." : "Verificar"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    void toggleParticipantBanFromList(row.userId, isSuspended)
-                                  }
-                                  disabled={pendingAction === actionKeyBan}
-                                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
-                                >
-                                  <ShieldX className="h-3.5 w-3.5" />
-                                  {isSuspended ? "Reactivar" : "Suspender"}
-                                </button>
-                              </>
-                            ) : null}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {participants.map((row) => {
+                const isSuspended = row.status === "SUSPENDIDO";
+                const actionKeyVerified = `participant:verified:${row.userId}`;
+                const actionKeyBan = `participant:ban:${row.userId}`;
+                return (
+                  <article
+                    key={row.userId}
+                    className="min-w-0 rounded-xl border border-[#2D2D2D] bg-[#101010] p-4"
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-words font-semibold text-white">{row.name}</p>
+                        <p className="mt-1 break-all text-xs text-[#9C9C9C]">{row.email}</p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                        <span className="rounded-full border border-[#2D2D2D] bg-[#181818] px-2 py-1 text-[10px] font-semibold text-[#D1D1D1]">
+                          {row.status}
+                        </span>
+                        <span
+                          className={`rounded-full border px-2 py-1 text-[10px] font-semibold ${
+                            row.verified
+                              ? "border-[#14532D] bg-[#052E16] text-[#86EFAC]"
+                              : "border-[#3F3F46] bg-[#18181B] text-[#A1A1AA]"
+                          }`}
+                        >
+                          {row.verified ? "Verificado" : "Sin verificar"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Inscripciones</p>
+                        <p className="mt-1 text-lg font-semibold text-white">{row.registrationsCount}</p>
+                      </div>
+                      <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Maquetas</p>
+                        <p className="mt-1 text-lg font-semibold text-white">{row.modelsCount}</p>
+                      </div>
+                      <div className="col-span-2 rounded-lg border border-[#252525] bg-[#161616] p-2">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Última inscripción</p>
+                        <p className="mt-1 text-sm text-[#D1D1D1]">{formatDateTime(row.lastRegistrationDate)}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => void openParticipantDetail(row.userId)}
+                        disabled={pendingAction === `participant:detail:${row.userId}`}
+                        className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Detalle
+                      </button>
+                      {canManageUsers ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void setParticipantVerifiedFromList(row.userId, !row.verified)
+                            }
+                            disabled={pendingAction === actionKeyVerified}
+                            className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
+                          >
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                            {row.verified ? "Quitar verif." : "Verificar"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void toggleParticipantBanFromList(row.userId, isSuspended)
+                            }
+                            disabled={pendingAction === actionKeyBan}
+                            className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
+                          >
+                            <ShieldX className="h-3.5 w-3.5" />
+                            {isSuspended ? "Reactivar" : "Suspender"}
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -711,7 +722,7 @@ export function AdminEventControlPage({
                       });
                     }
                   }}
-                  className="h-10 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-sm text-white outline-none"
+                  className="h-10 min-w-0 w-full max-w-full rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona categoria y escala</option>
                   {tieBreakOptions.map((option) => (
@@ -891,49 +902,55 @@ export function AdminEventControlPage({
               </button>
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-xl border border-[#2D2D2D]">
-              <table className="min-w-[980px] w-full text-left">
-                <thead className="bg-[#101010] text-xs uppercase tracking-[0.5px] text-[#9C9C9C]">
-                  <tr>
-                    <th className="px-3 py-3">Maqueta</th>
-                    <th className="px-3 py-3">Participante</th>
-                    <th className="px-3 py-3">Categoría</th>
-                    <th className="px-3 py-3">Escala</th>
-                    <th className="px-3 py-3">Estado</th>
-                    <th className="px-3 py-3">Puntaje</th>
-                    <th className="px-3 py-3">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {models.map((row) => (
-                    <tr key={row.id} className="border-t border-[#252525] text-sm">
-                      <td className="px-3 py-3">
-                        <p className="font-semibold text-white">{row.nombreModelo}</p>
-                        <p className="text-xs text-[#9C9C9C]">Código {row.code}</p>
-                      </td>
-                      <td className="px-3 py-3 text-[#D1D1D1]">
-                        <p>{row.participantName}</p>
-                        <p className="text-xs text-[#9C9C9C]">{row.participantEmail}</p>
-                      </td>
-                      <td className="px-3 py-3 text-[#D1D1D1]">{row.categoryLabel}</td>
-                      <td className="px-3 py-3 text-[#D1D1D1]">{row.scaleValue}</td>
-                      <td className="px-3 py-3 text-[#D1D1D1]">{row.status}</td>
-                      <td className="px-3 py-3 text-[#D1D1D1]">{formatScore(row.finalScore)}</td>
-                      <td className="px-3 py-3">
-                        <button
-                          type="button"
-                          onClick={() => void openModelDetail(row.id)}
-                          disabled={pendingAction === `model:detail:${row.id}`}
-                          className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          Detalle
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {models.map((row) => (
+                <article
+                  key={row.id}
+                  className="min-w-0 rounded-xl border border-[#2D2D2D] bg-[#101010] p-4"
+                >
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words font-semibold text-white">{row.nombreModelo}</p>
+                      <p className="mt-1 break-all text-xs text-[#9C9C9C]">Código {row.code}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-[#2D2D2D] bg-[#181818] px-2 py-1 text-[10px] font-semibold text-[#D1D1D1]">
+                      {row.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2 text-sm">
+                    <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
+                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Participante</p>
+                      <p className="mt-1 break-words text-[#D1D1D1]">{row.participantName}</p>
+                      <p className="break-all text-xs text-[#9C9C9C]">{row.participantEmail}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="min-w-0 rounded-lg border border-[#252525] bg-[#161616] p-2">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Categoría</p>
+                        <p className="mt-1 break-words text-[#D1D1D1]">{row.categoryLabel}</p>
+                      </div>
+                      <div className="min-w-0 rounded-lg border border-[#252525] bg-[#161616] p-2">
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Escala</p>
+                        <p className="mt-1 break-words text-[#D1D1D1]">{row.scaleValue}</p>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
+                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Puntaje final</p>
+                      <p className="mt-1 text-lg font-semibold text-white">{formatScore(row.finalScore)}</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => void openModelDetail(row.id)}
+                    disabled={pendingAction === `model:detail:${row.id}`}
+                    className="mt-4 inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Detalle
+                  </button>
+                </article>
+              ))}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

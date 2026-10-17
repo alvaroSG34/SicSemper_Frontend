@@ -202,10 +202,13 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
           <div className="pointer-events-none absolute right-[120px] top-[380px] hidden h-[120px] w-[120px] rotate-[15deg] rounded-[20px] border-2 border-[#F15BB5] bg-white/10 xl:block" />
 
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
-            <header className="flex items-center justify-between gap-3 md:gap-6">
-              <div className="min-w-0 flex-1">
+            <header className="flex w-full items-center justify-between gap-3 md:gap-6">
+              <div className="min-w-0 flex-[0_1_38%] overflow-hidden md:flex-1">
+                <span className={`${judgeHeadingFont.className} block whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
+                  Hola, {profile?.displayName?.trim().split(/\s+/)[0] ?? "Juez"}
+                </span>
                 <h1
-                  className={`${judgeHeadingFont.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}
+                  className={`${judgeHeadingFont.className} hidden truncate text-[26px] leading-none font-bold text-white md:block md:text-[32px]`}
                 >
                   Hola, {profile?.displayName ?? "Juez"}
                 </h1>
@@ -214,7 +217,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
                 </p>
               </div>
 
-              <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
+              <div className="ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-3 md:gap-6">
                 <BadgeCheck className="h-7 w-7 text-[#10B981]" aria-label="Juez verificado" />
 
                 <JudgeNotificationsBell />
