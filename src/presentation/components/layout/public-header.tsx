@@ -180,7 +180,7 @@ export function PublicHeader({
               src={logoUrl}
               alt=""
               aria-hidden="true"
-              className="h-8 w-8 shrink-0 rounded object-contain max-[639px]:h-6 max-[639px]:w-6 xl:h-12 xl:w-12"
+              className="hidden h-8 w-8 shrink-0 rounded object-contain sm:block xl:h-12 xl:w-12"
               onLoad={() => console.info('[branding] public:logo:loaded', { logoUrl })}
               onError={(event) => console.error('[branding] public:logo:error', {
                 logoUrl,
@@ -190,7 +190,7 @@ export function PublicHeader({
             />
           ) : null}
           <span
-            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:w-[88px] max-[639px]:text-[16px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
+            className={`h-[22px] w-[114px] overflow-hidden whitespace-nowrap text-[20px] leading-[22px] font-bold max-[639px]:h-[20px] max-[639px]:w-auto max-[639px]:overflow-visible max-[639px]:text-[15px] max-[639px]:leading-[20px] xl:h-auto xl:w-auto xl:text-[52px] xl:leading-none ${
               variant === "login" ? "text-white xl:text-[#0f172a]" : "text-white"
             }`}
           >

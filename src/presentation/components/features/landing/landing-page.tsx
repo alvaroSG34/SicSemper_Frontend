@@ -48,7 +48,7 @@ export function LandingPageFeature({ content }: LandingPageFeatureProps) {
         <LandingReveal delayMs={200}>
           <LandingLocation content={content} />
         </LandingReveal>
-        <LandingFooter />
+        <LandingFooter logoUrl={content.branding.logoUrl} />
       </div>
     </main>
   );

@@ -18,16 +18,28 @@ const competitionLinks = [
 const footerLinkClassName =
   "text-[13px] text-[color:var(--landing-muted)] transition-colors hover:text-[color:var(--landing-text)] focus-visible:outline-none focus-visible:text-[color:var(--landing-text)]";
 
-export function LandingFooter() {
+type LandingFooterProps = {
+  logoUrl?: string;
+};
+
+export function LandingFooter({ logoUrl = "" }: LandingFooterProps) {
   return (
     <footer id="contacto" className="w-full bg-[color:var(--landing-surface)]">
       <div className="mx-auto flex w-full max-w-[1686px] flex-col gap-12 px-6 pb-10 pt-20 md:px-10 xl:px-[120px]">
         <div className="flex w-full flex-wrap justify-center gap-12 xl:gap-20">
-          <div className="w-full xl:w-[280px]">
+          <div className="relative w-full xl:w-[280px]">
             <p className="text-xl font-semibold text-[color:var(--landing-text)]">SICSEMPER</p>
             <p className="mt-3 text-[13px] text-[color:var(--landing-muted)]">
               Plataforma oficial de gestion para competencias de modelismo y maquetas.
             </p>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="Logotipo SICSEMPER"
+                className="pointer-events-none absolute top-62 right-[-5rem] h-52 w-52 object-contain opacity-90 min-[450px]:right-[-4rem] sm:right-0 sm:h-48 sm:w-48 xl:static xl:mt-8 xl:h-44 xl:w-44 xl:opacity-100"
+              />
+            ) : null}
           </div>
 
           <div className="flex flex-wrap gap-10 xl:gap-20">

@@ -6,8 +6,10 @@ import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState 
 import { Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import { CITIES_BY_COUNTRY, COUNTRY_OPTIONS } from "@/core/constants";
+import { getBrowserApiBaseUrl } from "@/infrastructure/api/api-base-url";
 import type { UserRole } from "@/domain/user/user.types";
 import { AutoPublicHeader } from "@/presentation/components/layout";
+import { normalizeLandingContent } from "@/presentation/components/features/landing/landing-data";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useAuthStore } from "@/presentation/stores";
 
@@ -160,6 +162,8 @@ export default function RegisterPage() {
   const [form, setForm] = useState<RegisterFormFields>(initialFormFields);
   const [clubs, setClubs] = useState<RegisterClubOption[]>([]);
   const [clubsError, setClubsError] = useState<string | null>(null);
+  const [landingLogoUrl, setLandingLogoUrl] = useState("");
+  const [landingLogoFailed, setLandingLogoFailed] = useState(false);
   const [isLoadingClubs, setIsLoadingClubs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -192,6 +196,26 @@ export default function RegisterPage() {
   );
   const phonePrefix = selectedCountry?.phoneCode ?? null;
   const citiesForCountry = form.country ? (CITIES_BY_COUNTRY[form.country] ?? []) : [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetch(`${getBrowserApiBaseUrl()}/landing/content`, { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (cancelled) return;
+        const logoUrl = normalizeLandingContent(payload).branding.logoUrl;
+        setLandingLogoUrl(logoUrl);
+        setLandingLogoFailed(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLandingLogoUrl("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const getVisibleFieldError = (field: FieldName): string | undefined =>
     serverFieldErrors[field] ?? (touchedFields[field] ? fieldErrors[field] : undefined);
@@ -525,7 +549,17 @@ export default function RegisterPage() {
 
         <div className="relative z-10 flex w-full max-w-[600px] flex-col items-center gap-8">
           <div className="register-title-enter flex flex-col items-center gap-4 text-center">
-            <Rocket className="h-12 w-12 text-[#5865f2]" />
+            {landingLogoUrl && !landingLogoFailed ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={landingLogoUrl}
+                alt="SICSEMPER"
+                className="h-42 w-42 object-contain sm:h-46 sm:w-46"
+                onError={() => setLandingLogoFailed(true)}
+              />
+            ) : (
+              <Rocket className="h-12 w-12 text-[#5865f2]" />
+            )}
             <h1 className="text-4xl leading-tight font-bold md:text-6xl">Unete a nosotros</h1>
             <p className="text-sm text-[#999999] md:text-base">
               Completa tus datos y comienza tu aventura

@@ -1,9 +1,5 @@
+import { DashboardLoading } from "@/presentation/components/layout/dashboard-loading";
+
 export default function JudgeLoading() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#000000] text-white">
-      <div className="rounded-xl border border-[#2D2D2D] bg-[#121212] px-5 py-3 text-sm text-[#CFCFCF]">
-        Cargando panel de juez...
-      </div>
-    </main>
-  );
+  return <DashboardLoading message="Cargando panel de juez..." />;
 }
