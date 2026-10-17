@@ -133,7 +133,6 @@ export function AdminEventsSection({
     eventModalError,
     eventModalScaleConfigLoading,
     eventModalScaleIdsByCategoryId,
-    eventModalScaleModeByCategoryId,
     availableScales,
     eventModalScaleGroupsByCategoryId,
     eventModalScaleGroupsLoading,
@@ -323,7 +322,7 @@ export function AdminEventsSection({
         id="eventos"
         className="rounded-3xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6 xl:p-8"
       >
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-5 flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className={`${headingClassName} text-[20px] font-semibold text-white`}>Eventos</h3>
             <span className="text-xs text-[#9C9C9C]">
@@ -334,7 +333,7 @@ export function AdminEventsSection({
             <button
               type="button"
               onClick={openCreateEventModal}
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-xs font-semibold text-white"
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center rounded-lg bg-[#5B68F1] px-4 text-xs font-semibold text-white md:ml-auto md:w-auto"
             >
               Crear evento
             </button>
@@ -419,12 +418,12 @@ export function AdminEventsSection({
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2 md:mt-0">
+                <div className="mt-3 grid w-full grid-cols-2 gap-2 md:mt-0 md:w-auto md:flex md:flex-wrap">
                   <button
                     type="button"
                     disabled={loading || isDeleting}
                     onClick={() => router.push(`/admin/eventos/${item.id}/control`)}
-                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                    className="col-span-2 inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white md:col-span-1 md:w-auto"
                   >
                     Centro de control
                   </button>
@@ -433,7 +432,7 @@ export function AdminEventsSection({
                       type="button"
                       disabled={loading || isDeleting}
                       onClick={() => handleOpenJudgeManager(item.id)}
-                      className={`inline-flex h-9 items-center justify-center rounded-lg px-3 text-xs font-semibold text-white ${
+                      className={`inline-flex h-9 w-full items-center justify-center rounded-lg px-3 text-xs font-semibold text-white md:w-auto ${
                         isManaging
                           ? "border border-[#5B68F1] bg-[rgba(91,104,241,0.2)]"
                           : "border border-[#2D2D2D]"
@@ -447,7 +446,7 @@ export function AdminEventsSection({
                       type="button"
                       disabled={loading || isDeleting}
                       onClick={() => openEditEventModal(item)}
-                      className="inline-flex h-9 items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white"
+                      className="inline-flex h-9 w-full items-center justify-center rounded-lg border border-[#2D2D2D] px-3 text-xs font-semibold text-white md:w-auto"
                     >
                       Editar
                     </button>
@@ -457,7 +456,7 @@ export function AdminEventsSection({
                       type="button"
                       disabled={loading || isDeleting}
                       onClick={() => void openEventDeleteImpactModal(item.id, item.name)}
-                      className="inline-flex h-9 items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white"
+                      className="col-span-2 inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#4B1F2A] px-3 text-xs font-semibold text-white md:col-span-1 md:w-auto"
                     >
                       {isDeleting ? "Eliminando..." : "Eliminar"}
                     </button>

@@ -395,11 +395,14 @@ export function AdminDashboardPage({
 
             <header
               id="inicio"
-              className="flex items-center justify-between gap-3 md:gap-6"
+              className="flex w-full items-center justify-between gap-3 md:gap-6"
             >
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-[0_1_38%] overflow-hidden md:flex-1">
+                <span className={`${outfit.className} block whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
+                  Hola, {user?.name?.trim().split(/\s+/)[0] ?? "SICSEMPER"}
+                </span>
                 <h1
-                  className={`${outfit.className} truncate text-[26px] leading-none font-bold text-white md:text-[32px]`}
+                  className={`${outfit.className} hidden truncate text-[26px] leading-none font-bold text-white md:block md:text-[32px]`}
                 >
                   Hola, Admin {user?.name?.split(" ")[0] ?? "SICSEMPER"}
                 </h1>
@@ -408,13 +411,14 @@ export function AdminDashboardPage({
                 </p>
               </div>
 
-              <div className="ml-3 flex shrink-0 items-center gap-2 sm:gap-3 md:gap-6">
-                <div className="rounded-full border border-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 sm:px-4 sm:py-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#10B981]">
-                    <BadgeCheck className="h-3.5 w-3.5" />
-                    Sistema estable
-                  </span>
-                </div>
+              <div className="ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-3 md:gap-6">
+                <span
+                  title="Sistema estable"
+                  className="inline-flex"
+                  aria-label="Sistema estable"
+                >
+                  <BadgeCheck className="h-8 w-8 text-[#10B981]" aria-hidden="true" />
+                </span>
 
                 <AdminNotificationsBell />
 
