@@ -133,7 +133,6 @@ export function AdminEventsSection({
     eventModalError,
     eventModalScaleConfigLoading,
     eventModalScaleIdsByCategoryId,
-    eventModalScaleModeByCategoryId,
     availableScales,
     eventModalScaleGroupsByCategoryId,
     eventModalScaleGroupsLoading,
