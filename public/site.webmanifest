@@ -1,0 +1,14 @@
+{
+  "name": "SICSEMPER | Competencias de Modelismo y Maquetas",
+  "short_name": "SICSEMPER",
+  "description": "Competencia boliviana de modelismo y maquetas.",
+  "start_url": "/",
+  "display": "standalone",
+  "lang": "es-BO",
+  "theme_color": "#111827",
+  "background_color": "#111827",
+  "icons": [
+    { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
