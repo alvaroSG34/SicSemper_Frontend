@@ -1,3 +1,4 @@
+
 import type { MetadataRoute } from "next";
 
 const siteUrl = "https://sicsempermodelismo.com.bo";
@@ -8,6 +9,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${siteUrl}/`,
       changeFrequency: "weekly",
       priority: 1,
+    },
+    {
+      url: `${siteUrl}/privacidad`,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/terminos`,
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
   ];
 }
