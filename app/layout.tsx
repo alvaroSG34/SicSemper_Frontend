@@ -11,7 +11,7 @@ const inter = Inter({
 const siteUrl = "https://sicsempermodelismo.com.bo";
 const siteTitle = "SICSEMPER | Competencias de Modelismo y Maquetas";
 const siteDescription =
-  "Participa en SICSEMPER, la competencia boliviana de modelismo y maquetas. Descubre eventos, categorías, inscripción y el talento de nuestra comunidad.";
+  "Participa en SICSEMPER, la competencia boliviana de modelismo y maquetas. Descubre eventos, categorías, inscripcion y el talento de nuestra comunidad.";
 const socialImage = `${siteUrl}/og-image.jpg`;
 const xUsername = process.env.NEXT_PUBLIC_X_USERNAME?.trim();
 
