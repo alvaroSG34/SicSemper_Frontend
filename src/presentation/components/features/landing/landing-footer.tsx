@@ -20,9 +20,17 @@ const footerLinkClassName =
 
 type LandingFooterProps = {
   logoUrl?: string;
+  contactEmail?: string;
+  whatsappNumber?: string;
 };
 
-export function LandingFooter({ logoUrl = "" }: LandingFooterProps) {
+export function LandingFooter({
+  logoUrl = "",
+  contactEmail = "contacto@SICSEMPERbolivia.org",
+  whatsappNumber = "",
+}: LandingFooterProps) {
+  const normalizedWhatsappNumber = whatsappNumber.replace(/[^\d]/g, "");
+
   return (
     <footer id="contacto" className="w-full bg-[color:var(--landing-surface)]">
       <div className="mx-auto flex w-full max-w-[1686px] flex-col gap-12 px-6 pb-10 pt-20 md:px-10 xl:px-[120px]">
@@ -76,11 +84,27 @@ export function LandingFooter({ logoUrl = "" }: LandingFooterProps) {
               </p>
 
               <a
-                href="mailto:contacto@SICSEMPERbolivia.org"
+                href={`mailto:${contactEmail}`}
                 className="flex h-11 w-full max-w-[280px] items-center rounded-[22px] border border-[color:var(--landing-border)] px-5 text-[13px] text-[color:var(--landing-subtle)] transition-colors hover:text-[color:var(--landing-text)] focus-visible:outline-none focus-visible:text-[color:var(--landing-text)]"
               >
-                contacto@SICSEMPERbolivia.org
+                {contactEmail}
               </a>
+              {normalizedWhatsappNumber ? (
+                <a
+                  href={`https://wa.me/${normalizedWhatsappNumber}`}
+                  aria-label="Contactar por WhatsApp"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#25D366]/50 text-[#25D366] transition-colors hover:bg-[#25D366]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/Images/whatsapp-logo.svg"
+                    alt=""
+                    className="h-6 w-6 object-contain"
+                  />
+                </a>
+              ) : null}
             </div>
           </div>
         </div>

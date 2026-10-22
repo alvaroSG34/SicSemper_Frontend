@@ -48,7 +48,11 @@ export function LandingPageFeature({ content }: LandingPageFeatureProps) {
         <LandingReveal delayMs={200}>
           <LandingLocation content={content} />
         </LandingReveal>
-        <LandingFooter logoUrl={content.branding.logoUrl} />
+        <LandingFooter
+          logoUrl={content.branding.logoUrl}
+          contactEmail={content.contactEmail}
+          whatsappNumber={content.whatsappNumber}
+        />
       </div>
     </main>
   );

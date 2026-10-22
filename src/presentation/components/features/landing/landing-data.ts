@@ -7,6 +7,8 @@ export const landingDefaultContent: LandingContent = {
     logoUrl: '',
     faviconUrl: '',
   },
+  contactEmail: 'contacto@SICSEMPERbolivia.org',
+  whatsappNumber: '',
   heroDate: '15 Y 16 DE AGOSTO, 2026 / SALON GUARAYO - FEXPOCRUZ',
   heroTitle: 'Competencia SICSEMPER\nDe Modelismo',
   modelCards: [
@@ -206,6 +208,10 @@ export const normalizeLandingContent = (payload: unknown): LandingContent => {
         2000,
       ),
     },
+    contactEmail: readText(payload.contactEmail, base.contactEmail, 254),
+    whatsappNumber: typeof payload.whatsappNumber === 'string'
+      ? payload.whatsappNumber.trim().slice(0, 40)
+      : base.whatsappNumber,
     heroDate: readText(payload.heroDate, base.heroDate, 220),
     heroTitle: readText(payload.heroTitle, base.heroTitle, 260),
     modelCards: base.modelCards.map((current, index) => {

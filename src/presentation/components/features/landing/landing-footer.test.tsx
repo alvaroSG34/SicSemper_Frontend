@@ -42,4 +42,21 @@ describe("LandingFooter", () => {
       "/terminos",
     );
   });
+
+  it("uses configurable contact details and builds the WhatsApp link", () => {
+    render(<LandingFooter contactEmail="hola@example.com" whatsappNumber="+591 700-12345" />);
+
+    expect(screen.getByRole("link", { name: "hola@example.com" }).getAttribute("href")).toBe(
+      "mailto:hola@example.com",
+    );
+    expect(screen.getByRole("link", { name: "Contactar por WhatsApp" }).getAttribute("href")).toBe(
+      "https://wa.me/59170012345",
+    );
+  });
+
+  it("hides WhatsApp when no number is configured", () => {
+    render(<LandingFooter whatsappNumber="" />);
+
+    expect(screen.queryByRole("link", { name: "Contactar por WhatsApp" })).toBeNull();
+  });
 });

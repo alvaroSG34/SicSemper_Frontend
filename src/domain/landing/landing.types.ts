@@ -56,6 +56,8 @@ export type LandingLocationCard = {
 
 export type LandingContent = {
   branding: LandingBranding;
+  contactEmail: string;
+  whatsappNumber: string;
   heroDate: string;
   heroTitle: string;
   modelCards: LandingModelCard[];

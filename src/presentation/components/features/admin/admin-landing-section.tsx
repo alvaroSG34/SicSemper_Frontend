@@ -142,16 +142,22 @@ function TextInput({
   label,
   value,
   onChange,
+  type = 'text',
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  type?: 'text' | 'email' | 'tel';
+  placeholder?: string;
 }) {
   return (
     <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
       {label}
       <input
+        type={type}
         value={value}
+        placeholder={placeholder}
         onChange={(event) => onChange(event.target.value)}
         className="h-10 rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] px-3 text-sm text-white outline-none"
       />
@@ -616,6 +622,28 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
                 </p>
               </div>
             </div>
+          </article>
+
+          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
+            <h4 className="mb-3 text-sm font-semibold text-white">Contacto</h4>
+            <div className="grid gap-3 md:grid-cols-2">
+              <TextInput
+                label="Correo de contacto"
+                type="email"
+                value={draft.contactEmail}
+                onChange={(value) => updateField('contactEmail', value)}
+              />
+              <TextInput
+                label="Número de WhatsApp"
+                type="tel"
+                value={draft.whatsappNumber}
+                placeholder="Ej.: +59170012345"
+                onChange={(value) => updateField('whatsappNumber', value)}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-[#9C9C9C]">
+              Usa el código de país; puedes escribir el número con +, espacios o guiones.
+            </p>
           </article>
 
           <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
