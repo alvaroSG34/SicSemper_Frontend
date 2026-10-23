@@ -652,7 +652,7 @@ export function AdminDashboardPage({
             ) : null}
 
             {activeSection === "landing" && adminAccess.section.landing ? (
-              <AdminLandingSection headingClassName={outfit.className} />
+              <AdminLandingSection headingClassName={outfit.className} operationalEvents={catalog?.events ?? []} />
             ) : null}
 
             {activeSection === "bitacora" ? (

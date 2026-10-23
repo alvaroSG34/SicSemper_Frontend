@@ -293,6 +293,19 @@ html {
 }
 
 @layer components {
+  .input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid #2d2d2d;
+    background: #101010;
+    padding: 0.625rem 0.75rem;
+    color: white;
+    outline: none;
+  }
+
+  .input:focus {
+    border-color: #67e8f9;
+  }
   .grid > input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
   .grid > select,
   .grid > textarea {

@@ -1,5 +1,5 @@
 import type { AdminService } from '@/application/admin/admin.service.types';
-import type { LandingAsset, LandingContent, LandingDraftState } from '@/domain/landing/landing.types';
+import type { LandingAsset, LandingContent, LandingDraftState, LandingEvent, LandingEventDraftInput } from '@/domain/landing/landing.types';
 import { apiRequest } from '@/infrastructure/api/http-client';
 import { toErrorMessage } from './admin-service.shared';
 
@@ -10,6 +10,12 @@ export const adminLandingService: Pick<
   | 'publishLandingDraft'
   | 'listLandingAssets'
   | 'uploadLandingAsset'
+  | 'listLandingEvents'
+  | 'createLandingEvent'
+  | 'importLandingEvent'
+  | 'updateLandingEvent'
+  | 'setLandingEventVisibility'
+  | 'removeLandingEvent'
 > = {
   async getLandingDraftState() {
     try {
@@ -64,5 +70,23 @@ export const adminLandingService: Pick<
       console.error('[branding] upload:error', error);
       throw new Error(toErrorMessage(error, 'No se pudo subir el asset de la landing.'));
     }
+  },
+  async listLandingEvents() {
+    return apiRequest<LandingEvent[]>('/admin/landing/events');
+  },
+  async createLandingEvent(payload: LandingEventDraftInput) {
+    return apiRequest<LandingEvent>('/admin/landing/events', { method: 'POST', body: payload });
+  },
+  async importLandingEvent(sourceEventId) {
+    return apiRequest<LandingEvent>('/admin/landing/events/import', { method: 'POST', body: { sourceEventId } });
+  },
+  async updateLandingEvent(id: string, payload: LandingEventDraftInput) {
+    return apiRequest<LandingEvent>(`/admin/landing/events/${id}`, { method: 'PATCH', body: payload });
+  },
+  async setLandingEventVisibility(id, visible) {
+    return apiRequest<LandingEvent>(`/admin/landing/events/${id}/visibility`, { method: 'PATCH', body: { visible } });
+  },
+  async removeLandingEvent(id) {
+    return apiRequest<{ success: boolean }>(`/admin/landing/events/${id}`, { method: 'DELETE' });
   },
 };

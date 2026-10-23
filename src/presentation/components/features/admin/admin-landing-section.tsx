@@ -7,9 +7,12 @@ import type {
   LandingDraftState,
   LandingSponsor,
 } from '@/domain/landing/landing.types';
+import { AdminLandingEventsPanel } from './admin-landing-events-panel';
+import type { CatalogEvent } from '@/domain/admin/admin.types';
 
 type AdminLandingSectionProps = {
   headingClassName: string;
+  operationalEvents: CatalogEvent[];
 };
 
 type FeedbackState = {
@@ -186,7 +189,7 @@ function TextAreaInput({
   );
 }
 
-export function AdminLandingSection({ headingClassName }: AdminLandingSectionProps) {
+export function AdminLandingSection({ headingClassName, operationalEvents }: AdminLandingSectionProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -900,6 +903,7 @@ export function AdminLandingSection({ headingClassName }: AdminLandingSectionPro
           </div>
         </div>
       ) : null}
+      <AdminLandingEventsPanel operationalEvents={operationalEvents} />
     </>
   );
 }

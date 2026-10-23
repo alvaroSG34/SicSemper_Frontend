@@ -138,6 +138,8 @@ export const landingDefaultContent: LandingContent = {
   locationMapImage: '/Images/Ubicacion.webp',
   locationMapUrl:
     'https://www.google.com/maps/search/?api=1&query=Salon+Hotel+Guarayo+Av.+Roca+y+Coronado+Santa+Cruz+Bolivia',
+  eventsSectionVisible: false,
+  pastEvents: [],
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -298,5 +300,9 @@ export const normalizeLandingContent = (payload: unknown): LandingContent => {
     }),
     locationMapImage: readText(payload.locationMapImage, base.locationMapImage, 2000),
     locationMapUrl: readText(payload.locationMapUrl, base.locationMapUrl, 2000),
+    eventsSectionVisible: payload.eventsSectionVisible === true,
+    pastEvents: Array.isArray(payload.pastEvents)
+      ? payload.pastEvents.filter((event): event is LandingContent['pastEvents'][number] => isRecord(event) && typeof event.id === 'string')
+      : [],
   };
 };

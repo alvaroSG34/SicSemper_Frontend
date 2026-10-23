@@ -10,6 +10,7 @@ const LandingOrganizersCard = dynamic(() =>
   import("./landing-organizers-card").then((module) => module.LandingOrganizersCard),
 );
 const LandingEvents = dynamic(() => import("./landing-events").then((module) => module.LandingEvents));
+const LandingPastEventsDynamic = dynamic(() => import("./landing-past-events").then((module) => module.LandingPastEvents));
 const LandingFeaturedSpeakers = dynamic(() =>
   import("./landing-featured-speakers").then((module) => module.LandingFeaturedSpeakers),
 );
@@ -35,6 +36,9 @@ export function LandingPageFeature({ content }: LandingPageFeatureProps) {
         </LandingReveal>
         <LandingReveal delayMs={80}>
           <LandingEvents content={content} />
+        </LandingReveal>
+        <LandingReveal delayMs={95}>
+          <LandingPastEventsDynamic content={content} />
         </LandingReveal>
         <LandingReveal delayMs={110}>
           <LandingFeaturedSpeakers content={content} />
