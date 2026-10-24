@@ -8,7 +8,7 @@ import {
   Home,
   CalendarDays,
 } from "lucide-react";
-import { AccountMenu, DashboardRoleSwitch } from "@/presentation/components/layout";
+import { AccountMenu } from "@/presentation/components/layout";
 import { Skeleton } from "@/presentation/components/ui";
 import { useJudgeStore } from "@/presentation/stores";
 import { judgeHeadingFont } from "./judge-heading-font";
@@ -204,7 +204,7 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
           <div className="relative z-10 flex h-full flex-col gap-6 md:gap-8 xl:gap-10">
             <header className="flex w-full items-center justify-between gap-3 md:gap-6">
               <div className="min-w-0 flex-[0_1_38%] overflow-hidden md:flex-1">
-                <span className={`${judgeHeadingFont.className} block whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
+                <span className={`${judgeHeadingFont.className} hidden whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
                   Hola, {profile?.displayName?.trim().split(/\s+/)[0] ?? "Juez"}
                 </span>
                 <h1
@@ -221,8 +221,6 @@ export function JudgeDashboardShell({ children }: JudgeDashboardShellProps) {
                 <BadgeCheck className="h-7 w-7 text-[#10B981]" aria-label="Juez verificado" />
 
                 <JudgeNotificationsBell />
-
-                <DashboardRoleSwitch hideParticipantJudgeOnly />
 
                 <AccountMenu initials={profile?.initials ?? "JU"} profileHref="/juez/perfil" />
               </div>

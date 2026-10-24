@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { ImagePlus, Plus, RefreshCw, Save, Send, Trash2, Undo2, Upload } from 'lucide-react';
+/* eslint-disable @next/next/no-img-element */
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type ReactNode } from 'react';
+import { ChevronDown, ImagePlus, Plus, RefreshCw, Save, Send, Trash2, Undo2, Upload } from 'lucide-react';
 import { adminLandingService } from '@/application/admin/services/admin-landing.service';
 import type {
   LandingAsset,
@@ -8,11 +9,9 @@ import type {
   LandingSponsor,
 } from '@/domain/landing/landing.types';
 import { AdminLandingEventsPanel } from './admin-landing-events-panel';
-import type { CatalogEvent } from '@/domain/admin/admin.types';
 
 type AdminLandingSectionProps = {
   headingClassName: string;
-  operationalEvents: CatalogEvent[];
 };
 
 type FeedbackState = {
@@ -25,9 +24,25 @@ type ImageTarget = {
   label: string;
 };
 
+type LandingAccordionId = 'identity' | 'contact' | 'hero' | 'models' | 'events' | 'speakers' | 'schedule' | 'sponsors' | 'location' | 'historicalEvents';
+
+function AccordionArticle({ id, title, isOpen, onToggle, children, className = '' }: { id: LandingAccordionId; title: string; isOpen: boolean; onToggle: () => void; children: ReactNode; className?: string }) {
+  const contentId = `landing-section-${id}-content`;
+  const headingId = `landing-section-${id}-heading`;
+  return (
+    <article className={`overflow-hidden rounded-3xl border bg-[#101010] transition-colors ${isOpen ? 'border-cyan-300' : 'border-[#2D2D2D]'} ${className}`}>
+      <button type="button" id={headingId} aria-expanded={isOpen} aria-controls={contentId} onClick={onToggle} className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-lg font-semibold text-white transition-colors ${isOpen ? 'bg-cyan-300/5 text-cyan-100' : 'hover:bg-white/[0.03]'}`}>
+        <span>{title}</span>
+        <ChevronDown className={`h-5 w-5 shrink-0 text-[#A8A8A8] transition-transform ${isOpen ? 'rotate-180 text-cyan-300' : ''}`} aria-hidden="true" />
+      </button>
+      {isOpen ? <div id={contentId} role="region" aria-labelledby={headingId} className="border-t border-[#2D2D2D] p-4">{children}</div> : null}
+    </article>
+  );
+}
+
 const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const asJson = (value: unknown) => JSON.stringify(value);
-const maxSponsorsPerGroup = 20;
+const maxPatrocinadoresPerGroup = 20;
 const emptySponsor = (): LandingSponsor => ({ name: '', logoUrl: '', url: '' });
 
 const formatDateTime = (raw: string | null | undefined) => {
@@ -189,7 +204,23 @@ function TextAreaInput({
   );
 }
 
-export function AdminLandingSection({ headingClassName, operationalEvents }: AdminLandingSectionProps) {
+function ImagePreviewField({ label, value, onOpenLibrary, alt = label, fit = 'contain' }: { label: string; value: string; onOpenLibrary: () => void; alt?: string; fit?: 'contain' | 'cover' }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-[#A8A8A8]">{label}</p>
+      <div className={`flex items-center justify-center overflow-hidden rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] ${fit === 'cover' ? 'h-48 md:h-64' : 'min-h-32'}`}>
+        {value ? <img src={value} alt={alt} className={`h-full w-full ${fit === 'cover' ? 'object-cover' : 'object-contain'}`} /> : <span className="text-xs text-[#777]">Sin imagen seleccionada</span>}
+      </div>
+      <button type="button" onClick={onOpenLibrary} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
+        <ImagePlus className="h-3.5 w-3.5" />
+        Cambiar imagen
+      </button>
+    </div>
+  );
+}
+
+export function AdminLandingSection({ headingClassName }: AdminLandingSectionProps) {
+  const [openSection, setOpenSection] = useState<LandingAccordionId | null>('hero');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -289,10 +320,10 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
   const addSponsor = (group: keyof LandingContent['sponsors']) => {
     setDraft((current) => {
       if (!current) return current;
-      if (current.sponsors[group].length >= maxSponsorsPerGroup) {
+      if (current.sponsors[group].length >= maxPatrocinadoresPerGroup) {
         setFeedback({
           type: 'error',
-          message: `Puedes registrar hasta ${maxSponsorsPerGroup} sponsors por grupo.`,
+          message: `Puedes registrar hasta ${maxPatrocinadoresPerGroup} sponsors por grupo.`,
         });
         return current;
       }
@@ -478,22 +509,10 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className={`${headingClassName} text-[18px] font-semibold text-white`}>
-              Editor visual de Landing (solo SUPERADMIN)
+              Editor visual de la página principal
             </h3>
-            <p className="text-xs text-[#9C9C9C]">
-              Edita bloques fijos, guarda borrador y publica cuando este listo.
-            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void loadDraftState()}
-              disabled={loading || saving || publishing}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#2D2D2D] bg-[#121212] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Recargar
-            </button>
             <button
               type="button"
               onClick={() => void restoreFromPublished()}
@@ -526,14 +545,6 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
 
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className={`rounded-lg border px-3 py-1 text-xs ${statusClassName}`}>{statusLabel}</span>
-          <span className="rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-1 text-[11px] text-[#B5B5B5]">
-            Borrador: {formatDateTime(draftUpdatedAt)}
-            {draftUpdatedBy ? ` por ${draftUpdatedBy}` : ''}
-          </span>
-          <span className="rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 py-1 text-[11px] text-[#B5B5B5]">
-            Publicado: {formatDateTime(publishedAt)}
-            {publishedBy ? ` por ${publishedBy}` : ''}
-          </span>
         </div>
 
         {feedback ? (
@@ -549,10 +560,9 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
         ) : null}
 
         <div className="space-y-5">
-          <article className="min-w-0 rounded-3xl border border-[#2D2D2D] bg-[#101010] p-4">
+          <AccordionArticle id="identity" title="Identidad visual" isOpen={openSection === "identity"} onToggle={() => setOpenSection((current) => current === "identity" ? null : "identity")} className="min-w-0">
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h4 className="text-sm font-semibold text-white">Identidad visual</h4>
                 <p className="mt-1 text-xs text-[#9C9C9C]">
                   Sube un solo logotipo; generaremos automáticamente la versión para el header y el favicon.
                 </p>
@@ -625,10 +635,9 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
                 </p>
               </div>
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Contacto</h4>
+          <AccordionArticle id="contact" title="Datos de contacto" isOpen={openSection === "contact"} onToggle={() => setOpenSection((current) => current === "contact" ? null : "contact")}>
             <div className="grid gap-3 md:grid-cols-2">
               <TextInput
                 label="Correo de contacto"
@@ -647,74 +656,57 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
             <p className="mt-2 text-[11px] text-[#9C9C9C]">
               Usa el código de país; puedes escribir el número con +, espacios o guiones.
             </p>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Hero</h4>
+          <AccordionArticle id="hero" title="Portada principal" isOpen={openSection === "hero"} onToggle={() => setOpenSection((current) => current === "hero" ? null : "hero")}>
             <div className="grid gap-3 md:grid-cols-2">
               <TextInput label="Fecha principal" value={draft.heroDate} onChange={(value) => updateField('heroDate', value)} />
-              <TextAreaInput label="Titulo principal" value={draft.heroTitle} onChange={(value) => updateField('heroTitle', value)} />
+              <TextAreaInput label="Título principal" value={draft.heroTitle} onChange={(value) => updateField('heroTitle', value)} />
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Model cards</h4>
+          <AccordionArticle id="models" title="Modelos destacados" isOpen={openSection === "models"} onToggle={() => setOpenSection((current) => current === "models" ? null : "models")}>
             <div className="grid gap-3 lg:grid-cols-3">
               {draft.modelCards.map((card, index) => (
                 <div key={`model-card-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
-                  <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Card {index + 1}</p>
+                  <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Tarjeta {index + 1}</p>
                   <div className="space-y-2">
                     <TextInput label="Nombre" value={card.name} onChange={(value) => updateField(`modelCards.${index}.name`, value)} />
-                    <TextInput label="Categoria" value={card.category} onChange={(value) => updateField(`modelCards.${index}.category`, value)} />
+                    <TextInput label="Categoría" value={card.category} onChange={(value) => updateField(`modelCards.${index}.category`, value)} />
                     <TextInput label="Escala" value={card.scale} onChange={(value) => updateField(`modelCards.${index}.scale`, value)} />
-                    <TextInput label="URL imagen" value={card.image} onChange={(value) => updateField(`modelCards.${index}.image`, value)} />
-                    <button type="button" onClick={() => void openLibrary(`modelCards.${index}.image`, `Model card ${index + 1}`)} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-                      <ImagePlus className="h-3.5 w-3.5" />
-                      Biblioteca
-                    </button>
+                    <ImagePreviewField label="Imagen del modelo" value={card.image} alt={card.name} onOpenLibrary={() => void openLibrary(`modelCards.${index}.image`, `Modelo destacado ${index + 1}`)} />
                   </div>
                 </div>
               ))}
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Bloque de eventos</h4>
+          <AccordionArticle id="events" title="Presentación de eventos" isOpen={openSection === "events"} onToggle={() => setOpenSection((current) => current === "events" ? null : "events")}>
             <div className="grid gap-3 md:grid-cols-2">
-              <TextInput label="Titulo" value={draft.eventsCopy.title} onChange={(value) => updateField('eventsCopy.title', value)} />
+              <TextInput label="Título" value={draft.eventsCopy.title} onChange={(value) => updateField('eventsCopy.title', value)} />
               <TextInput label="Subtitulo" value={draft.eventsCopy.subtitle} onChange={(value) => updateField('eventsCopy.subtitle', value)} />
-              <TextAreaInput label="Descripcion principal" value={draft.eventsCopy.descriptionOne} onChange={(value) => updateField('eventsCopy.descriptionOne', value)} />
-              <TextAreaInput label="Descripcion secundaria" value={draft.eventsCopy.descriptionTwo} onChange={(value) => updateField('eventsCopy.descriptionTwo', value)} />
+              <TextAreaInput label="Descripción principal" value={draft.eventsCopy.descriptionOne} onChange={(value) => updateField('eventsCopy.descriptionOne', value)} />
+              <TextAreaInput label="Descripción secundaria" value={draft.eventsCopy.descriptionTwo} onChange={(value) => updateField('eventsCopy.descriptionTwo', value)} />
               <div className="md:col-span-2">
-                <TextInput label="URL imagen" value={draft.eventsCopy.image} onChange={(value) => updateField('eventsCopy.image', value)} />
-                <button type="button" onClick={() => void openLibrary('eventsCopy.image', 'Bloque de eventos')} className="mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-                  <ImagePlus className="h-3.5 w-3.5" />
-                  Biblioteca
-                </button>
+                <ImagePreviewField label="Imagen de la sección" value={draft.eventsCopy.image} fit="cover" onOpenLibrary={() => void openLibrary('eventsCopy.image', 'Presentación de eventos')} />
               </div>
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Featured speakers group</h4>
+          <AccordionArticle id="speakers" title="Equipo organizador" isOpen={openSection === "speakers"} onToggle={() => setOpenSection((current) => current === "speakers" ? null : "speakers")}>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="md:col-span-2">
-                <TextInput label="URL imagen de grupo" value={draft.featuredSpeakersGroup.image} onChange={(value) => updateField('featuredSpeakersGroup.image', value)} />
-                <button type="button" onClick={() => void openLibrary('featuredSpeakersGroup.image', 'Imagen grupo')} className="mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-                  <ImagePlus className="h-3.5 w-3.5" />
-                  Biblioteca
-                </button>
+                <ImagePreviewField label="Imagen del equipo" value={draft.featuredSpeakersGroup.image} fit="cover" onOpenLibrary={() => void openLibrary('featuredSpeakersGroup.image', 'Imagen del equipo organizador')} />
               </div>
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Schedule</h4>
+          <AccordionArticle id="schedule" title="Agenda del evento" isOpen={openSection === "schedule"} onToggle={() => setOpenSection((current) => current === "schedule" ? null : "schedule")}>
             <div className="space-y-2">
               {draft.scheduleItems.map((slot, index) => (
                 <div key={`schedule-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-[#CFCFCF]">Slot {index + 1}</p>
+                    <p className="text-xs font-semibold text-[#CFCFCF]">Bloque {index + 1}</p>
                     <label className="inline-flex items-center gap-1 text-[11px] text-[#BFBFBF]">
                       <input
                         type="checkbox"
@@ -727,23 +719,22 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
                   </div>
                   <div className="grid gap-2 md:grid-cols-3">
                     <TextInput label="Hora" value={slot.time} onChange={(value) => updateField(`scheduleItems.${index}.time`, value)} />
-                    <TextInput label="Titulo" value={slot.title} onChange={(value) => updateField(`scheduleItems.${index}.title`, value)} />
+                    <TextInput label="Título" value={slot.title} onChange={(value) => updateField(`scheduleItems.${index}.title`, value)} />
                     <div className="md:col-span-3">
-                      <TextAreaInput label="Descripcion" value={slot.description} onChange={(value) => updateField(`scheduleItems.${index}.description`, value)} />
+                      <TextAreaInput label="Descripción" value={slot.description} onChange={(value) => updateField(`scheduleItems.${index}.description`, value)} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Sponsors</h4>
+          <AccordionArticle id="sponsors" title="Patrocinadores" isOpen={openSection === "sponsors"} onToggle={() => setOpenSection((current) => current === "sponsors" ? null : "sponsors")}>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-[#CFCFCF]">Main sponsors</p>
-                  <button type="button" onClick={() => addSponsor('main')} disabled={draft.sponsors.main.length >= maxSponsorsPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
+                  <p className="text-xs font-semibold text-[#CFCFCF]">Patrocinadores principales</p>
+                  <button type="button" onClick={() => addSponsor('main')} disabled={draft.sponsors.main.length >= maxPatrocinadoresPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
                     <Plus className="h-3.5 w-3.5" />
                     Agregar
                   </button>
@@ -760,18 +751,8 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
                       </div>
                       <div className="space-y-2">
                         <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.main.${index}.name`, value)} />
-                        <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.main.${index}.logoUrl`, value)} />
                         <TextInput label="URL destino" value={entry.url} onChange={(value) => updateField(`sponsors.main.${index}.url`, value)} />
-                        {entry.logoUrl ? (
-                          <div className="flex h-20 items-center justify-center rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-2">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={entry.logoUrl} alt={entry.name} className="max-h-full max-w-full object-contain" />
-                          </div>
-                        ) : null}
-                        <button type="button" onClick={() => void openLibrary(`sponsors.main.${index}.logoUrl`, `Logo sponsor main ${index + 1}`)} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-                          <ImagePlus className="h-3.5 w-3.5" />
-                          Biblioteca
-                        </button>
+                        <ImagePreviewField label="Logo del patrocinador" value={entry.logoUrl} alt={entry.name} onOpenLibrary={() => void openLibrary(`sponsors.main.${index}.logoUrl`, `Logo del patrocinador principal ${index + 1}`)} />
                       </div>
                     </div>
                   ))}
@@ -779,8 +760,8 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
               </div>
               <div className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-[#CFCFCF]">Secondary sponsors</p>
-                  <button type="button" onClick={() => addSponsor('secondary')} disabled={draft.sponsors.secondary.length >= maxSponsorsPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
+                  <p className="text-xs font-semibold text-[#CFCFCF]">Patrocinadores secundarios</p>
+                  <button type="button" onClick={() => addSponsor('secondary')} disabled={draft.sponsors.secondary.length >= maxPatrocinadoresPerGroup} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white disabled:cursor-not-allowed disabled:opacity-50">
                     <Plus className="h-3.5 w-3.5" />
                     Agregar
                   </button>
@@ -797,51 +778,39 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
                       </div>
                       <div className="space-y-2">
                         <TextInput label="Nombre" value={entry.name} onChange={(value) => updateField(`sponsors.secondary.${index}.name`, value)} />
-                        <TextInput label="URL logo" value={entry.logoUrl} onChange={(value) => updateField(`sponsors.secondary.${index}.logoUrl`, value)} />
                         <TextInput label="URL destino" value={entry.url} onChange={(value) => updateField(`sponsors.secondary.${index}.url`, value)} />
-                        {entry.logoUrl ? (
-                          <div className="flex h-20 items-center justify-center rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-2">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={entry.logoUrl} alt={entry.name} className="max-h-full max-w-full object-contain" />
-                          </div>
-                        ) : null}
-                        <button type="button" onClick={() => void openLibrary(`sponsors.secondary.${index}.logoUrl`, `Logo sponsor secondary ${index + 1}`)} className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-                          <ImagePlus className="h-3.5 w-3.5" />
-                          Biblioteca
-                        </button>
+                        <ImagePreviewField label="Logo del patrocinador" value={entry.logoUrl} alt={entry.name} onOpenLibrary={() => void openLibrary(`sponsors.secondary.${index}.logoUrl`, `Logo del patrocinador secundario ${index + 1}`)} />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </article>
+          </AccordionArticle>
 
-          <article className="rounded-xl border border-[#2D2D2D] bg-[#101010] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-white">Ubicacion</h4>
+          <AccordionArticle id="location" title="Ubicación del evento" isOpen={openSection === "location"} onToggle={() => setOpenSection((current) => current === "location" ? null : "location")}>
             <div className="space-y-2">
               {draft.locationCards.map((card, index) => (
                 <div key={`loc-${index}`} className="rounded-lg border border-[#2D2D2D] bg-[#0B0B0B] p-3">
-                  <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Card {index + 1}</p>
+                  <p className="mb-2 text-xs font-semibold text-[#CFCFCF]">Tarjeta {index + 1}</p>
                   <div className="grid gap-2 md:grid-cols-2">
                     <TextInput label="Label" value={card.label} onChange={(value) => updateField(`locationCards.${index}.label`, value)} />
-                    <TextInput label="Titulo" value={card.title} onChange={(value) => updateField(`locationCards.${index}.title`, value)} />
+                    <TextInput label="Título" value={card.title} onChange={(value) => updateField(`locationCards.${index}.title`, value)} />
                     <div className="md:col-span-2">
-                      <TextAreaInput label="Descripcion" value={card.description} onChange={(value) => updateField(`locationCards.${index}.description`, value)} />
+                      <TextAreaInput label="Descripción" value={card.description} onChange={(value) => updateField(`locationCards.${index}.description`, value)} />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
-              <TextInput label="URL imagen mapa" value={draft.locationMapImage} onChange={(value) => updateField('locationMapImage', value)} />
+              <ImagePreviewField label="Imagen del mapa" value={draft.locationMapImage} onOpenLibrary={() => void openLibrary('locationMapImage', 'Imagen del mapa')} />
               <TextInput label="URL link mapa" value={draft.locationMapUrl} onChange={(value) => updateField('locationMapUrl', value)} />
             </div>
-            <button type="button" onClick={() => void openLibrary('locationMapImage', 'Imagen de mapa')} className="mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-2 text-[11px] text-white">
-              <ImagePlus className="h-3.5 w-3.5" />
-              Biblioteca
-            </button>
-          </article>
+          </AccordionArticle>
+          <AccordionArticle id="historicalEvents" title="Eventos históricos" isOpen={openSection === "historicalEvents"} onToggle={() => setOpenSection((current) => current === "historicalEvents" ? null : "historicalEvents")}>
+            <AdminLandingEventsPanel />
+          </AccordionArticle>
         </div>
       </section>
 
@@ -850,7 +819,7 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
           <div className="w-full max-w-5xl rounded-2xl border border-[#2D2D2D] bg-[#161616] p-5 sm:p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>Biblioteca de imagenes</h4>
+                <h4 className={`${headingClassName} text-[20px] font-semibold text-white`}>Biblioteca de imágenes</h4>
                 <p className="text-xs text-[#9C9C9C]">Seleccionando para: {activeImageTarget?.label ?? 'Campo actual'}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -888,7 +857,6 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
                         <img src={asset.url} alt={asset.originalFilename} className="h-full w-full object-cover" />
                       </div>
                       <p className="truncate text-xs font-semibold text-white">{asset.originalFilename}</p>
-                      <p className="mt-1 truncate text-[11px] text-[#9C9C9C]">{asset.url}</p>
                       <p className="mt-1 text-[11px] text-[#9C9C9C]">
                         {asset.mimetype} - {formatBytes(asset.sizeBytes)}
                       </p>
@@ -903,7 +871,6 @@ export function AdminLandingSection({ headingClassName, operationalEvents }: Adm
           </div>
         </div>
       ) : null}
-      <AdminLandingEventsPanel operationalEvents={operationalEvents} />
     </>
   );
 }

@@ -18,6 +18,7 @@ interface PublicHeaderProps {
   onRoleChange?: (role: UserRole) => Promise<void> | void;
   onLogout?: () => Promise<void> | void;
   logoUrl?: string;
+  eventsAvailable?: boolean;
 }
 
 interface HeaderLink {
@@ -28,7 +29,6 @@ interface HeaderLink {
 const HEADER_LINKS: HeaderLink[] = [
   { id: "inicio", label: "Inicio" },
   { id: "acerca", label: "Acerca de" },
-  { id: "agenda", label: "Agenda" },
   { id: "equipo", label: "Organizadores" },
   { id: "ubicacion", label: "Ubicación" },
 ];
@@ -68,6 +68,7 @@ export function PublicHeader({
   onRoleChange,
   onLogout,
   logoUrl = "",
+  eventsAvailable = false,
 }: PublicHeaderProps) {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -166,6 +167,9 @@ export function PublicHeader({
   };
 
   const loggedIn = Boolean(currentUserName);
+  const headerLinks = eventsAvailable
+    ? [...HEADER_LINKS.slice(0, 3), { id: "eventos", label: "Eventos" }, ...HEADER_LINKS.slice(3)]
+    : HEADER_LINKS;
 
   return (
     <header className={`sticky top-0 z-50 w-full ${getBackgroundClass(variant)}`}>
@@ -199,7 +203,7 @@ export function PublicHeader({
         </Link>
 
         <nav className="hidden items-center justify-center gap-8 xl:flex xl:gap-10">
-          {HEADER_LINKS.map((link, index) =>
+          {headerLinks.map((link, index) =>
             isLandingPage ? (
               <a
                 key={link.id}

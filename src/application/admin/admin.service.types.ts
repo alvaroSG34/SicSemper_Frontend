@@ -72,7 +72,6 @@ export interface AdminService {
   publishLandingDraft(): Promise<LandingDraftState>;
   listLandingEvents(): Promise<LandingEvent[]>;
   createLandingEvent(payload: LandingEventDraftInput): Promise<LandingEvent>;
-  importLandingEvent(sourceEventId: string): Promise<LandingEvent>;
   updateLandingEvent(id: string, payload: LandingEventDraftInput): Promise<LandingEvent>;
   setLandingEventVisibility(id: string, visible: boolean): Promise<LandingEvent>;
   removeLandingEvent(id: string): Promise<{ success: boolean }>;

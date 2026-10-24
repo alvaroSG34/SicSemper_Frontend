@@ -106,6 +106,32 @@ describe("AccountMenu", () => {
     expect(push).toHaveBeenCalledWith("/juez/inicio");
   });
 
+  it("offers every available role from the account menu", () => {
+    useAuthStore.setState({
+      user: makeUser(["PARTICIPANTE", "JUEZ", "ADMIN"]),
+      currentRole: "ADMIN",
+    });
+    render(<AccountMenu initials="US" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu de cuenta" }));
+
+    expect(screen.getByRole("menuitem", { name: "Cambiar a Juez" })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: "Cambiar a Participante" })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: "Cambiar a Admin" })).toBeNull();
+  });
+
+  it("does not offer lower roles to a SUPERADMIN", () => {
+    useAuthStore.setState({
+      user: makeUser(["SUPERADMIN", "ADMIN", "PARTICIPANTE"]),
+      currentRole: "SUPERADMIN",
+    });
+    render(<AccountMenu initials="SU" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu de cuenta" }));
+
+    expect(screen.queryByRole("menuitem", { name: /Cambiar a/ })).toBeNull();
+  });
+
   it("prevents duplicate role switches while the request is pending", async () => {
     let resolveSwitch: (() => void) | undefined;
     const switchRole = vi.fn(

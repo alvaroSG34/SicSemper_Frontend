@@ -12,7 +12,6 @@ export const adminLandingService: Pick<
   | 'uploadLandingAsset'
   | 'listLandingEvents'
   | 'createLandingEvent'
-  | 'importLandingEvent'
   | 'updateLandingEvent'
   | 'setLandingEventVisibility'
   | 'removeLandingEvent'
@@ -76,9 +75,6 @@ export const adminLandingService: Pick<
   },
   async createLandingEvent(payload: LandingEventDraftInput) {
     return apiRequest<LandingEvent>('/admin/landing/events', { method: 'POST', body: payload });
-  },
-  async importLandingEvent(sourceEventId) {
-    return apiRequest<LandingEvent>('/admin/landing/events/import', { method: 'POST', body: { sourceEventId } });
   },
   async updateLandingEvent(id: string, payload: LandingEventDraftInput) {
     return apiRequest<LandingEvent>(`/admin/landing/events/${id}`, { method: 'PATCH', body: payload });

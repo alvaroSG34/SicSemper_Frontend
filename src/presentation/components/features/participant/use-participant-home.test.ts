@@ -36,9 +36,9 @@ const dashboard: ParticipantDashboardData = {
   },
   kpis: [
     {
-      id: "kpi-1",
-      label: "Eventos",
-      value: "3",
+      id: "kpi-scored-models",
+      label: "Maquetas calificadas",
+      value: "4",
       tone: "neutral",
       icon: "trophy",
     },
@@ -76,6 +76,10 @@ describe("useParticipantHome", () => {
     expect(result.current.challenge?.eventId).toBe("event-1");
     expect(result.current.isParticipantVerified).toBe(true);
     expect(result.current.kpis).toHaveLength(1);
+    expect(result.current.kpis[0]).toMatchObject({
+      label: "Maquetas calificadas",
+      value: "4",
+    });
     expect(result.current.clubRanking?.position).toBe(2);
     expect(result.current.isStartingUploadFromNextChallenge).toBe(false);
   });

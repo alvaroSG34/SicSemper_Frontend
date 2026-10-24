@@ -56,4 +56,10 @@ describe("PublicHeader", () => {
     expect(screen.getByRole("link", { name: "MI PANEL" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "CERRAR SESIÓN" })).toBeTruthy();
   });
+
+  it("shows the Eventos link when historical events are available", () => {
+    render(<PublicHeader isLandingPage eventsAvailable />);
+
+    expect(screen.getByRole("link", { name: "Eventos" }).getAttribute("href")).toBe("#eventos");
+  });
 });

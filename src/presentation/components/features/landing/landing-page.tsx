@@ -37,9 +37,6 @@ export function LandingPageFeature({ content }: LandingPageFeatureProps) {
         <LandingReveal delayMs={80}>
           <LandingEvents content={content} />
         </LandingReveal>
-        <LandingReveal delayMs={95}>
-          <LandingPastEventsDynamic content={content} />
-        </LandingReveal>
         <LandingReveal delayMs={110}>
           <LandingFeaturedSpeakers content={content} />
         </LandingReveal>
@@ -48,6 +45,9 @@ export function LandingPageFeature({ content }: LandingPageFeatureProps) {
         </LandingReveal>
         <LandingReveal delayMs={170}>
           <LandingSponsors content={content} />
+        </LandingReveal>
+        <LandingReveal delayMs={185}>
+          <LandingPastEventsDynamic content={content} />
         </LandingReveal>
         <LandingReveal delayMs={200}>
           <LandingLocation content={content} />

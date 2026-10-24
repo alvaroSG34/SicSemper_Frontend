@@ -18,7 +18,6 @@ export function LandingPastEvents({ content }: Props) {
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--landing-accent)]">Memoria SICSEMPER</p>
           <h2 className="text-4xl font-bold text-[color:var(--landing-text)] xl:text-5xl">Eventos que dejaron huella</h2>
         </div>
-        <Link href="/eventos" className="hidden rounded-full border border-[color:var(--landing-accent)] px-5 py-3 text-xs font-bold uppercase tracking-wide text-[color:var(--landing-accent)] transition hover:bg-[color:var(--landing-accent)] hover:text-black sm:block">Ver archivo</Link>
       </div>
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {content.pastEvents.map((event) => (
@@ -35,7 +34,6 @@ export function LandingPastEvents({ content }: Props) {
           </Link>
         ))}
       </div>
-      <Link href="/eventos" className="mt-8 block rounded-full border border-[color:var(--landing-accent)] px-5 py-3 text-center text-xs font-bold uppercase tracking-wide text-[color:var(--landing-accent)] sm:hidden">Ver archivo</Link>
     </section>
   );
 }

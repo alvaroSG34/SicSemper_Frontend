@@ -48,9 +48,6 @@ import {
 } from "@/presentation/components/features/admin/admin-routes";
 import { useAdminPermissions } from "@/presentation/components/features/admin/use-admin-permissions";
 
-const DashboardRoleSwitch = dynamic(() =>
-  import("@/presentation/components/layout").then((module) => module.DashboardRoleSwitch),
-);
 const AccountMenu = dynamic(() =>
   import("@/presentation/components/layout").then((module) => module.AccountMenu),
 );
@@ -398,7 +395,7 @@ export function AdminDashboardPage({
               className="flex w-full items-center justify-between gap-3 md:gap-6"
             >
               <div className="min-w-0 flex-[0_1_38%] overflow-hidden md:flex-1">
-                <span className={`${outfit.className} block whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
+                <span className={`${outfit.className} hidden whitespace-nowrap text-[clamp(0.75rem,4.5vw,1.25rem)] leading-none font-bold text-white md:hidden`}>
                   Hola, {user?.name?.trim().split(/\s+/)[0] ?? "SICSEMPER"}
                 </span>
                 <h1
@@ -421,8 +418,6 @@ export function AdminDashboardPage({
                 </span>
 
                 <AdminNotificationsBell />
-
-                <DashboardRoleSwitch />
 
                 <AccountMenu initials={(user?.name ?? "AD").slice(0, 2).toUpperCase()} photoUrl={user?.photoUrl} />
               </div>
@@ -652,7 +647,7 @@ export function AdminDashboardPage({
             ) : null}
 
             {activeSection === "landing" && adminAccess.section.landing ? (
-              <AdminLandingSection headingClassName={outfit.className} operationalEvents={catalog?.events ?? []} />
+              <AdminLandingSection headingClassName={outfit.className} />
             ) : null}
 
             {activeSection === "bitacora" ? (

@@ -83,7 +83,6 @@ export type LandingEventGalleryItem = {
 };
 
 export type LandingEvent = LandingEventCard & {
-  sourceEventId: string | null;
   storyTitle: string | null;
   storyParagraphs: string[];
   visible: boolean;
