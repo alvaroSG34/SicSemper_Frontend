@@ -10,7 +10,7 @@ const formatDate = (value: string | null) => {
 };
 
 export function LandingPastEvents({ content }: Props) {
-  if (!content.eventsSectionVisible || content.pastEvents.length === 0) return null;
+  if (content.pastEvents.length === 0) return null;
   return (
     <section id="eventos" className="mx-auto w-full max-w-[1400px] px-6 py-16 md:px-10 xl:px-[120px] xl:py-[100px]">
       <div className="mb-10 flex items-end justify-between gap-6">
