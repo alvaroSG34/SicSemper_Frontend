@@ -20,6 +20,13 @@ const dashboardRouteByRole: Record<UserRole, string> = {
   SUPERADMIN: "/admin/inicio",
 };
 
+const roleLabel: Record<UserRole, string> = {
+  PARTICIPANTE: "Participante",
+  JUEZ: "Juez",
+  ADMIN: "Admin",
+  SUPERADMIN: "Superadmin",
+};
+
 export function AccountMenu({ initials, photoUrl, profileHref }: AccountMenuProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
@@ -31,14 +38,9 @@ export function AccountMenu({ initials, photoUrl, profileHref }: AccountMenuProp
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const hasPhoto = Boolean(photoUrl?.trim());
-  const hasParticipantAndJudgeRoles =
-    Boolean(user?.roles.includes("PARTICIPANTE")) && Boolean(user?.roles.includes("JUEZ"));
-  const nextRole: UserRole | null =
-    hasParticipantAndJudgeRoles && currentRole === "PARTICIPANTE"
-      ? "JUEZ"
-      : hasParticipantAndJudgeRoles && currentRole === "JUEZ"
-        ? "PARTICIPANTE"
-        : null;
+  const availableRoles = user?.roles.includes("SUPERADMIN") ? (["SUPERADMIN"] as UserRole[]) : (user?.roles ?? []);
+  const activeRole = currentRole ?? availableRoles[0] ?? null;
+  const switchableRoles = activeRole ? availableRoles.filter((role) => role !== activeRole) : [];
 
   useEffect(() => {
     if (!isOpen) {
@@ -87,8 +89,8 @@ export function AccountMenu({ initials, photoUrl, profileHref }: AccountMenuProp
     }
   };
 
-  const handleRoleSwitch = async () => {
-    if (!nextRole || isSwitchingRole) {
+  const handleRoleSwitch = async (nextRole: UserRole) => {
+    if (isSwitchingRole) {
       return;
     }
 
@@ -131,18 +133,19 @@ export function AccountMenu({ initials, photoUrl, profileHref }: AccountMenuProp
           aria-label="Menu de cuenta"
           className="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-[180px] rounded-xl border border-[#2D2D2D] bg-[#0F0F0F] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45)]"
         >
-          {nextRole ? (
+          {switchableRoles.map((role) => (
             <button
+              key={role}
               type="button"
               role="menuitem"
               disabled={isSwitchingRole}
-              onClick={() => void handleRoleSwitch()}
+              onClick={() => void handleRoleSwitch(role)}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#C8CEFF] transition hover:bg-[#1C2140] focus:bg-[#1C2140] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Repeat2 className="h-4 w-4" />
-              {isSwitchingRole ? "Cambiando rol..." : `Cambiar a ${nextRole === "JUEZ" ? "Juez" : "Participante"}`}
+              {isSwitchingRole ? "Cambiando rol..." : `Cambiar a ${roleLabel[role]}`}
             </button>
-          ) : null}
+          ))}
           {profileHref ? (
             <button
               type="button"

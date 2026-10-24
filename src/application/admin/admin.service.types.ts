@@ -51,6 +51,8 @@ import type {
 } from "@/domain/admin/admin.types";
 import type {
   LandingAsset,
+  LandingEvent,
+  LandingEventDraftInput,
   LandingContent,
   LandingDraftState,
 } from "@/domain/landing/landing.types";
@@ -68,6 +70,11 @@ export interface AdminService {
   getLandingDraftState(): Promise<LandingDraftState>;
   updateLandingDraft(payload: LandingContent): Promise<LandingDraftState>;
   publishLandingDraft(): Promise<LandingDraftState>;
+  listLandingEvents(): Promise<LandingEvent[]>;
+  createLandingEvent(payload: LandingEventDraftInput): Promise<LandingEvent>;
+  updateLandingEvent(id: string, payload: LandingEventDraftInput): Promise<LandingEvent>;
+  setLandingEventVisibility(id: string, visible: boolean): Promise<LandingEvent>;
+  removeLandingEvent(id: string): Promise<{ success: boolean }>;
   listUsers(): Promise<User[]>;
   createClub(payload: CreateClubPayload): Promise<AdminClub>;
   updateClub(payload: UpdateClubPayload): Promise<AdminClub>;

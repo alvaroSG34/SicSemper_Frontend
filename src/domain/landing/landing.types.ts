@@ -54,6 +54,71 @@ export type LandingLocationCard = {
   description: string;
 };
 
+export type LandingEventCard = {
+  id: string;
+  label: string;
+  title: string;
+  summary: string;
+  startDate: string | null;
+  endDate: string | null;
+  place: string | null;
+  format: string | null;
+  coverImageUrl: string | null;
+};
+
+export type LandingEventHighlight = {
+  id: string;
+  name: string;
+  role: string;
+  imageUrl: string | null;
+  position: number;
+};
+
+export type LandingEventGalleryItem = {
+  id: string;
+  imageUrl: string;
+  altText: string;
+  caption: string | null;
+  position: number;
+};
+
+export type LandingEvent = LandingEventCard & {
+  storyTitle: string | null;
+  storyParagraphs: string[];
+  visible: boolean;
+  highlights: LandingEventHighlight[];
+  gallery: LandingEventGalleryItem[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type LandingEventHighlightInput = {
+  name: string;
+  role: string;
+  imageUrl?: string | null;
+};
+
+export type LandingEventGalleryInput = {
+  imageUrl: string;
+  altText: string;
+  caption?: string | null;
+};
+
+export type LandingEventDraftInput = {
+  label: string;
+  title: string;
+  summary: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  place?: string | null;
+  format?: string | null;
+  coverImageUrl?: string | null;
+  storyTitle?: string | null;
+  storyParagraphs: string[];
+  highlights: LandingEventHighlightInput[];
+  gallery: LandingEventGalleryInput[];
+};
+
 export type LandingContent = {
   branding: LandingBranding;
   contactEmail: string;
@@ -68,6 +133,8 @@ export type LandingContent = {
   locationCards: LandingLocationCard[];
   locationMapImage: string;
   locationMapUrl: string;
+  eventsSectionVisible: boolean;
+  pastEvents: LandingEventCard[];
 };
 
 export type LandingEditorUserRef = {

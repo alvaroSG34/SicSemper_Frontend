@@ -177,29 +177,44 @@ export function AdminAdminsSection({
                   placeholder="Filtrar usuarios por nombre o correo"
                   className="mb-2 h-9 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-xs text-white outline-none"
                 />
-                <select
-                  value={promoteAdminSelectedUserId}
-                  onChange={(event) => setPromoteAdminSelectedUserId(event.target.value)}
-                  className="h-9 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-xs text-white outline-none"
-                >
-                  <option value="">Selecciona un usuario</option>
+                <div className="max-h-60 space-y-2 overflow-y-auto">
                   {filteredPromotableAdminUsers.map((candidate) => (
-                    <option key={candidate.id} value={candidate.id}>
-                      {candidate.name} ({candidate.email})
-                    </option>
+                    <button
+                      key={candidate.id}
+                      type="button"
+                      onClick={() => setPromoteAdminSelectedUserId(candidate.id)}
+                      className={`w-full rounded-xl px-4 py-3 text-left transition-colors ${
+                        promoteAdminSelectedUserId === candidate.id
+                          ? 'border border-[#5B68F1] bg-[rgba(91,104,241,0.15)]'
+                          : 'border border-[#2D2D2D] bg-[#1A1A1A]'
+                      }`}
+                    >
+                      <p className="truncate text-sm font-semibold text-white">{candidate.name}</p>
+                      <p className="truncate text-xs text-[#8D8D8D]">{candidate.email}</p>
+                    </button>
                   ))}
-                </select>
-                {filteredPromotableAdminUsers.length === 0 ? (
-                  <p className="mt-2 text-xs text-[#9C9C9C]">No hay usuarios elegibles con ese filtro.</p>
-                ) : null}
-                <button
-                  type="button"
-                  disabled={!promoteAdminSelectedUserId || !!pendingAction}
-                  onClick={() => void handlePromoteAdmin()}
-                  className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-lg bg-[#F59E0B] text-xs font-semibold text-[#111111] disabled:opacity-50"
-                >
-                  {pendingAction?.startsWith('admin:promote:') ? 'Procesando...' : 'Promover a ADMIN'}
-                </button>
+                  {filteredPromotableAdminUsers.length === 0 ? (
+                    <p className="px-4 py-3 text-xs text-[#9C9C9C]">No hay usuarios elegibles con ese filtro.</p>
+                  ) : null}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    disabled={!promoteAdminSelectedUserId || !!pendingAction}
+                    onClick={() => void handlePromoteAdmin()}
+                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#5B68F1] text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    {pendingAction?.startsWith('admin:promote:') ? 'Guardando...' : 'Confirmar'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeAdminFormModal}
+                    disabled={pendingAction?.startsWith('admin:promote:')}
+                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-[#2D2D2D] text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
             ) : (
               <div>

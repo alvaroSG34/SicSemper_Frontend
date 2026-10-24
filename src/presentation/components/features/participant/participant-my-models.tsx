@@ -43,7 +43,6 @@ type ParticipantMyModelsProps = {
   onDeleteModel?: (modelId: string) => Promise<void>;
 };
 
-type SortOption = "recent" | "oldest" | "name";
 type EditableFile = { existing?: ParticipantModelFile; newFile?: File };
 const participantModelEditDomains = ["participant", "model", "event"] as const;
 
@@ -109,7 +108,6 @@ export function ParticipantMyModels({
   const [eventFilter, setEventFilter] = useState<string>(normalizedInitialEventFilterId || "ALL");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("ALL");
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [copiedModelId, setCopiedModelId] = useState<string | null>(null);
   const [expandedModelId, setExpandedModelId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; fileName: string } | null>(null);
@@ -190,11 +188,6 @@ export function ParticipantMyModels({
     [models],
   );
 
-  const totalFiles = useMemo(
-    () => models.reduce((accumulator, model) => accumulator + model.files.length, 0),
-    [models],
-  );
-
   const filteredModels = useMemo(() => {
     const nextModels = models.filter((model) => {
       const matchesSearch =
@@ -213,22 +206,13 @@ export function ParticipantMyModels({
     });
 
     nextModels.sort((left, right) => {
-      if (sortBy === "name") {
-        return left.nombreModelo.localeCompare(right.nombreModelo);
-      }
-
       const leftDate = new Date(left.createdAt).getTime();
       const rightDate = new Date(right.createdAt).getTime();
-
-      if (sortBy === "oldest") {
-        return leftDate - rightDate;
-      }
-
       return rightDate - leftDate;
     });
 
     return nextModels;
-  }, [categoryFilter, eventFilter, models, normalizedSearch, sortBy, subcategoryFilter]);
+  }, [categoryFilter, eventFilter, models, normalizedSearch, subcategoryFilter]);
 
   const copyModelCode = async (modelId: string, code: string) => {
     try {
@@ -655,9 +639,9 @@ export function ParticipantMyModels({
               </div>
               <div className="min-w-0 rounded-xl border border-[#353535] bg-[#111111] px-2.5 py-2.5 sm:px-4 sm:py-3 text-center sm:text-left">
                 <p className="truncate text-xs sm:text-sm font-semibold uppercase tracking-wider text-[#B7B7B7]">
-                  Archivos
+                  Maquetas calificadas
                 </p>
-                <p className="mt-1 truncate text-xl sm:text-2xl font-semibold text-[#D1D5DB]">{totalFiles}</p>
+                <p className="mt-1 truncate text-xl sm:text-2xl font-semibold text-[#D1D5DB]">{modelsByStatus.CALIFICADA}</p>
               </div>
             </div>
 
@@ -731,18 +715,7 @@ export function ParticipantMyModels({
               </div>
 
               <div className="w-full min-w-0 md:col-span-5">
-                <select
-                  value={sortBy}
-                  onChange={(event) => {
-                    setSortBy(event.target.value as SortOption);
-                    setExpandedModelId(null);
-                  }}
-                  className="h-10 sm:h-11 w-full min-w-0 max-w-full truncate rounded-lg border border-[#3A3A3A] bg-[#101010] px-3 text-sm sm:text-base text-white outline-none transition focus-visible:border-[#6C8DFF] focus-visible:ring-2 focus-visible:ring-[#6C8DFF]/40"
-                >
-                  <option value="recent">Orden: Mas recientes</option>
-                  <option value="oldest">Orden: Mas antiguas</option>
-                  <option value="name">Orden: Nombre A-Z</option>
-                </select>
+                <h4 className={`${outfit.className} text-xl font-semibold text-white`}>Tus maquetas</h4>
               </div>
             </div>
           </>

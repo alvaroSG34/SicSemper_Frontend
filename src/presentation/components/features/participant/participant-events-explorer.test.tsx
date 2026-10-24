@@ -60,7 +60,7 @@ describe("ParticipantEventsExplorer", () => {
     expect(screen.getByText("ACTIVO")).toBeTruthy();
     expect(screen.getByText("PAUSADO")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Subir maqueta" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Ver maquetas" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Mis maquetas" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Ver podio" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Mas detalles" })).toHaveLength(2);
   });
@@ -90,7 +90,7 @@ describe("ParticipantEventsExplorer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Subir maqueta" }));
     await waitFor(() => expect(onStartUpload).toHaveBeenCalledWith("event-1"));
 
-    fireEvent.click(screen.getByRole("button", { name: "Ver maquetas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mis maquetas" }));
     expect(onGoToMyModelsByEvent).toHaveBeenCalledWith("event-1");
 
     fireEvent.click(screen.getByRole("button", { name: "Ver podio" }));
@@ -231,6 +231,35 @@ describe("ParticipantEventsExplorer", () => {
     fireEvent.keyDown(card, { key: "Enter" });
 
     expect(await screen.findByText("Detalle del evento")).toBeTruthy();
+  });
+
+  it("keeps the detail modal above mobile navigation and closes from outside", async () => {
+    render(
+      <ParticipantEventsExplorer
+        events={[events[0]]}
+        selectedEventId={null}
+        categoriesByEventId={{}}
+        categoriesLoadingByEventId={{}}
+        categoriesErrorByEventId={{}}
+        registeredEventIdSet={new Set(["event-1"])}
+        registeredEventIdsLoading={false}
+        onLoadEventCategories={vi.fn().mockResolvedValue(undefined)}
+        onStartUpload={vi.fn().mockResolvedValue(true)}
+        onRefresh={vi.fn().mockResolvedValue(undefined)}
+        onGoToMyModelsByEvent={vi.fn()}
+        onOpenParticipantsByEvent={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Mas detalles" }));
+    const dialog = await screen.findByRole("dialog", { name: "Detalle del evento" });
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(dialog.className).toContain("max-h-[calc(100dvh-2rem)]");
+    expect(dialog.className).toContain("overflow-y-auto");
+    expect(dialog.parentElement?.className).toContain("z-[70]");
+
+    fireEvent.click(dialog.parentElement!);
+    expect(screen.queryByRole("dialog", { name: "Detalle del evento" })).toBeNull();
   });
 
   it("refreshes events from empty state", async () => {

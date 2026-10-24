@@ -51,6 +51,14 @@ const secondModel: ParticipantModel = {
   eventId: "event-2",
 };
 
+const scoredModel: ParticipantModel = {
+  ...baseModel,
+  id: "model-scored",
+  nombreModelo: "Scored Aircraft",
+  status: "CALIFICADA",
+  files: [],
+};
+
 describe("ParticipantMyModels", () => {
   beforeEach(() => {
     Object.defineProperty(window.navigator, "clipboard", {
@@ -68,6 +76,38 @@ describe("ParticipantMyModels", () => {
     expect(container.querySelector(".hidden.lg\\:block")).toBeTruthy();
     expect(screen.getAllByText("Aircraft 97").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Tank 2").length).toBeGreaterThan(0);
+    expect(screen.getByText("Tus maquetas")).toBeTruthy();
+    expect(screen.queryByText("Orden: Mas recientes")).toBeNull();
+  });
+
+  it("shows the count of scored models instead of total files", () => {
+    render(<ParticipantMyModels models={[baseModel, scoredModel, { ...scoredModel, id: "model-scored-2" }]} />);
+
+    expect(screen.getByText("Maquetas calificadas")).toBeTruthy();
+    expect(screen.getByText("2")).toBeTruthy();
+    expect(screen.queryByText("Archivos")).toBeNull();
+  });
+
+  it("keeps the scored-model count independent from filters and shows file details per model", () => {
+    render(<ParticipantMyModels models={[baseModel, scoredModel]} />);
+
+    fireEvent.change(screen.getByPlaceholderText("Buscar por nombre, codigo, marca o evento"), {
+      target: { value: "Scored Aircraft" },
+    });
+    const scoredSummary = screen.getByText("Maquetas calificadas").closest("div");
+    expect(scoredSummary).toBeTruthy();
+    expect(within(scoredSummary!).getByText("1")).toBeTruthy();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Ver detalle de la maqueta" })[0]);
+    expect(screen.getAllByText("Imagenes y PDF").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Archivos:/).length).toBeGreaterThan(0);
+  });
+
+  it("shows zero when no model is scored", () => {
+    render(<ParticipantMyModels models={[baseModel, secondModel]} />);
+
+    expect(screen.getByText("Maquetas calificadas")).toBeTruthy();
+    expect(screen.getByText("0")).toBeTruthy();
   });
 
   it("expands and collapses model detail by model id", () => {

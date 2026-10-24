@@ -319,14 +319,14 @@ export function ParticipantEventsExplorer({
 
                     <button
                       type="button"
-                      aria-label="Ver maquetas"
+                      aria-label="Mis maquetas"
                       onClick={(clickEvent) => {
                         clickEvent.stopPropagation();
                         onGoToMyModelsByEvent(event.id);
                       }}
                       className="inline-flex h-10 items-center justify-center rounded-xl border border-[#3A3A3A] px-3 text-sm font-semibold text-[#D9D9D9] transition hover:border-[#4A4A4A] hover:text-white"
                     >
-                      Ver maquetas
+                      Mis maquetas
                     </button>
 
                     <button
@@ -363,9 +363,12 @@ export function ParticipantEventsExplorer({
       ) : null}
 
       {detailEvent ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setDetailEventId(null)}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" onClick={() => setDetailEventId(null)}>
           <article
-            className="max-h-[90vh] w-full max-w-[760px] overflow-y-auto rounded-2xl border border-[#2D2D2D] bg-[#121212]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Detalle del evento"
+            className="max-h-[calc(100dvh-2rem)] w-full max-w-[760px] overflow-y-auto rounded-2xl border border-[#2D2D2D] bg-[#121212] md:max-h-[90vh]"
             onClick={(clickEvent) => clickEvent.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#2D2D2D] px-5 py-4">

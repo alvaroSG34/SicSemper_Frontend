@@ -23,6 +23,7 @@ export function AutoPublicHeader() {
   const variant = pathname === "/login" ? "login" : "landing";
   const [activeLinkId, setActiveLinkId] = useState<string | null>("inicio");
   const [logoUrl, setLogoUrl] = useState("");
+  const [eventsAvailable, setEventsAvailable] = useState(false);
 
   const user = useAuthStore((state) => state.user);
   const currentRole = useAuthStore((state) => state.currentRole);
@@ -36,6 +37,12 @@ export function AutoPublicHeader() {
     ? (["SUPERADMIN"] as UserRole[])
     : rawAvailableRoles;
   const activeRole = currentRole ?? availableRoles[0] ?? null;
+  const landingSectionIds = useMemo(
+    () => eventsAvailable
+      ? (["inicio", "acerca", "agenda", "equipo", "ubicacion", "eventos"] as const)
+      : LANDING_SECTION_IDS,
+    [eventsAvailable],
+  );
 
   const dashboardHref = useMemo(() => {
     if (!activeRole) {
@@ -55,9 +62,11 @@ export function AutoPublicHeader() {
       })
       .then((payload) => {
         if (!cancelled && payload) {
-          const branding = normalizeLandingContent(payload).branding;
+          const normalizedContent = normalizeLandingContent(payload);
+          const branding = normalizedContent.branding;
           console.info('[branding] public:load:branding', branding);
           setLogoUrl(branding.logoUrl);
+          setEventsAvailable(normalizedContent.pastEvents.length > 0);
         }
       })
       .catch((error) => console.error('[branding] public:load:error', error));
@@ -82,14 +91,14 @@ export function AutoPublicHeader() {
 
     const updateFromHash = () => {
       const hashId = window.location.hash.replace("#", "");
-      if (LANDING_SECTION_IDS.includes(hashId as (typeof LANDING_SECTION_IDS)[number])) {
+      if ((landingSectionIds as readonly string[]).includes(hashId)) {
         setActiveLinkId(hashId);
       }
     };
 
     const hashFrame = window.requestAnimationFrame(updateFromHash);
 
-    const sections = LANDING_SECTION_IDS.map((id) => document.getElementById(id)).filter(
+    const sections = landingSectionIds.map((id) => document.getElementById(id)).filter(
       (section): section is HTMLElement => section !== null,
     );
 
@@ -122,7 +131,7 @@ export function AutoPublicHeader() {
       observer.disconnect();
       window.removeEventListener("hashchange", updateFromHash);
     };
-  }, [pathname]);
+  }, [landingSectionIds, pathname]);
 
   const handleRoleChange = async (role: UserRole) => {
     await switchRole(role);
@@ -147,6 +156,7 @@ export function AutoPublicHeader() {
       onRoleChange={handleRoleChange}
       onLogout={handleLogout}
       logoUrl={logoUrl}
+      eventsAvailable={eventsAvailable}
     />
   );
 }
