@@ -101,6 +101,7 @@ export function AdminEventsSection({
   const startTimeInputRef = useRef<HTMLInputElement | null>(null);
   const endDateInputRef = useRef<HTMLInputElement | null>(null);
   const endTimeInputRef = useRef<HTMLInputElement | null>(null);
+  const editingDeadlineDateInputRef = useRef<HTMLInputElement | null>(null);
 
   const openNativePicker = (input: HTMLInputElement | null) => {
     if (!input) {
@@ -689,7 +690,7 @@ export function AdminEventsSection({
                       className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
                       aria-label="Abrir selector de fecha de inicio"
                     >
-                      <CalendarDays className="h-4 w-4" />
+                  
                     </button>
                   </div>
                 </label>
@@ -741,7 +742,7 @@ export function AdminEventsSection({
                       className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
                       aria-label="Abrir selector de fecha de fin"
                     >
-                      <CalendarDays className="h-4 w-4" />
+                   
                     </button>
                   </div>
                 </label>
@@ -821,17 +822,27 @@ export function AdminEventsSection({
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                         Fecha limite de edicion
-                        <input
-                          type="date"
-                          value={eventForm.participantModelEditingDeadlineDate}
-                          onChange={(event) =>
-                            setEventForm((prev) => ({
-                              ...prev,
-                              participantModelEditingDeadlineDate: event.target.value,
-                            }))
-                          }
-                          className="h-10 rounded-lg border border-[#2D2D2D] bg-[#161616] px-3 text-sm text-white outline-none [color-scheme:dark]"
-                        />
+                        <div className="relative">
+                          <input
+                            ref={editingDeadlineDateInputRef}
+                            type="date"
+                            value={eventForm.participantModelEditingDeadlineDate}
+                            onChange={(event) =>
+                              setEventForm((prev) => ({
+                                ...prev,
+                                participantModelEditingDeadlineDate: event.target.value,
+                              }))
+                            }
+                            className="h-10 w-full appearance-none rounded-lg border border-[#2D2D2D] bg-[#161616] px-3 pr-10 text-sm text-white outline-none [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => openNativePicker(editingDeadlineDateInputRef.current)}
+                            className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10"
+                            aria-label="Abrir selector de fecha límite de edición"
+                          >
+                          </button>
+                        </div>
                       </label>
                       <label className="flex flex-col gap-1 text-xs text-[#A8A8A8]">
                         Hora limite de edicion

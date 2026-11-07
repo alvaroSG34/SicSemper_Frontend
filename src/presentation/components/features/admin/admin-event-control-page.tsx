@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   Pencil,
   Plus,
-  ShieldCheck,
   ShieldX,
   Trash2,
   X,
@@ -146,7 +145,6 @@ export function AdminEventControlPage({
     selectedParticipantDetail,
     setSelectedParticipantDetail,
     openParticipantDetail,
-    setParticipantVerifiedFromList,
     toggleParticipantBanFromList,
     models,
     modelsFilters,
@@ -502,40 +500,14 @@ export function AdminEventControlPage({
 
         {activeTab === "participantes" ? (
           <section className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4 sm:p-5">
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <button type="button" disabled={exportingParticipants} onClick={async () => {
-                setExportingParticipants(true);
-                setParticipantsExportError(null);
-                try {
-                  const response = await adminEventControlService.exportEventControlParticipants(eventId);
-                  const disposition = response.headers.get("content-disposition") ?? "";
-                  const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "participantes-evento.xlsx";
-                  const url = URL.createObjectURL(response.blob);
-                  const anchor = document.createElement("a");
-                  anchor.href = url;
-                  anchor.download = fileName;
-                  document.body.appendChild(anchor);
-                  anchor.click();
-                  anchor.remove();
-                  URL.revokeObjectURL(url);
-                } catch (error) {
-                  setParticipantsExportError(error instanceof Error ? error.message : "No se pudieron exportar los participantes y maquetas.");
-                } finally {
-                  setExportingParticipants(false);
-                }
-              }} className="inline-flex h-9 items-center rounded-lg border border-[#5B68F1] bg-[#5B68F1]/15 px-3 text-xs font-semibold text-white hover:bg-[#5B68F1]/25 disabled:opacity-50">
-                {exportingParticipants ? "Exportando?" : "Exportar participantes y maquetas"}
-              </button>
-              {participantsExportError ? <p role="alert" className="text-sm text-red-400">{participantsExportError}</p> : null}
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 value={participantsFilters.search}
                 onChange={(event) =>
                   setParticipantsFilters((prev) => ({ ...prev, search: event.target.value }))
                 }
                 placeholder="Buscar por nombre o correo"
-                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+                className="h-9 w-full min-w-0 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none sm:w-auto sm:flex-1"
               />
               <select
                 value={participantsFilters.userStatus}
@@ -545,40 +517,73 @@ export function AdminEventControlPage({
                     userStatus: event.target.value as typeof prev.userStatus,
                   }))
                 }
-                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
+                className="h-9 w-full rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none sm:w-auto"
               >
                 <option value="">Estado usuario: todos</option>
                 <option value="ACTIVO">ACTIVO</option>
                 <option value="INACTIVO">INACTIVO</option>
                 <option value="SUSPENDIDO">SUSPENDIDO</option>
               </select>
-              <select
-                value={participantsFilters.verified}
-                onChange={(event) =>
-                  setParticipantsFilters((prev) => ({
-                    ...prev,
-                    verified: event.target.value as typeof prev.verified,
-                  }))
-                }
-                className="h-10 rounded-lg border border-[#2D2D2D] bg-[#101010] px-3 text-sm text-white outline-none"
-              >
-                <option value="">Verificación: todos</option>
-                <option value="true">Verificados</option>
-                <option value="false">Sin verificar</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => setParticipantsPage(1)}
-                className="h-10 rounded-lg border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] px-3 text-sm font-semibold text-white"
-              >
-                Aplicar filtros
-              </button>
+              <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setParticipantsPage(1)}
+                  className="h-9 whitespace-nowrap rounded-lg border border-[#5B68F1] bg-[rgba(91,104,241,0.2)] px-3 text-xs font-semibold text-white"
+                >
+                  Aplicar filtros
+                </button>
+                <button
+                  type="button"
+                  disabled={exportingParticipants}
+                  aria-busy={exportingParticipants}
+                  onClick={async () => {
+                    setExportingParticipants(true);
+                    setParticipantsExportError(null);
+                    try {
+                      const response =
+                        await adminEventControlService.exportEventControlParticipants(eventId);
+                      const disposition = response.headers.get("content-disposition") ?? "";
+                      const fileName =
+                        disposition.match(/filename="?([^";]+)"?/i)?.[1] ??
+                        "participantes-evento.xlsx";
+                      const url = URL.createObjectURL(response.blob);
+                      const anchor = document.createElement("a");
+                      anchor.href = url;
+                      anchor.download = fileName;
+                      document.body.appendChild(anchor);
+                      anchor.click();
+                      anchor.remove();
+                      URL.revokeObjectURL(url);
+                    } catch (error) {
+                      setParticipantsExportError(
+                        error instanceof Error
+                          ? error.message
+                          : "No se pudieron exportar los participantes y maquetas.",
+                      );
+                    } finally {
+                      setExportingParticipants(false);
+                    }
+                  }}
+                  className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-500 bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  Exportar Excel
+                </button>
+              </div>
+            </div>
+            <div className="mt-2 space-y-1">
+              <p className="basis-full text-xs text-[#9C9C9C]">
+                Se exporta todo el evento, sin aplicar los filtros de la tabla.
+              </p>
+              {participantsExportError ? (
+                <p role="alert" className="text-sm text-red-400">
+                  {participantsExportError}
+                </p>
+              ) : null}
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {participants.map((row) => {
                 const isSuspended = row.status === "SUSPENDIDO";
-                const actionKeyVerified = `participant:verified:${row.userId}`;
                 const actionKeyBan = `participant:ban:${row.userId}`;
                 return (
                   <article
@@ -608,16 +613,26 @@ export function AdminEventControlPage({
 
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
-                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Inscripciones</p>
-                        <p className="mt-1 text-lg font-semibold text-white">{row.registrationsCount}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                          Inscripciones
+                        </p>
+                        <p className="mt-1 text-lg font-semibold text-white">
+                          {row.registrationsCount}
+                        </p>
                       </div>
                       <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
-                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Maquetas</p>
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                          Maquetas
+                        </p>
                         <p className="mt-1 text-lg font-semibold text-white">{row.modelsCount}</p>
                       </div>
                       <div className="col-span-2 rounded-lg border border-[#252525] bg-[#161616] p-2">
-                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Última inscripción</p>
-                        <p className="mt-1 text-sm text-[#D1D1D1]">{formatDateTime(row.lastRegistrationDate)}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                          Última inscripción
+                        </p>
+                        <p className="mt-1 text-sm text-[#D1D1D1]">
+                          {formatDateTime(row.lastRegistrationDate)}
+                        </p>
                       </div>
                     </div>
 
@@ -636,21 +651,14 @@ export function AdminEventControlPage({
                           <button
                             type="button"
                             onClick={() =>
-                              void setParticipantVerifiedFromList(row.userId, !row.verified)
-                            }
-                            disabled={pendingAction === actionKeyVerified}
-                            className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
-                          >
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            {row.verified ? "Quitar verif." : "Verificar"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
                               void toggleParticipantBanFromList(row.userId, isSuspended)
                             }
                             disabled={pendingAction === actionKeyBan}
-                            className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border border-[#2D2D2D] px-3 text-xs text-white disabled:opacity-50"
+                            className={`inline-flex h-9 w-full items-center justify-center gap-1 rounded-lg border px-3 text-xs disabled:opacity-50 ${
+                              isSuspended
+                                ? "border-[#2D2D2D] text-white"
+                                : "border-red-400/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+                            }`}
                           >
                             <ShieldX className="h-3.5 w-3.5" />
                             {isSuspended ? "Reactivar" : "Suspender"}
@@ -949,13 +957,17 @@ export function AdminEventControlPage({
 
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
-                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Participante</p>
+                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                        Participante
+                      </p>
                       <p className="mt-1 break-words text-[#D1D1D1]">{row.participantName}</p>
                       <p className="break-all text-xs text-[#9C9C9C]">{row.participantEmail}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="min-w-0 rounded-lg border border-[#252525] bg-[#161616] p-2">
-                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Categoría</p>
+                        <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                          Categoría
+                        </p>
                         <p className="mt-1 break-words text-[#D1D1D1]">{row.categoryLabel}</p>
                       </div>
                       <div className="min-w-0 rounded-lg border border-[#252525] bg-[#161616] p-2">
@@ -964,8 +976,12 @@ export function AdminEventControlPage({
                       </div>
                     </div>
                     <div className="rounded-lg border border-[#252525] bg-[#161616] p-2">
-                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">Puntaje final</p>
-                      <p className="mt-1 text-lg font-semibold text-white">{formatScore(row.finalScore)}</p>
+                      <p className="text-[10px] uppercase tracking-wide text-[#8F8F8F]">
+                        Puntaje final
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-white">
+                        {formatScore(row.finalScore)}
+                      </p>
                     </div>
                   </div>
 

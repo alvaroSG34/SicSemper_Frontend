@@ -1,5 +1,6 @@
 import type {
   AdminClub,
+  ParticipantExportExtraColumn,
   AdminDashboardData,
   AdminDashboardSummary,
   AuditLogDetailItem,
@@ -153,7 +154,10 @@ export interface AdminService {
     pageSize?: number;
   }): Promise<AdminEventPodiumResult>;
   exportEventControlPodium(eventId: string): Promise<{ blob: Blob; headers: Headers }>;
-  exportEventControlParticipants(eventId: string): Promise<{ blob: Blob; headers: Headers }>;
+  exportEventControlParticipants(
+    eventId: string,
+    extraColumns?: ParticipantExportExtraColumn[],
+  ): Promise<{ blob: Blob; headers: Headers }>;
   listEventControlParticipants(input: {
     eventId: string;
     page?: number;

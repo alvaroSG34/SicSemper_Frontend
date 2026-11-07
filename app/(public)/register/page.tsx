@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
+import { CalendarDays, Eye, EyeOff, Rocket, Sparkles, Star } from "lucide-react";
 import { listRegisterClubs, type RegisterClubOption } from "@/application/auth/auth.service";
 import { CITIES_BY_COUNTRY, COUNTRY_OPTIONS } from "@/core/constants";
 import { getBrowserApiBaseUrl } from "@/infrastructure/api/api-base-url";
@@ -173,6 +173,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
+  const birthDateInputRef = useRef<HTMLInputElement | null>(null);
   const countryMenuRef = useRef<HTMLDivElement | null>(null);
   const [isClubMenuOpen, setIsClubMenuOpen] = useState(false);
   const clubMenuRef = useRef<HTMLDivElement | null>(null);
@@ -725,15 +726,36 @@ export default function RegisterPage() {
                 <label htmlFor="birthDate" className={labelClassName}>
                   Fecha de nacimiento
                 </label>
-                <input
-                  id="birthDate"
-                  type="date"
-                  value={form.birthDate}
-                  onChange={handleChange("birthDate")}
-                  onBlur={handleBlur("birthDate")}
-                  className={`${inputClassName} [color-scheme:dark]`}
-                  autoComplete="bday"
-                />
+                <div className="relative">
+                  <input
+                    ref={birthDateInputRef}
+                    id="birthDate"
+                    type="date"
+                    value={form.birthDate}
+                    onChange={handleChange("birthDate")}
+                    onBlur={handleBlur("birthDate")}
+                    className={`${inputClassName} pr-12 [color-scheme:dark]`}
+                    style={{ backgroundImage: "none" }}
+                    autoComplete="bday"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Abrir selector de fecha de nacimiento"
+                    onClick={() => {
+                      const input = birthDateInputRef.current;
+                      if (!input) return;
+                      if (typeof input.showPicker === "function") {
+                        input.showPicker();
+                      } else {
+                        input.focus();
+                        input.click();
+                      }
+                    }}
+                    className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5865f2]"
+                  >
+                    <CalendarDays className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
               <div className="register-field-enter flex flex-col gap-2" style={{ ...fieldEnterStyle(460), ...(isClubMenuOpen ? { position: 'relative', zIndex: 50 } : {}) }}>

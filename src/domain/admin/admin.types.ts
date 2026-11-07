@@ -687,3 +687,5 @@ export type AdminNotificationsMutationResult = {
   success: boolean;
   marked?: number;
 };
+
+export type ParticipantExportExtraColumn = "club" | "registrationStatus" | "scale";

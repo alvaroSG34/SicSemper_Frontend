@@ -51,11 +51,18 @@ export const adminEventControlService: Pick<
   | "clearEventPodiumTieBreakGroup"
   | "getEventPodiumTieBreakOptions"
 > = {
-  async exportEventControlParticipants(eventId) {
+  async exportEventControlParticipants(eventId, extraColumns = []) {
     try {
-      return await apiRequestBlob(`/admin/events/${eventId}/control/participants/export.xlsx`);
+      const query = buildQueryString({
+        extraColumns: extraColumns.length ? extraColumns.join(",") : undefined,
+      });
+      return await apiRequestBlob(
+        `/admin/events/${eventId}/control/participants/export.xlsx${query}`,
+      );
     } catch (error) {
-      throw new Error(toErrorMessage(error, "No se pudieron exportar los participantes y maquetas."));
+      throw new Error(
+        toErrorMessage(error, "No se pudieron exportar los participantes y maquetas."),
+      );
     }
   },
 

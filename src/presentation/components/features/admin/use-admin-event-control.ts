@@ -21,7 +21,6 @@ const DEFAULT_PAGE_SIZE = 20;
 type ParticipantsFilterState = {
   search: string;
   userStatus: "" | "ACTIVO" | "INACTIVO" | "SUSPENDIDO";
-  verified: "" | "true" | "false";
 };
 
 type ModelsFilterState = {
@@ -61,7 +60,6 @@ export const useAdminEventControl = ({
   const [participantsFilters, setParticipantsFilters] = useState<ParticipantsFilterState>({
     search: "",
     userStatus: "",
-    verified: "",
   });
   const [selectedParticipantDetail, setSelectedParticipantDetail] =
     useState<AdminEventParticipantDetail | null>(null);
@@ -103,10 +101,6 @@ export const useAdminEventControl = ({
       pageSize: participantsPageSize,
       search: participantsFilters.search.trim() || undefined,
       userStatus: participantsFilters.userStatus || undefined,
-      verified:
-        participantsFilters.verified === ""
-          ? undefined
-          : participantsFilters.verified === "true",
     });
     setParticipants(response.items);
     setParticipantsTotal(response.total);
