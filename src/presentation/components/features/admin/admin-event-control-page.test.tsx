@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
 import { AdminEventControlPage } from "./admin-event-control-page";
 
 const mockUseAdminEventControl = vi.fn();
@@ -120,4 +121,28 @@ describe("AdminEventControlPage", () => {
     expect(screen.queryByText("Podio operativo por segmento")).toBeNull();
     expect(screen.queryByText("Actividad reciente")).toBeNull();
   });
+  it("downloads the event-wide participants spreadsheet", async () => {
+    const request = vi.spyOn(adminEventControlService, "exportEventControlParticipants").mockResolvedValue({
+      blob: new Blob(["xlsx"]), headers: new Headers({ "content-disposition": 'attachment; filename="participantes-expo.xlsx"' }),
+    });
+    const revoke = vi.fn();
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:test") });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revoke });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    render(<AdminEventControlPage eventId="event-1" initialTab="participantes" />);
+    fireEvent.click(screen.getByRole("button", { name: "Exportar participantes y maquetas" }));
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    expect(request).toHaveBeenCalledWith("event-1");
+    expect(revoke).toHaveBeenCalledWith("blob:test");
+    request.mockRestore(); click.mockRestore();
+  });
+
+  it("shows an export error", async () => {
+    const request = vi.spyOn(adminEventControlService, "exportEventControlParticipants").mockRejectedValue(new Error("No se pudo descargar"));
+    render(<AdminEventControlPage eventId="event-1" initialTab="participantes" />);
+    fireEvent.click(screen.getByRole("button", { name: "Exportar participantes y maquetas" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("No se pudo descargar");
+    request.mockRestore();
+  });
+
 });

@@ -35,6 +35,7 @@ export const adminEventControlService: Pick<
   | "listEventControlPodiumSegments"
   | "getEventControlPodiumResult"
   | "exportEventControlPodium"
+  | "exportEventControlParticipants"
   | "listEventControlParticipants"
   | "getEventControlParticipantDetail"
   | "listEventControlModels"
@@ -50,6 +51,14 @@ export const adminEventControlService: Pick<
   | "clearEventPodiumTieBreakGroup"
   | "getEventPodiumTieBreakOptions"
 > = {
+  async exportEventControlParticipants(eventId) {
+    try {
+      return await apiRequestBlob(`/admin/events/${eventId}/control/participants/export.xlsx`);
+    } catch (error) {
+      throw new Error(toErrorMessage(error, "No se pudieron exportar los participantes y maquetas."));
+    }
+  },
+
   async exportEventControlPodium(eventId) {
     try {
       return await apiRequestBlob(`/admin/events/${eventId}/control/podium/export.xlsx`);

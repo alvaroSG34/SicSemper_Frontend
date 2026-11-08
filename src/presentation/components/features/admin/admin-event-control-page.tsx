@@ -20,6 +20,7 @@ import {
 import { createAdminAccessMatrix } from "@/presentation/components/features/admin/admin-access-matrix";
 import { useAdminEventControl } from "@/presentation/components/features/admin/use-admin-event-control";
 import { AdminEventPodiumSection } from "@/presentation/components/features/admin/admin-event-podium-section";
+import { adminEventControlService } from "@/application/admin/services/admin-event-control.service";
 import { useAuthStore, useAdminStore } from "@/presentation/stores";
 import { ImageWithSkeleton } from "@/presentation/components/ui";
 import { useRealtimeDirtyForm } from "@/presentation/realtime/use-realtime-dirty-form";
@@ -99,6 +100,8 @@ export function AdminEventControlPage({
   const loadSummary = useAdminStore((state) => state.loadSummary);
 
   const [activeTab, setActiveTab] = useState<EventControlTab>(initialTab);
+  const [exportingParticipants, setExportingParticipants] = useState(false);
+  const [participantsExportError, setParticipantsExportError] = useState<string | null>(null);
   const [editingModel, setEditingModel] = useState<EditingModelState | null>(null);
   useRealtimeDirtyForm([...adminModelEditDomains], Boolean(editingModel));
   const [modelPendingDeletion, setModelPendingDeletion] = useState<{
@@ -499,6 +502,32 @@ export function AdminEventControlPage({
 
         {activeTab === "participantes" ? (
           <section className="rounded-2xl border border-[#2D2D2D] bg-[#161616] p-4 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <button type="button" disabled={exportingParticipants} onClick={async () => {
+                setExportingParticipants(true);
+                setParticipantsExportError(null);
+                try {
+                  const response = await adminEventControlService.exportEventControlParticipants(eventId);
+                  const disposition = response.headers.get("content-disposition") ?? "";
+                  const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "participantes-evento.xlsx";
+                  const url = URL.createObjectURL(response.blob);
+                  const anchor = document.createElement("a");
+                  anchor.href = url;
+                  anchor.download = fileName;
+                  document.body.appendChild(anchor);
+                  anchor.click();
+                  anchor.remove();
+                  URL.revokeObjectURL(url);
+                } catch (error) {
+                  setParticipantsExportError(error instanceof Error ? error.message : "No se pudieron exportar los participantes y maquetas.");
+                } finally {
+                  setExportingParticipants(false);
+                }
+              }} className="inline-flex h-9 items-center rounded-lg border border-[#5B68F1] bg-[#5B68F1]/15 px-3 text-xs font-semibold text-white hover:bg-[#5B68F1]/25 disabled:opacity-50">
+                {exportingParticipants ? "Exportando?" : "Exportar participantes y maquetas"}
+              </button>
+              {participantsExportError ? <p role="alert" className="text-sm text-red-400">{participantsExportError}</p> : null}
+            </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <input
                 value={participantsFilters.search}
