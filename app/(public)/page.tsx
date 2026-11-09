@@ -1,12 +1,15 @@
+import { publicPageMetadata, siteTitle, siteDescription } from "@/core/seo";
 import dynamic from "next/dynamic";
-import { getApiBaseUrl } from "@/infrastructure/api/api-base-url";
-import { landingDefaultContent, normalizeLandingContent } from "@/presentation/components/features/landing/landing-data";
+import { loadPublicLandingContent } from "@/infrastructure/api/landing-public";
+
+export const metadata = publicPageMetadata({
+  title: siteTitle,
+  description: siteDescription,
+  path: "/",
+});
 
 const LandingPageFeature = dynamic(
-  () =>
-    import("@/presentation/components/features").then(
-      (module) => module.LandingPageFeature,
-    ),
+  () => import("@/presentation/components/features").then((module) => module.LandingPageFeature),
   {
     loading: () => (
       <main className="flex min-h-screen items-center justify-center bg-[color:var(--landing-bg)] text-white">
@@ -18,25 +21,8 @@ const LandingPageFeature = dynamic(
   },
 );
 
-async function loadLandingContent() {
-  try {
-    const response = await fetch(`${getApiBaseUrl()}/landing/content`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!response.ok) {
-      return landingDefaultContent;
-    }
-
-    const payload = (await response.json()) as unknown;
-    return normalizeLandingContent(payload);
-  } catch {
-    return landingDefaultContent;
-  }
-}
-
 export default async function LandingPage() {
-  const landingContent = await loadLandingContent();
+  const landingContent = await loadPublicLandingContent();
 
   return <LandingPageFeature content={landingContent} />;
 }

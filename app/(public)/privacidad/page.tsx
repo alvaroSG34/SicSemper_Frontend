@@ -1,5 +1,13 @@
+import { publicPageMetadata } from "@/core/seo";
 import Link from "next/link";
 import { AutoPublicHeader } from "@/presentation/components/layout";
+
+export const metadata = publicPageMetadata({
+  title: "Política de privacidad | SICSEMPER",
+  description:
+    "Conoce cómo SICSEMPER trata los datos personales de registros e inscripciones en su plataforma de modelismo.",
+  path: "/privacidad",
+});
 
 export default function PrivacyPage() {
   return (
@@ -13,20 +21,26 @@ export default function PrivacyPage() {
 
         <article className="space-y-4 text-sm leading-7 text-[#D0D0D0]">
           <p>
-            SICSEMPER recopila datos personales unicamente para gestionar registros, inscripciones y comunicacion operativa de la plataforma.
+            SICSEMPER recopila datos personales unicamente para gestionar registros, inscripciones y
+            comunicacion operativa de la plataforma.
           </p>
           <p>
-            Los datos pueden incluir nombre, correo electronico, telefono, ciudad, pais y datos de participacion en eventos. No se comercializa informacion personal.
+            Los datos pueden incluir nombre, correo electronico, telefono, ciudad, pais y datos de
+            participacion en eventos. No se comercializa informacion personal.
           </p>
           <p>
             Puedes solicitar correccion o eliminacion de tus datos escribiendo a{" "}
-            <a className="text-[#7CD4D1] hover:text-white" href="mailto:contacto@SICSEMPERbolivia.org">
+            <a
+              className="text-[#7CD4D1] hover:text-white"
+              href="mailto:contacto@SICSEMPERbolivia.org"
+            >
               contacto@SICSEMPERbolivia.org
             </a>
             .
           </p>
           <p>
-            Al usar la plataforma aceptas el tratamiento de datos necesario para operar concursos, evaluaciones y comunicaciones del evento.
+            Al usar la plataforma aceptas el tratamiento de datos necesario para operar concursos,
+            evaluaciones y comunicaciones del evento.
           </p>
         </article>
 

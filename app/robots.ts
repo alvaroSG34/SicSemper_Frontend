@@ -1,18 +1,13 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = "https://sicsempermodelismo.com.bo";
+import { siteUrl } from "@/core/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: [
-        "/admin/",
-        "/juez/",
-        "/participante/",
-        "/api/",
-      ],
+      disallow: ["/api/"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,

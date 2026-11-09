@@ -72,13 +72,17 @@ export function LandingHero({ content }: LandingHeroProps) {
       <h1 className="whitespace-pre-line text-4xl leading-[1.2] font-bold text-[color:var(--landing-text)] md:text-5xl xl:text-[56px]">
         {content.heroTitle}
       </h1>
+      <p className="max-w-2xl text-base leading-7 text-[color:var(--landing-muted)] md:text-lg">
+        SICSEMPER, club de modelismo estático en Santa Cruz, Bolivia. Compartimos la pasión por las
+        maquetas y organizamos concursos para nuestra comunidad de modelistas.
+      </p>
       <button
         type="button"
         onClick={handleUploadClick}
         disabled={isNavigating}
         className="flex h-[76px] w-full max-w-[360px] items-center justify-center rounded-[38px] bg-[color:var(--landing-pink)] px-8 text-[22px] font-bold tracking-[0.02em] text-[color:var(--landing-text)] shadow-[0_18px_40px_rgba(83,184,180,0.32)] transition-transform duration-300 hover:scale-[1.02] md:h-[92px] md:max-w-[440px] md:text-[28px]"
       >
-       Inscribete
+        Inscribete
       </button>
     </section>
   );

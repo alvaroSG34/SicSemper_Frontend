@@ -23,18 +23,33 @@ describe("LandingFooter", () => {
     render(<LandingFooter />);
 
     expect(screen.getByRole("link", { name: "Inicio" }).getAttribute("href")).toBe("#inicio");
-    expect(screen.getByRole("link", { name: "Acerca de" }).getAttribute("href")).toBe("#acerca");
-    expect(screen.getByRole("link", { name: "Agenda" }).getAttribute("href")).toBe("#agenda");
-    expect(screen.getByRole("link", { name: "Organizadores" }).getAttribute("href")).toBe("#equipo");
-    expect(screen.getByRole("link", { name: "Ubicacion" }).getAttribute("href")).toBe("#ubicacion");
+    expect(
+      screen.getByRole("link", { name: "Club de modelismo en Santa Cruz" }).getAttribute("href"),
+    ).toBe("/club-modelismo-santa-cruz");
+    expect(screen.getByRole("link", { name: "Eventos de modelismo" }).getAttribute("href")).toBe(
+      "/eventos",
+    );
+    expect(screen.getByRole("link", { name: "Cronograma" }).getAttribute("href")).toBe("#agenda");
+    expect(screen.getByRole("link", { name: "Crear cuenta" }).getAttribute("href")).toBe(
+      "/register",
+    );
+    expect(screen.getByRole("link", { name: "Iniciar sesión" }).getAttribute("href")).toBe(
+      "/login",
+    );
+    expect(screen.getByRole("link", { name: "Organizadores" }).getAttribute("href")).toBe(
+      "#equipo",
+    );
+    expect(screen.getByRole("link", { name: "Ubicación del evento" }).getAttribute("href")).toBe(
+      "#ubicacion",
+    );
   });
 
   it("renders contact and legal links", () => {
     render(<LandingFooter />);
 
-    expect(screen.getByRole("link", { name: "contacto@SICSEMPERbolivia.org" }).getAttribute("href")).toBe(
-      "mailto:contacto@SICSEMPERbolivia.org",
-    );
+    expect(
+      screen.getByRole("link", { name: "contacto@SICSEMPERbolivia.org" }).getAttribute("href"),
+    ).toBe("mailto:contacto@SICSEMPERbolivia.org");
     expect(screen.getByRole("link", { name: "Politica de privacidad" }).getAttribute("href")).toBe(
       "/privacidad",
     );

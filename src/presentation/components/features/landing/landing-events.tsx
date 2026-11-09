@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { LandingContent } from "@/domain/landing/landing.types";
 
 type LandingEventsProps = {
@@ -24,6 +25,12 @@ export function LandingEvents({ content }: LandingEventsProps) {
         <p className="whitespace-pre-line text-sm leading-[1.6] font-normal text-[color:var(--landing-muted)]">
           {content.eventsCopy.descriptionTwo}
         </p>
+        <Link
+          href="/club-modelismo-santa-cruz"
+          className="text-sm font-semibold text-[color:var(--landing-pink)] hover:underline"
+        >
+          Conoce nuestro club de modelismo
+        </Link>
       </div>
 
       <Image

@@ -1,5 +1,13 @@
+import { publicPageMetadata } from "@/core/seo";
 import Link from "next/link";
 import { AutoPublicHeader } from "@/presentation/components/layout";
+
+export const metadata = publicPageMetadata({
+  title: "Términos y condiciones | SICSEMPER",
+  description:
+    "Consulta las condiciones de uso de la plataforma SICSEMPER para el registro y la participación en concursos de modelismo.",
+  path: "/terminos",
+});
 
 export default function TermsPage() {
   return (
@@ -13,16 +21,20 @@ export default function TermsPage() {
 
         <article className="space-y-4 text-sm leading-7 text-[#D0D0D0]">
           <p>
-            El uso de la plataforma SICSEMPER implica aceptar estas condiciones para registro, participacion y seguimiento de competencias.
+            El uso de la plataforma SICSEMPER implica aceptar estas condiciones para registro,
+            participacion y seguimiento de competencias.
           </p>
           <p>
-            Cada usuario es responsable de la veracidad de la informacion registrada y del cumplimiento de bases del evento publicadas por la organizacion.
+            Cada usuario es responsable de la veracidad de la informacion registrada y del
+            cumplimiento de bases del evento publicadas por la organizacion.
           </p>
           <p>
-            SICSEMPER puede actualizar fechas, categorias, criterios o funcionalidades de la plataforma para garantizar operacion y seguridad.
+            SICSEMPER puede actualizar fechas, categorias, criterios o funcionalidades de la
+            plataforma para garantizar operacion y seguridad.
           </p>
           <p>
-            Cualquier incumplimiento de normas del evento o uso indebido de la plataforma puede derivar en suspension de cuenta o anulacion de inscripciones.
+            Cualquier incumplimiento de normas del evento o uso indebido de la plataforma puede
+            derivar en suspension de cuenta o anulacion de inscripciones.
           </p>
         </article>
 

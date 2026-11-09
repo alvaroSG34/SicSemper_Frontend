@@ -1,18 +1,17 @@
 import Link from "next/link";
 
-const sectionLinks = [
+const clubLinks = [
   { label: "Inicio", href: "#inicio" },
-  { label: "Acerca de", href: "#acerca" },
-  { label: "Agenda", href: "#agenda" },
+  { label: "Club de modelismo en Santa Cruz", href: "/club-modelismo-santa-cruz" },
   { label: "Organizadores", href: "#equipo" },
-  { label: "Ubicacion", href: "#ubicacion" },
+  { label: "Ubicación del evento", href: "#ubicacion" },
 ];
 
-const competitionLinks = [
-  { label: "Bases y reglamento", href: "#agenda" },
-  { label: "Proceso de evaluacion", href: "#agenda" },
+const participationLinks = [
+  { label: "Eventos de modelismo", href: "/eventos" },
   { label: "Cronograma", href: "#agenda" },
-  { label: "Resultados", href: "#agenda" },
+  { label: "Crear cuenta", href: "/register" },
+  { label: "Iniciar sesión", href: "/login" },
 ];
 
 const footerLinkClassName =
@@ -38,7 +37,8 @@ export function LandingFooter({
           <div className="relative w-full xl:w-[280px]">
             <p className="text-xl font-semibold text-[color:var(--landing-text)]">SICSEMPER</p>
             <p className="mt-3 text-[13px] text-[color:var(--landing-muted)]">
-              Plataforma oficial de gestion para competencias de modelismo y maquetas.
+              Club de modelismo estático en Santa Cruz, Bolivia. Organizamos concursos de modelismo
+              y maquetas.
             </p>
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -51,10 +51,10 @@ export function LandingFooter({
           </div>
 
           <div className="flex flex-wrap gap-10 xl:gap-20">
-            <nav aria-label="Navegacion del footer" className="flex min-w-[170px] flex-col gap-4">
-              <p className="text-sm font-semibold text-[color:var(--landing-text)]">Navegacion</p>
+            <nav aria-label="El club" className="flex min-w-[170px] flex-col gap-4">
+              <p className="text-sm font-semibold text-[color:var(--landing-text)]">El club</p>
               <ul className="space-y-2">
-                {sectionLinks.map((link) => (
+                {clubLinks.map((link) => (
                   <li key={link.label}>
                     <a href={link.href} className={footerLinkClassName}>
                       {link.label}
@@ -64,10 +64,12 @@ export function LandingFooter({
               </ul>
             </nav>
 
-            <nav aria-label="Recursos de competencia" className="flex min-w-[170px] flex-col gap-4">
-              <p className="text-sm font-semibold text-[color:var(--landing-text)]">Competencia</p>
+            <nav aria-label="Eventos y participación" className="flex min-w-[170px] flex-col gap-4">
+              <p className="text-sm font-semibold text-[color:var(--landing-text)]">
+                Eventos y participación
+              </p>
               <ul className="space-y-2">
-                {competitionLinks.map((link) => (
+                {participationLinks.map((link) => (
                   <li key={link.label}>
                     <a href={link.href} className={footerLinkClassName}>
                       {link.label}
@@ -80,7 +82,8 @@ export function LandingFooter({
             <div className="flex min-w-[280px] flex-col gap-4">
               <p className="text-sm font-semibold text-[color:var(--landing-text)]">Contacto</p>
               <p className="max-w-[280px] text-[13px] leading-[1.5] text-[color:var(--landing-muted)]">
-                Tienes dudas sobre la inscripcion o categorias? Contactanos para recibir informacion oficial del evento.
+                Tienes dudas sobre la inscripcion o categorias? Contactanos para recibir informacion
+                oficial del evento.
               </p>
 
               <a
@@ -98,11 +101,7 @@ export function LandingFooter({
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#25D366]/50 text-[#25D366] transition-colors hover:bg-[#25D366]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/Images/whatsapp-logo.svg"
-                    alt=""
-                    className="h-6 w-6 object-contain"
-                  />
+                  <img src="/Images/whatsapp-logo.svg" alt="" className="h-6 w-6 object-contain" />
                 </a>
               ) : null}
             </div>
