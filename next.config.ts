@@ -1,8 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  async redirects() {
+    // Normalize only public SEO routes; leave API, auth and assets on their origin.
+    return [
+      "/",
+      "/club-modelismo-santa-cruz",
+      "/eventos",
+      "/eventos/:id",
+      "/privacidad",
+      "/terminos",
+      "/sitemap.xml",
+      "/robots.txt",
+    ].map((source) => ({
+      source,
+      has: [{ type: "host" as const, value: "www\\.sicsempermodelismo\\.com\\.bo" }],
+      destination: `https://sicsempermodelismo.com.bo${source}`,
+      permanent: true,
+    }));
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
